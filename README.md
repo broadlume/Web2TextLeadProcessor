@@ -1,5 +1,18 @@
-# Hello world - TypeScript example
+# Web2Text Lead Processor
 
-Sample project configuration of a Restate service using the TypeScript SDK.
-
-Have a look at the [TypeScript Quickstart guide](https://docs.restate.dev/get_started/quickstart?sdk=ts) for more information on how to use this project.
+## Local Setup
+1. Follow the instructions [here](https://docs.restate.dev/develop/local_dev) to install the Restate Server and Restate CLI
+2. Run the restate server
+```
+mkdir restate-dev
+cd restate-dev
+restate-server
+``` 
+3. Clone the repository and run `install` (e.g. `pnpm install`)
+4. Run `app-dev` (e.g. `pnpm app-dev`)
+5. Open a new terminal window and type
+```
+restate dep register localhost:9075
+```
+6. The lead processing endpoints should show up, confirm the registration
+7. The endpoints are now available at `localhost:8080/Lead/{endpoint}` - query them with postman to test

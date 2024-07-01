@@ -213,8 +213,6 @@ export const LeadVirtualObject = restate.object({
 		close: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext): Promise<LeadState> => {
 			await setup(ctx,["ACTIVE","CLOSED","SYNCING"]);
 			try {
-                ctx.set("Status", "CLOSED");
-                await SyncWithDB(ctx,"SEND");
 				const integrationStates =
 					(await ctx.get<SubmittedLeadState["Integrations"]>("Integrations")) ??
 					[];
@@ -230,7 +228,6 @@ export const LeadVirtualObject = restate.object({
 						);
 						continue;
 					}
-					await SyncWithDB(ctx, "SEND");
 					let newState: ExternalIntegrationState;
 					try {
 						newState = await handler.close(state,ctx);
@@ -239,13 +236,14 @@ export const LeadVirtualObject = restate.object({
 							...state,
 							SyncStatus: "ERROR",
 							Error: {
-								Message: "An error occurred during sync",
+								Message: "An error occurred during close",
 								Details: `${e}`,
 							},
 						};
 					}
 					integrationStates[i] = newState;
 					ctx.set("Integrations", integrationStates);
+					ctx.set("Status", "CLOSED");
 					await SyncWithDB(ctx, "SEND");
 				}
 			} catch (e) {

@@ -3,6 +3,8 @@ declare global {
       interface ProcessEnv {
         TWILIO_ACCOUNT_SID?: string;
         TWILIO_AUTH_TOKEN?: string;
+        TWILIO_API_SID?: string;
+        TWILIO_API_SECRET?: string;
       }
     }
   }

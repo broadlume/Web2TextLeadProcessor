@@ -91,35 +91,42 @@ async function ParseAndVerify(
 	return parseRequest.data;
 }
 
+async function setup(ctx: restate.ObjectContext, allowedStates: LeadState["Status"][]) {
+	if (!ParseUUID(ctx.key)) {
+		throw new restate.TerminalError("Lead ID is not a valid UUIDv4", {
+			errorCode: 400,
+		});
+	}
+	if (await ctx.get("Status") === "ERROR") {
+		ctx.clearAll();
+	}
+	await SyncWithDB(ctx, "RECEIVE");
+	const status =
+		(await ctx.get<LeadState["Status"]>("Status")) ?? "NONEXISTANT";
+	const canRun = allowedStates.includes(status);
+	if (!canRun) {
+		throw new restate.TerminalError(
+			`Lead ID '${ctx.key}' doesn't exist or is in incorrect status '${status}'`,
+			{ errorCode: 409 },
+		);
+	}
+}
+
 export const LeadVirtualObject = restate.object({
 	name: "Lead",
 	handlers: {
 		status: restate.handlers.object.shared(
-			async (ctx: restate.ObjectSharedContext) => {
+			async (ctx: restate.ObjectSharedContext): Promise<LeadState> => {
 				const state = await GetObjectState(ctx);
+				if (state.Status == null) {
+					return {Status: "NONEXISTANT"};
+				}
 				return state;
 			},
 		),
 		create: restate.handlers.object.exclusive(
 			async (ctx: restate.ObjectContext, req: unknown): Promise<LeadState> => {
-				if (!ParseUUID(ctx.key)) {
-					throw new restate.TerminalError("Lead ID is not a valid UUIDv4", {
-						errorCode: 400,
-					});
-				}
-				if (await ctx.get("Status") === "ERROR") {
-					ctx.clearAll();
-				}
-				await SyncWithDB(ctx, "RECEIVE");
-				const status =
-					(await ctx.get<LeadState["Status"]>("Status")) ?? "NONEXISTANT";
-				const leadExists = status !== "NONEXISTANT" && status !== "ERROR";
-				if (leadExists) {
-					throw new restate.TerminalError(
-						`Lead ID '${ctx.key}' already exists with status '${status}'`,
-						{ errorCode: 409 },
-					);
-				}
+				await setup(ctx,["NONEXISTANT"]);
 				try {
 					ctx.set("Request", req);
 					ctx.set<LeadState["Status"]>("Status", "VALIDATING");
@@ -151,21 +158,7 @@ export const LeadVirtualObject = restate.object({
 			},
 		),
 		sync: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext): Promise<LeadState> => {
-			if (!ParseUUID(ctx.key)) {
-				throw new restate.TerminalError("Lead ID is not a valid UUIDv4", {
-					errorCode: 400,
-				});
-			}
-			await SyncWithDB(ctx, "RECEIVE");
-			const status =
-				(await ctx.get<LeadState["Status"]>("Status")) ?? "NONEXISTANT";
-			const leadActive = status === "ACTIVE";
-			if (!leadActive) {
-				throw new restate.TerminalError(
-					`Lead ID '${ctx.key}' doesn't exist or is in incorrect status to sync '${status}'`,
-					{ errorCode: 409 },
-				);
-			}
+			await setup(ctx,["ACTIVE","SYNCING"]);
 			try {
                 ctx.set("Status", "SYNCING");
                 await SyncWithDB(ctx,"SEND");
@@ -189,18 +182,11 @@ export const LeadVirtualObject = restate.object({
 					ctx.set("Integrations", integrationStates);
 					await SyncWithDB(ctx, "SEND");
 					let newState: ExternalIntegrationState;
-					const leadState = await GetObjectState(ctx) as SubmittedLeadState;
 					try {
 						if (shouldRunCreate) {
-							newState = await ctx.run(
-								`Integration Handler Create: ${state.Name}`,
-								async () => await handler.create(state, leadState),
-							);
+							newState = await handler.create(state, ctx);
 						} else {
-							newState = await ctx.run(
-								`Integration Handler Sync: ${state.Name}`,
-								async () => await handler.sync(state, leadState),
-							);
+							newState = await handler.sync(state,ctx);
 						}
 					} catch (e) {
 						newState = {
@@ -224,5 +210,50 @@ export const LeadVirtualObject = restate.object({
             ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 			return await ctx.objectClient(LeadVirtualObject, ctx.key).status();
 		}),
+		close: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext): Promise<LeadState> => {
+			await setup(ctx,["ACTIVE","CLOSED","SYNCING"]);
+			try {
+                ctx.set("Status", "CLOSED");
+                await SyncWithDB(ctx,"SEND");
+				const integrationStates =
+					(await ctx.get<SubmittedLeadState["Integrations"]>("Integrations")) ??
+					[];
+				for (let i = 0; i < integrationStates.length; i++) {
+					const state: Readonly<ExternalIntegrationState> =
+						integrationStates[i];
+					const handler = Web2TextIntegrations.find(
+						(i) => i.Name === state.Name,
+					);
+					if (handler == null) {
+						console.warn(
+							`Unknown integration found in lead '${ctx.key}': '${state.Name}' - skipping close`,
+						);
+						continue;
+					}
+					await SyncWithDB(ctx, "SEND");
+					let newState: ExternalIntegrationState;
+					try {
+						newState = await handler.close(state,ctx);
+					} catch (e) {
+						newState = {
+							...state,
+							SyncStatus: "ERROR",
+							Error: {
+								Message: "An error occurred during sync",
+								Details: `${e}`,
+							},
+						};
+					}
+					integrationStates[i] = newState;
+					ctx.set("Integrations", integrationStates);
+					await SyncWithDB(ctx, "SEND");
+				}
+			} catch (e) {
+				ctx.set("Status", "ERROR");
+				ctx.set("Error", (e as Error).message);
+				throw e;
+			}
+			return await ctx.objectClient(LeadVirtualObject, ctx.key).status();
+		})
 	},
 });

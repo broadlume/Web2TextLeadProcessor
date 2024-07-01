@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { TwilioIntegration } from "./TwilioIntegration";
 import type { SubmittedLeadState } from "../restate/common";
+import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 
 export const ExternalIntegrationStateSchema = z.object({
 	Name: z.string().min(1,"Name cannot be empty"),
@@ -19,8 +20,9 @@ export abstract class IExternalIntegration<
 > {
     abstract Name: string;
     abstract defaultState(): State
-	abstract create(state: State, context: Readonly<SubmittedLeadState>): Promise<State>;
-	abstract sync(state: State, context: Readonly<SubmittedLeadState>): Promise<State>;
+	abstract create(state: State, context: ObjectSharedContext): Promise<State>;
+	abstract sync(state: State, context: ObjectSharedContext): Promise<State>;
+	abstract close(state: State, context: ObjectSharedContext): Promise<State>;
 }
 
 export const Web2TextIntegrations: IExternalIntegration<ExternalIntegrationState>[] = [new TwilioIntegration()];

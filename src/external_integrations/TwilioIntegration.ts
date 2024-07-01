@@ -6,6 +6,7 @@ import AccessToken, { ChatGrant } from "twilio/lib/jwt/AccessToken";
 import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import type { MessageInstance } from "twilio/lib/rest/api/v2010/account/message";
+import { LeadVirtualObject } from "../restate/LeadVirtualObject";
 
 type SerializedTwilioChatMessage = {
 	accountSid: string;
@@ -53,14 +54,8 @@ export class TwilioIntegration
 		state: TwilioIntegrationState,
 		context: restate.ObjectSharedContext,
 	): Promise<TwilioIntegrationState> {
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
-		const LeadID = await context.get<SubmittedLeadState["LeadID"]>("LeadID")!;
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
-		const Lead = await await context.get<SubmittedLeadState["Lead"]>("Lead")!;
-
-		if (LeadID == null || Lead == null) {
-			throw new Error("LeadID or Lead is null!");
-		}
+		const LeadID = (await context.get<SubmittedLeadState["LeadID"]>("LeadID"))!;
+		const Lead = (await context.get<SubmittedLeadState["Lead"]>("Lead"))!;
 		// TODO: Don't hardcode, fetch from subaccount using Twilio API
 		const DealerTwilioNumber = "+18332219478";
 		const UniversalClientId = Lead.UniversalClientId;
@@ -91,7 +86,7 @@ export class TwilioIntegration
 							UniversalClientId,
 						}),
 						friendlyName: `Web2Text Lead Conversation: ${LeadID}`,
-						"timers.inactive": "P1M",
+						"timers.inactive": "P30D",
 					}),
 			);
 			const userParticipant = await context.run(
@@ -130,7 +125,6 @@ export class TwilioIntegration
 		state: TwilioIntegrationState,
 		context: restate.ObjectSharedContext,
 	): Promise<TwilioIntegrationState> {
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		const conversationSID = state.Data?.ConversationSID!;
 		if (conversationSID == null) {
 			throw new Error("Conversation SID is null!");
@@ -142,9 +136,12 @@ export class TwilioIntegration
 					.conversations(conversationSID)
 					.fetch(),
 		);
-		// Create a new conversation if this one is closed
+		// Signal to close this lead if the Twilio conversation is closed
 		if (conversation.state === "closed") {
-			return await this.create(state, context);
+			const LeadID = (await context.get<SubmittedLeadState["LeadID"]>(
+				"LeadID",
+			))!;
+			context.objectSendClient(LeadVirtualObject, LeadID).close();
 		}
 		return {
 			...state,
@@ -186,9 +183,7 @@ export class TwilioIntegration
 		const chatGrant = new ChatGrant({
 			serviceSid: twilioConversation.chatServiceSid,
 		});
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		const apiKey = process.env.TWILIO_API_SID!;
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		const apiSecret = process.env.TWILIO_API_SECRET!;
 		const token = new AccessToken(
 			twilioConversation.accountSid,

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as restate from '@restatedev/restate-sdk';
 import { LeadVirtualObject } from './restate/LeadVirtualObject';
 // Create the Restate server to accept requests

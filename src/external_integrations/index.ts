@@ -1,7 +1,6 @@
 
 import { z } from "zod";
 import { TwilioIntegration } from "./TwilioIntegration";
-import type { SubmittedLeadState } from "../restate/common";
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 
 export const ExternalIntegrationStateSchema = z.object({

@@ -1,8 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
-import type { UUID } from "node:crypto";
-import { ExternalIntegrationStateSchema, type ExternalIntegrationState } from "../external_integrations";
-import { Web2TextLeadSchema, type Web2TextLead } from "../types";
-import { version as uuidVersion } from "uuid";
+import { ExternalIntegrationStateSchema } from "../external_integrations";
+import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { fromError } from "zod-validation-error";
@@ -64,19 +62,6 @@ export async function SyncWithDB(
 
         }
     }
-}
-
-export function ParseUUID(uuid: unknown): uuid is UUID {
-	let version: number;
-	try {
-		version = uuidVersion(uuid as string);
-		if (version !== 4) {
-			throw new Error();
-		}
-	} catch (e) {
-		return false;
-	}
-	return true;
 }
 
 export async function GetObjectState(ctx: restate.ObjectSharedContext): Promise<LeadState> {

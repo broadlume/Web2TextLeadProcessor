@@ -15,12 +15,7 @@ export const APIKeyModel = dynamoose.model<APIKeyItem>("Web2Text_APIKeys",{
         hashKey: true
     },
     DateCreated: {
-        type: {
-            value: Date,
-            settings: {
-                storage: "iso"
-            }
-        },
+        type: String,
         required: true
     },
     Active: {

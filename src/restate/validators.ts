@@ -1,12 +1,32 @@
 import type { UUID } from "node:crypto";
-import { type Web2TextLeadCreateRequest, Web2TextLeadCreateRequestSchema } from "../types";
-import * as restate from '@restatedev/restate-sdk';
+import {
+	type Web2TextLeadCreateRequest,
+	Web2TextLeadCreateRequestSchema,
+} from "../types";
+import * as restate from "@restatedev/restate-sdk";
 import { APIKeyModel } from "../dynamodb/APIKeyModel";
-export async function ValidateAPIKey(key: UUID): Promise<boolean> {
-	console.log(key);
+import { fromError } from 'zod-validation-error';
+export async function ValidateAPIKey(auth: string | undefined) {
+	if (auth == null) {
+		throw new restate.TerminalError("Must pass authorization header with valid API key", {errorCode: 401});
+	}
+	if (!auth.startsWith("Bearer ")) {
+		throw new restate.TerminalError("Authorization header schema must be 'Bearer'", {errorCode: 401});
+	}
+	let key: string | null = auth.split(" ")?.[1]?.trim();
+	if (key?.toLowerCase() === "undefined" || key?.toLowerCase() === "null")  {
+		key = null;
+	}
+	if (key == null || key === "") {
+		throw new restate.TerminalError("Authorization token is missing", {errorCode: 401});
+	}
 	const apiKey = await APIKeyModel.get(key);
-    if (apiKey == null) return false;
-    return apiKey.Active;
+	const apiKeyValid = apiKey?.Active ?? false;
+	if (apiKeyValid === false) {
+		throw new restate.TerminalError(`API Key '${apiKey}' is invalid`, {
+			errorCode: 401,
+		});
+	}
 }
 
 export async function ValidateIPAddress(ipAddress: string): Promise<boolean> {
@@ -14,7 +34,9 @@ export async function ValidateIPAddress(ipAddress: string): Promise<boolean> {
 }
 
 type ClientStatus = "ELIGIBLE" | "INELIGIBLE" | "NONEXISTANT";
-export async function CheckClientStatus(universalId: UUID): Promise<ClientStatus> {
+export async function CheckClientStatus(
+	universalId: UUID,
+): Promise<ClientStatus> {
 	return "ELIGIBLE";
 }
 
@@ -25,13 +47,14 @@ async function ValidateLocation(location: {
 	return true;
 }
 
-export async function ParseAndVerify(
+export async function ParseAndVerifyLeadCreation(
 	ctx: restate.ObjectContext,
 	req: unknown,
 ): Promise<Web2TextLeadCreateRequest> {
-	const parseRequest = await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
+	const parseRequest =
+		await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
 	if (!parseRequest.success) {
-		const formattedError = parseRequest.error.format();
+		const formattedError = fromError(parseRequest.error);
 		const error = {
 			message: "Request could not be parsed",
 			details: formattedError,
@@ -40,16 +63,7 @@ export async function ParseAndVerify(
 			errorCode: 400,
 		});
 	}
-	const { APIKey, Lead } = parseRequest.data;
-	const apiKeyValid = await ctx.run<boolean>(
-		"API key validation",
-		async () => await ValidateAPIKey(APIKey),
-	);
-	if (!apiKeyValid) {
-		throw new restate.TerminalError(`API Key '${APIKey}' is invalid`, {
-			errorCode: 401,
-		});
-	}
+	const { Lead } = parseRequest.data;
 	const ipAddressValid = await ctx.run<boolean>(
 		"IP address validation",
 		async () => await ValidateIPAddress(Lead.IPAddress),

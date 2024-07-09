@@ -1,5 +1,4 @@
 import * as restate from "@restatedev/restate-sdk";
-import { type Web2TextLeadCreateRequest, Web2TextLeadCreateRequestSchema, Web2TextLeadRequestSchema } from "../types";
 import type { UUID } from "node:crypto";
 import { DefaultIntegrationState, type ExternalIntegrationState, Web2TextIntegrations } from "../external_integrations";
 import {
@@ -9,7 +8,7 @@ import {
 	SyncWithDB,
 	GetObjectState,
 } from "./common";
-import { ParseAndVerify, ValidateAPIKey } from "./validators";
+import { ParseAndVerifyLeadCreation, ValidateAPIKey } from "./validators";
 
 
 async function setup(ctx: restate.ObjectContext, allowedStates: LeadState["Status"][]) {
@@ -21,7 +20,14 @@ async function setup(ctx: restate.ObjectContext, allowedStates: LeadState["Statu
 	if (await ctx.get("Status") === "ERROR") {
 		ctx.clearAll();
 	}
-	await SyncWithDB(ctx, "RECEIVE");
+	try {
+		await SyncWithDB(ctx, "RECEIVE");
+	} catch (e) {
+		ctx.set("Status", "ERROR");
+		ctx.set("Error", (e as Error).message);
+		throw e;
+	}
+
 	const status =
 		(await ctx.get<LeadState["Status"]>("Status")) ?? "NONEXISTANT";
 	const canRun = allowedStates.includes(status);
@@ -37,27 +43,9 @@ export const LeadVirtualObject = restate.object({
 	name: "Lead",
 	handlers: {
 		status: restate.handlers.object.shared(
-			async (ctx: restate.ObjectSharedContext, req: unknown): Promise<LeadState> => {
-				const parsed = await Web2TextLeadRequestSchema.safeParseAsync(req);
-				if (!parsed.success) {
-					const formattedError = parsed.error.format();
-					const error = {
-						message: "Request could not be parsed",
-						details: formattedError,
-					};
-					throw new restate.TerminalError(JSON.stringify(error), {
-						errorCode: 400,
-					});
-				}
-				const {APIKey} = parsed.data;
-				const apiKeyValid = await ctx.run<boolean>(
-					"API key validation",
-					async () => await ValidateAPIKey(APIKey),
-				);
-				if (!apiKeyValid) {
-					throw new restate.TerminalError(`API Key '${APIKey}' is invalid`, {
-						errorCode: 401,
-					});
+			async (ctx: restate.ObjectSharedContext, _internalToken?: string): Promise<LeadState> => {
+				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				const state = await GetObjectState(ctx);
 				if (state.Status == null) {
@@ -67,14 +55,18 @@ export const LeadVirtualObject = restate.object({
 			},
 		),
 		create: restate.handlers.object.exclusive(
-			async (ctx: restate.ObjectContext, req: unknown): Promise<LeadState> => {
+			async (ctx: restate.ObjectContext, req: unknown, _internalToken?: string): Promise<LeadState> => {
+				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+					await ValidateAPIKey(ctx.request().headers.get("authorization"));
+				}
 				await setup(ctx,["NONEXISTANT"]);
+				console.log("running");
 				try {
 					ctx.set("Request", req);
 					ctx.set<LeadState["Status"]>("Status", "VALIDATING");
-					const { Lead } = await ParseAndVerify(ctx, req);
+					const { Lead } = await ParseAndVerifyLeadCreation(ctx, req);
 					ctx.set<SubmittedLeadState["SchemaVersion"]>("SchemaVersion","1.0.0");
-					ctx.set<SubmittedLeadState["LeadID"]>("LeadID", ctx.key as UUID);
+					ctx.set<SubmittedLeadState["LeadId"]>("LeadId", ctx.key as UUID);
 					ctx.set<SubmittedLeadState["Lead"]>("Lead", Lead);
 					const currentDate = new Date(await ctx.date.now());
 					ctx.set<SubmittedLeadState["DateSubmitted"]>(
@@ -94,12 +86,15 @@ export const LeadVirtualObject = restate.object({
 					throw e;
 				}
 				// Schedule syncing the lead
-				ctx.objectSendClient(LeadVirtualObject,ctx.key).sync();
+				ctx.objectSendClient(LeadVirtualObject,ctx.key).sync(process.env.INTERNAL_TOKEN);
 				// Return the status of the lead
-				return await ctx.objectClient(LeadVirtualObject, ctx.key).status();
+				return await ctx.objectClient(LeadVirtualObject, ctx.key).status(process.env.INTERNAL_TOKEN);
 			},
 		),
-		sync: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext): Promise<LeadState> => {
+		sync: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext, _internalToken?:string): Promise<LeadState> => {
+			if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				await ValidateAPIKey(ctx.request().headers.get("authorization"));
+			}
 			await setup(ctx,["ACTIVE","SYNCING"]);
 			try {
                 ctx.set("Status", "SYNCING");
@@ -150,9 +145,12 @@ export const LeadVirtualObject = restate.object({
 				throw e;
 			}
             ctx.set<LeadState["Status"]>("Status", "ACTIVE");
-			return await ctx.objectClient(LeadVirtualObject, ctx.key).status();
+			return await ctx.objectClient(LeadVirtualObject, ctx.key).status(process.env.INTERNAL_TOKEN);
 		}),
-		close: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext): Promise<LeadState> => {
+		close: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext, _internalToken?: string): Promise<LeadState> => {
+			if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				await ValidateAPIKey(ctx.request().headers.get("authorization"));
+			}
 			await setup(ctx,["ACTIVE","CLOSED","SYNCING"]);
 			try {
 				const integrationStates =
@@ -193,7 +191,7 @@ export const LeadVirtualObject = restate.object({
 				ctx.set("Error", (e as Error).message);
 				throw e;
 			}
-			return await ctx.objectClient(LeadVirtualObject, ctx.key).status();
+			return await ctx.objectClient(LeadVirtualObject, ctx.key).status(process.env.INTERNAL_TOKEN);
 		})
 	},
 });

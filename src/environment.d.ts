@@ -5,6 +5,7 @@ declare global {
         TWILIO_AUTH_TOKEN?: string;
         TWILIO_API_SID?: string;
         TWILIO_API_SECRET?: string;
+        INTERNAL_TOKEN?: string;
       }
     }
   }

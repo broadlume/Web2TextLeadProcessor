@@ -30,17 +30,13 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema({
         required: true
     },
     DateSubmitted: {
-        type: {
-            value: Date,
-            settings: {
-                "storage": "iso"
-            }
-        },
+        type: String,
         required: true
     },
     Integrations: {
-        type: [Object],
+        type: Array,
+        schema: [Object],
         required: true
     },
-});
+}, {saveUnknown: true});
 export const LeadStateModel = dynamoose.model<LeadStateItem>("Web2Text_LeadStates", DynamoDBLeadStateSchema);

@@ -145,6 +145,7 @@ export const LeadVirtualObject = restate.object({
 				throw e;
 			}
             ctx.set<LeadState["Status"]>("Status", "ACTIVE");
+			await SyncWithDB(ctx, "SEND");
 			return await ctx.objectClient(LeadVirtualObject, ctx.key).status(process.env.INTERNAL_TOKEN);
 		}),
 		close: restate.handlers.object.exclusive(async (ctx: restate.ObjectContext, _internalToken?: string): Promise<LeadState> => {

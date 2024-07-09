@@ -25,11 +25,15 @@ export const Web2TextLeadSchema = z.object({
     })
 });
 
+
 export const Web2TextLeadRequestSchema = z.object({
     APIKey: UUID(),
     Lead: Web2TextLeadSchema
 });
+export const Web2TextLeadCreateRequestSchema = Web2TextLeadRequestSchema.extend({Lead: Web2TextLeadSchema});
 
 export type Web2TextLead = z.infer<typeof Web2TextLeadSchema>;
 export type Web2TextLeadRequest = z.infer<typeof Web2TextLeadRequestSchema>;
+export type Web2TextLeadCreateRequest = z.infer<typeof Web2TextLeadCreateRequestSchema>;
+
 

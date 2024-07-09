@@ -17,6 +17,7 @@
     "@twilio/conversations": "^2.5.0",
     "@types/uuid": "^10.0.0",
     "dotenv": "^16.4.5",
+    "dynamoose": "^4.0.1",
     "libphonenumber-js": "^1.11.4",
     "twilio": "^5.2.0",
     "zod": "^3.23.8"

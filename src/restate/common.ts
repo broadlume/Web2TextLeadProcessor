@@ -5,16 +5,16 @@ import { Web2TextLeadSchema, type Web2TextLead } from "../types";
 import { version as uuidVersion } from "uuid";
 import { z } from "zod";
 
-const SubmittedLeadStateSchema = z.object({
+export const SubmittedLeadStateSchema = z.object({
+    LeadId: z.string().uuid(),
     Status: z.enum(["ACTIVE","SYNCING","CLOSED"]),
     SchemaVersion: z.enum(["1.0.0"]),
-    LeadID: z.string().uuid(),
     Lead: Web2TextLeadSchema,
     DateSubmitted: z.string().datetime(),
     Integrations: z.array(ExternalIntegrationStateSchema)
 });
 
-const LeadStateSchema = z.discriminatedUnion("Status",[
+export const LeadStateSchema = z.discriminatedUnion("Status",[
     z.object({
         Status: z.literal("NONEXISTANT")
     }),

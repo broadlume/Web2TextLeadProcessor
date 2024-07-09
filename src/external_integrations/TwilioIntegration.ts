@@ -54,7 +54,7 @@ export class TwilioIntegration
 		state: TwilioIntegrationState,
 		context: restate.ObjectSharedContext,
 	): Promise<TwilioIntegrationState> {
-		const LeadID = (await context.get<SubmittedLeadState["LeadID"]>("LeadID"))!;
+		const LeadID = (await context.get<SubmittedLeadState["LeadId"]>("LeadId"))!;
 		const Lead = (await context.get<SubmittedLeadState["Lead"]>("Lead"))!;
 		// TODO: Don't hardcode, fetch from subaccount using Twilio API
 		const DealerTwilioNumber = "+18332219478";
@@ -138,10 +138,10 @@ export class TwilioIntegration
 		);
 		// Signal to close this lead if the Twilio conversation is closed
 		if (conversation.state === "closed") {
-			const LeadID = (await context.get<SubmittedLeadState["LeadID"]>(
-				"LeadID",
+			const LeadID = (await context.get<SubmittedLeadState["LeadId"]>(
+				"LeadId",
 			))!;
-			context.objectSendClient(LeadVirtualObject, LeadID).close();
+			context.objectSendClient(LeadVirtualObject, LeadID).close(process.env.INTERNAL_TOKEN);
 		}
 		return {
 			...state,

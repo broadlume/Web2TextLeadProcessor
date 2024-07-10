@@ -1,5 +1,5 @@
 import {z} from "zod";
-import parsePhoneNumber, { type E164Number, type PhoneNumber as PhoneNumberType } from 'libphonenumber-js'
+import parsePhoneNumber, { type E164Number } from 'libphonenumber-js'
 import type { UUID as UUIDType } from "node:crypto";
 
 const NonEmptyString = () => z.string().min(1,{message: "String cannot be empty"});
@@ -13,7 +13,6 @@ export const Web2TextLeadSchema = z.object({
     LeadInformation: z.object({
         Name: NonEmptyString(),
         PhoneNumber: PhoneNumber(),
-        LocationName: NonEmptyString().optional(),
         LocationID: UUID(),
         PreferredMethodOfContact: z.enum(["phone","text"]).default("text"),
         CustomerMessage: NonEmptyString(),

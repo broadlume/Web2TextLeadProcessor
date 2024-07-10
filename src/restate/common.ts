@@ -1,5 +1,5 @@
 import * as restate from "@restatedev/restate-sdk";
-import { ExternalIntegrationStateSchema } from "../external_integrations";
+import { ExternalIntegrationStateSchema } from "../external";
 import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";

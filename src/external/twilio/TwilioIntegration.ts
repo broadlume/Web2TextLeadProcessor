@@ -1,30 +1,12 @@
 import { Twilio } from "twilio";
-import type { ExternalIntegrationState, IExternalIntegration } from ".";
 import type * as restate from "@restatedev/restate-sdk";
-import { LeadState, type SubmittedLeadState } from "../restate/common";
 import AccessToken, { ChatGrant } from "twilio/lib/jwt/AccessToken";
 import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import type { MessageInstance } from "twilio/lib/rest/api/v2010/account/message";
-import { LeadVirtualObject } from "../restate/LeadVirtualObject";
+import type { ExternalIntegrationState, IExternalIntegration } from "..";
+import type { SubmittedLeadState } from "../../restate/common";
+import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 
-type SerializedTwilioChatMessage = {
-	accountSid: string;
-	conversationSid: string;
-	sid: string;
-	index: number;
-	author: string;
-	body: string;
-	media: unknown[];
-	attributes: string;
-	participantSid: string;
-	dateCreated: Date;
-	dateUpdated: Date;
-	url: string;
-	delivery: unknown;
-	links: Record<string, string>;
-	contentSid: string;
-};
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		ConversationSID: string;

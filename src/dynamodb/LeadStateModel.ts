@@ -1,7 +1,7 @@
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { SubmittedLeadState } from "../restate/common";
-import type { ExternalIntegrationState } from "../external_integrations";
+import type { ExternalIntegrationState } from "../external";
 class LeadStateItem extends Item {
     LeadId!: string;
     Status!: string;

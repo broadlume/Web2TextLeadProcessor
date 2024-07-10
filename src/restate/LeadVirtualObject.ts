@@ -4,7 +4,7 @@ import {
 	DefaultIntegrationState,
 	type ExternalIntegrationState,
 	Web2TextIntegrations,
-} from "../external_integrations";
+} from "../external";
 import {
 	type LeadState,
 	type SubmittedLeadState,
@@ -14,6 +14,12 @@ import {
 import { ParseAndVerifyLeadCreation, ValidateAPIKey } from "./validators";
 import { z } from "zod";
 
+/**
+ * Helper function that runs before all of our exclusive handlers
+ * Handles initializing state from the database verifying assumptions
+ * @param ctx the restate Object context
+ * @param allowedStates a set of lead status states that we should allow this handler to run with
+ */
 async function setup(
 	ctx: restate.ObjectContext,
 	allowedStates: LeadState["Status"][],
@@ -49,6 +55,9 @@ async function setup(
 export const LeadVirtualObject = restate.object({
 	name: "Lead",
 	handlers: {
+		/**
+		 * Endpoint that returns the status of a lead and all of its state
+		 */
 		status: restate.handlers.object.shared(
 			async (
 				ctx: restate.ObjectSharedContext,
@@ -64,21 +73,27 @@ export const LeadVirtualObject = restate.object({
 				return state;
 			},
 		),
+		/**
+		 * Creates a new lead in the database
+		 */
 		create: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext,
 				req: unknown,
 				_internalToken?: string,
 			): Promise<LeadState> => {
+				// Validate the API key in the authorization header
 				if (_internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
+				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
-				console.log("running");
 				try {
 					ctx.set("Request", req);
 					ctx.set<LeadState["Status"]>("Status", "VALIDATING");
+					// Validate the submitted lead
 					const { Lead } = await ParseAndVerifyLeadCreation(ctx, req);
+
 					ctx.set<SubmittedLeadState["SchemaVersion"]>(
 						"SchemaVersion",
 						"1.0.0",
@@ -95,6 +110,8 @@ export const LeadVirtualObject = restate.object({
 						DefaultIntegrationState(Web2TextIntegrations),
 					);
 					ctx.clear("Request");
+
+					// Mark the lead as ACTIVE and sync with the database
 					ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 					await SyncWithDB(ctx, "SEND");
 				} catch (e) {
@@ -102,28 +119,37 @@ export const LeadVirtualObject = restate.object({
 					ctx.set("Error", (e as Error).message);
 					throw e;
 				}
-				// Schedule syncing the lead
+				// Schedule syncing the lead to external integrations
 				ctx
 					.objectSendClient(LeadVirtualObject, ctx.key)
 					.sync(process.env.INTERNAL_TOKEN);
+
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status(process.env.INTERNAL_TOKEN);
 			},
 		),
+		/**
+		 * Syncs a lead with external integrations/APIs/services (e.g. Twilio, RLM, DHQ, etc.)
+		 */
 		sync: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext,
 				_internalToken?: string,
 			): Promise<LeadState> => {
+				// Validate the API key in the authorization header
 				if (_internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
+				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				try {
+					// Update the state of the lead to SYNCING
 					ctx.set("Status", "SYNCING");
 					await SyncWithDB(ctx, "SEND");
+
+					// Iterate through all integrations and call their create/sync handlers
 					const integrationStates =
 						(await ctx.get<SubmittedLeadState["Integrations"]>(
 							"Integrations",
@@ -135,7 +161,7 @@ export const LeadVirtualObject = restate.object({
 							(i) => i.Name === state.Name,
 						);
 						if (handler == null) {
-							console.warn(
+							ctx.console.warn(
 								`Unknown integration found in lead '${ctx.key}': '${state.Name}' - skipping sync`,
 							);
 							continue;
@@ -170,23 +196,32 @@ export const LeadVirtualObject = restate.object({
 					ctx.set("Error", (e as Error).message);
 					throw e;
 				}
+				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
 				ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 				await SyncWithDB(ctx, "SEND");
+
+				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status(process.env.INTERNAL_TOKEN);
 			},
 		),
+		/**
+		 * Marks the lead as closed - which disallows any further syncing or updating - and tell external integrations about it
+		 */
 		close: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext,
 				_internalToken?: string,
 			): Promise<LeadState> => {
+				// Validate the API key in the authorization header
 				if (_internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
+				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
 				try {
+					// Iterate through all integrations and call their close handlers
 					const integrationStates =
 						(await ctx.get<SubmittedLeadState["Integrations"]>(
 							"Integrations",
@@ -218,6 +253,7 @@ export const LeadVirtualObject = restate.object({
 						}
 						integrationStates[i] = newState;
 						ctx.set("Integrations", integrationStates);
+						// Mark the lead status as CLOSED and sync with the database
 						ctx.set("Status", "CLOSED");
 						await SyncWithDB(ctx, "SEND");
 					}
@@ -226,6 +262,7 @@ export const LeadVirtualObject = restate.object({
 					ctx.set("Error", (e as Error).message);
 					throw e;
 				}
+				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status(process.env.INTERNAL_TOKEN);

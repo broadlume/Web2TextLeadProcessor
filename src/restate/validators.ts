@@ -6,6 +6,12 @@ import {
 import * as restate from "@restatedev/restate-sdk";
 import { APIKeyModel } from "../dynamodb/APIKeyModel";
 import { fromError } from 'zod-validation-error';
+import { Nexus_GetRetailerByID } from "../external/nexus/Retailer";
+import { Nexus_GetRetailerStoreByID } from "../external/nexus/Stores";
+/**
+ * Validate that the authorization header on requests is a valid API key
+ * @param auth the authorization header value
+ */
 export async function ValidateAPIKey(auth: string | undefined) {
 	if (auth == null) {
 		throw new restate.TerminalError("Must pass authorization header with valid API key", {errorCode: 401});
@@ -29,24 +35,48 @@ export async function ValidateAPIKey(auth: string | undefined) {
 	}
 }
 
+/**
+ * Validate that a given IP address is not blocked and allowed to submit a lead
+ * @param ipAddress the IP address to check
+ * @returns true if the IP is allowed, false otherwise
+ */
 export async function ValidateIPAddress(ipAddress: string): Promise<boolean> {
 	return true;
 }
 
 type ClientStatus = "ELIGIBLE" | "INELIGIBLE" | "NONEXISTANT";
+/**
+ * Validate that the client the lead is being submitted to exists and is eligible to receive Web2Text leads
+ * @param universalId the universal client ID of the client
+ * @returns a ClientStatus type
+ */
 export async function CheckClientStatus(
 	universalId: UUID,
 ): Promise<ClientStatus> {
+	const nexusRetailer = await Nexus_GetRetailerByID(universalId);
+	if (nexusRetailer == null) return "NONEXISTANT";
+	if (nexusRetailer.status === "Churned_Customer") return "INELIGIBLE";
 	return "ELIGIBLE";
 }
 
-async function ValidateLocation(location: {
-	Name?: string;
-	LocationID: UUID;
-}): Promise<boolean> {
+/**
+ * Validate that the location ID exists
+ * @param universalId the universal client ID
+ * @param locationId the location ID within the client
+ * @returns true if the location exists, false otherwise
+ */
+async function ValidateLocation(universalId: UUID, locationId: UUID): Promise<boolean> {
+	const location = await Nexus_GetRetailerStoreByID(universalId, locationId);
+	if (location == null) return false;
 	return true;
 }
 
+/**
+ * Parse and verify the POST body of a lead creation request
+ * @param ctx the restate object context
+ * @param req the request to parse and verify
+ * @returns a parsed Web2TextLeadCreateRequest if the lead passed validation - throws an error otherwise
+ */
 export async function ParseAndVerifyLeadCreation(
 	ctx: restate.ObjectContext,
 	req: unknown,
@@ -88,11 +118,11 @@ export async function ParseAndVerifyLeadCreation(
 
 	const locationValid = await ctx.run<boolean>(
 		"Location validation",
-		async () => await ValidateLocation(Lead.LeadInformation),
+		async () => await ValidateLocation(Lead.UniversalClientId,Lead.LeadInformation.LocationID),
 	);
 	if (!locationValid) {
 		throw new restate.TerminalError(
-			`LeadInformation.Location {Name: '${Lead.LeadInformation.LocationName}', LocationID: '${Lead.LeadInformation.LocationID}'} is invalid or does not exist'`,
+			`Location ID '${Lead.LeadInformation.LocationID}' is invalid or does not exist'`,
 			{ errorCode: 400 },
 		);
 	}

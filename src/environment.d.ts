@@ -6,6 +6,9 @@ declare global {
         TWILIO_API_SID?: string;
         TWILIO_API_SECRET?: string;
         INTERNAL_TOKEN?: string;
+        NEXUS_API_URL?: string;
+        NEXUS_API_USERNAME?: string;
+        NEXUS_API_PASSWORD?: string;
       }
     }
   }

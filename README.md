@@ -16,3 +16,15 @@ restate dep register localhost:9075
 ```
 6. The lead processing endpoints should show up, confirm the registration
 7. The endpoints are now available at `localhost:8080/Lead/{endpoint}` - query them with postman to test
+
+## Edge Cases
+Q. User submits two leads with the same phone number, dealer ID, and location ID
+A. Web2Text will say a lead already exists and merge the leads
+
+Q. User submits two leads with the same phone number, dealer ID, but different location IDs
+A. Web2Text will create two leads and two Twilio conversations
+> Each location has its own Twilio phone number
+
+Q. A retailer has two locations, both have the same phone number assigned to them. One user submits a lead to one location, and another submits it to the other location
+A. Web2Text will create two leads and two Twilio conversations
+> Each location has its own Twilio phone number

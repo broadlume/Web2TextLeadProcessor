@@ -6,8 +6,8 @@ import {
 import * as restate from "@restatedev/restate-sdk";
 import { APIKeyModel } from "../dynamodb/APIKeyModel";
 import { fromError } from 'zod-validation-error';
-import { Nexus_GetRetailerByID } from "../external/nexus/Retailer";
-import { Nexus_GetRetailerStoreByID } from "../external/nexus/Stores";
+import { Nexus_GetRetailerByID } from "../external/nexus/RetailerAPI";
+import { Nexus_GetRetailerStoreByID } from "../external/nexus/StoresAPI";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value

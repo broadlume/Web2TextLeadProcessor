@@ -1,9 +1,9 @@
 import * as restate from "@restatedev/restate-sdk";
-import { ExternalIntegrationStateSchema } from "../external";
 import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { fromError } from "zod-validation-error";
+import { ExternalIntegrationStateSchema } from "../external/types";
 
 export const SubmittedLeadStateSchema = z.object({
     LeadId: z.string().uuid(),
@@ -11,7 +11,7 @@ export const SubmittedLeadStateSchema = z.object({
     SchemaVersion: z.enum(["1.0.0"]),
     Lead: Web2TextLeadSchema,
     DateSubmitted: z.coerce.string().datetime(),
-    Integrations: z.array(ExternalIntegrationStateSchema)
+    Integrations: z.record(z.string(),ExternalIntegrationStateSchema)
 });
 
 export const LeadStateSchema = z.discriminatedUnion("Status",[
@@ -31,6 +31,7 @@ export const LeadStateSchema = z.discriminatedUnion("Status",[
 ]);
 export type LeadState = z.infer<typeof LeadStateSchema>;
 export type SubmittedLeadState = z.infer<typeof SubmittedLeadStateSchema>;
+const a: SubmittedLeadState["Integrations"] = {Twilio: {SyncStatus: "SYNCING"}}
 
 export async function SyncWithDB(
 	ctx: restate.ObjectContext,
@@ -38,8 +39,8 @@ export async function SyncWithDB(
 ) {
     switch (direction) {
         case "SEND": {
-                const objectState = await GetObjectState(ctx);
-                const parsed = await SubmittedLeadStateSchema.parseAsync(objectState);
+                const objectState = await GetObjectState(ctx) as SubmittedLeadState;
+                const parsed = SubmittedLeadStateSchema.parse(objectState);
                 const dynamoDBModel = new LeadStateModel(parsed);
                 await ctx.run("Sending lead to database", async () => await dynamoDBModel.save());
                 return true;

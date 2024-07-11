@@ -105,10 +105,7 @@ export const LeadVirtualObject = restate.object({
 						"DateSubmitted",
 						currentDate.toISOString(),
 					);
-					ctx.set<SubmittedLeadState["Integrations"]>(
-						"Integrations",
-						DefaultIntegrationState(Web2TextIntegrations),
-					);
+					ctx.set<SubmittedLeadState["Integrations"]>("Integrations", {});
 					ctx.clear("Request");
 
 					// Mark the lead as ACTIVE and sync with the database
@@ -150,32 +147,25 @@ export const LeadVirtualObject = restate.object({
 					await SyncWithDB(ctx, "SEND");
 
 					// Iterate through all integrations and call their create/sync handlers
+					const integrations = Web2TextIntegrations;
 					const integrationStates =
 						(await ctx.get<SubmittedLeadState["Integrations"]>(
 							"Integrations",
-						)) ?? [];
-					for (let i = 0; i < integrationStates.length; i++) {
-						const state: Readonly<ExternalIntegrationState> =
-							integrationStates[i];
-						const handler = Web2TextIntegrations.find(
-							(i) => i.Name === state.Name,
-						);
-						if (handler == null) {
-							ctx.console.warn(
-								`Unknown integration found in lead '${ctx.key}': '${state.Name}' - skipping sync`,
-							);
-							continue;
-						}
+						)) ?? {};
+					for (const integration of integrations) {
+						const state =
+							integrationStates[integration.Name] ?? integration.defaultState();
 						const shouldRunCreate = state.SyncStatus === "NOT SYNCED";
-						integrationStates[i].SyncStatus = "SYNCING";
+						state.SyncStatus = "SYNCING";
+						integrationStates[integration.Name] = state;
 						ctx.set("Integrations", integrationStates);
 						await SyncWithDB(ctx, "SEND");
 						let newState: ExternalIntegrationState;
 						try {
 							if (shouldRunCreate) {
-								newState = await handler.create(state, ctx);
+								newState = await integration.create(state, ctx);
 							} else {
-								newState = await handler.sync(state, ctx);
+								newState = await integration.sync(state, ctx);
 							}
 						} catch (e) {
 							newState = {
@@ -187,7 +177,7 @@ export const LeadVirtualObject = restate.object({
 								},
 							};
 						}
-						integrationStates[i] = newState;
+						integrationStates[integration.Name] = newState;
 						ctx.set("Integrations", integrationStates);
 						await SyncWithDB(ctx, "SEND");
 					}
@@ -222,25 +212,20 @@ export const LeadVirtualObject = restate.object({
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
 				try {
 					// Iterate through all integrations and call their close handlers
+					const integrations = Web2TextIntegrations;
 					const integrationStates =
 						(await ctx.get<SubmittedLeadState["Integrations"]>(
 							"Integrations",
-						)) ?? [];
-					for (let i = 0; i < integrationStates.length; i++) {
-						const state: Readonly<ExternalIntegrationState> =
-							integrationStates[i];
-						const handler = Web2TextIntegrations.find(
-							(i) => i.Name === state.Name,
-						);
-						if (handler == null) {
-							console.warn(
-								`Unknown integration found in lead '${ctx.key}': '${state.Name}' - skipping close`,
-							);
-							continue;
-						}
+						)) ?? {};
+					for (const integration of integrations) {
+						const state =
+							integrationStates[integration.Name] ?? integration.defaultState();
+						integrationStates[integration.Name] = state;
+						ctx.set("Integrations", integrationStates);
+						await SyncWithDB(ctx, "SEND");
 						let newState: ExternalIntegrationState;
 						try {
-							newState = await handler.close(state, ctx);
+							newState = await integration.close(state, ctx);
 						} catch (e) {
 							newState = {
 								...state,
@@ -251,12 +236,13 @@ export const LeadVirtualObject = restate.object({
 								},
 							};
 						}
-						integrationStates[i] = newState;
+						integrationStates[integration.Name] = newState;
 						ctx.set("Integrations", integrationStates);
-						// Mark the lead status as CLOSED and sync with the database
-						ctx.set("Status", "CLOSED");
 						await SyncWithDB(ctx, "SEND");
 					}
+					// Mark the lead status as CLOSED and sync with the database
+					ctx.set<LeadState["Status"]>("Status", "CLOSED");
+					await SyncWithDB(ctx, "SEND");
 				} catch (e) {
 					ctx.set("Status", "ERROR");
 					ctx.set("Error", (e as Error).message);

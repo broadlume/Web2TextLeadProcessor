@@ -1,14 +1,14 @@
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { SubmittedLeadState } from "../restate/common";
-import type { ExternalIntegrationState } from "../external";
+import type { ExternalIntegrationState } from "../external/types";
 class LeadStateItem extends Item {
     LeadId!: string;
     Status!: string;
     SchemaVersion!: string;
     Lead!: SubmittedLeadState;
     DateSubmitted!: Date;
-    Integrations!: ExternalIntegrationState[];
+    Integrations!: Record<string, ExternalIntegrationState>;
 }
 const DynamoDBLeadStateSchema = new dynamoose.Schema({
     LeadId: {
@@ -34,8 +34,7 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema({
         required: true
     },
     Integrations: {
-        type: Array,
-        schema: [Object],
+        type: Object,
         required: true
     },
 }, {saveUnknown: true});

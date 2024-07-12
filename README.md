@@ -2,8 +2,7 @@
 
 Web2Text is a service that will send and monitor SMS conversations between dealers and customers, while automatically updating our lead tracking.
 
-[Product Specifications](https://broadlume.atlassian.net/wiki/spaces/PM/pages/1502773249/Web2Text+Podium+Replacement)
-[Technical Specifications](https://broadlume.atlassian.net/wiki/spaces/ENG/pages/1546911745/Web2Text+Technical+Specification)
+[Product Specifications](https://broadlume.atlassian.net/wiki/spaces/PM/pages/1502773249/Web2Text+Podium+Replacement) | [Technical Specifications](https://broadlume.atlassian.net/wiki/spaces/ENG/pages/1546911745/Web2Text+Technical+Specification)
 
 ## Local Setup
 
@@ -11,7 +10,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 2. **Get the .env file from a senior developer and place it in the root of the repository**
 3. Within VSCode, ensure you have the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
-    - If it doesn't prompt you, press Cmd+Shift+P (Ctrl+Shift+P on Windows) and type `Build & Open In Container` and run that command
+    - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
 5. Wait for the dev container to spin up
     - This will provision two containers. One is the Web2Text dev container (which will run the Web2Text restate service) and another is the Restate server container (which will handle taking in requests, durable execution & retries and dispatching them to the service)
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container

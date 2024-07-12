@@ -3,7 +3,7 @@
 Web2Text is a service that will send and monitor SMS conversations between dealers and customers, while automatically updating our lead tracking.
 
 [Product Specifications](https://broadlume.atlassian.net/wiki/spaces/PM/pages/1502773249/Web2Text+Podium+Replacement)
-[Techincal Specifications](https://broadlume.atlassian.net/wiki/spaces/ENG/pages/1546911745/Web2Text+Technical+Specification)
+[Technical Specifications](https://broadlume.atlassian.net/wiki/spaces/ENG/pages/1546911745/Web2Text+Technical+Specification)
 
 ## Local Setup
 

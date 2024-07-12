@@ -31,7 +31,7 @@
 				"terminal.integrated.defaultProfile.linux": "zsh",
 				"editor.defaultFormatter": "biomejs.biome"
 			},
-			"extensions": ["biomejs.biome", "eamodio.gitlens"]
+			"extensions": ["biomejs.biome", "eamodio.gitlens","fractalbrew.backticks", "oven.bun-vscode", "pmneo.tsimporter"]
 		}
 	},
 

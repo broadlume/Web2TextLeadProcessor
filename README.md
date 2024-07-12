@@ -27,6 +27,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
 6. Open a new terminal within the dev container and run `bun run app-dev`
     - This will start the Web2Text service, and will watch for changes to the files
+    - **ALTERNATIVELY**: Run the `Debug Service` launch configuration in VSCode to run and attach the NodeJS debugger (allows you to use breakpoints and inspect variables)
 7. Open another new terminal and run the command `bun run register-with-restate`
     - This will register the Web2Text service with the restate server
     - This also clears any existing state, in-flight invocations, and re-registers the service with restate. So you can run it whenever you need to remove/rename/create a handler, reset the KV store of the service or stop any in-flight invocations.

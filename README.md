@@ -4,6 +4,17 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 
 [Product Specifications](https://broadlume.atlassian.net/wiki/spaces/PM/pages/1502773249/Web2Text+Podium+Replacement) | [Technical Specifications](https://broadlume.atlassian.net/wiki/spaces/ENG/pages/1546911745/Web2Text+Technical+Specification)
 
+## Tools Used
+- [Restate](https://restate.dev/)
+    - A framework that allows you to run functions as services durably and reliably and orchestrate between them
+- [Bun](https://bun.sh/)
+    - Used as a package manager and test runner
+    - As soon as HTTP2 support is landed, will also be used as a NodeJS replacement
+- [NodeJS](https://nodejs.org/en)
+- [Typescript](https://www.typescriptlang.org/)
+- [Docker](https://www.docker.com/)
+    - Used for providing a unified dev environment using Dev Containers
+
 ## Local Setup
 
 1. Pull down the repository
@@ -22,6 +33,10 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/Lead/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
+
+## Deployment
+
+TBD
 
 ## What is Restate
 [Restate](https://restate.dev/) is a framework that allows you to run functions as services durably and reliably and orchestrate between them.

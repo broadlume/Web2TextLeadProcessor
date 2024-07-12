@@ -11,7 +11,7 @@
     "postbundle": "cd dist && zip -r index.zip index.js*",
     "app": "node ./dist/app.js",
     "app-dev": "ts-node-dev --watch ./src --respawn --transpile-only ./src/app.ts",
-    "reset-restate": "restate invocations cancel 'Lead' --kill --yes || true; restate state clear 'Lead' --yes || true; restate deployments reg web2text-web2text-1:9075 --force --yes"
+    "register-with-restate": "restate invocations cancel 'Lead' --kill --yes || true; restate state clear 'Lead' --yes || true; restate deployments reg web2text-web2text-1:9075 --force --yes"
   },
   "dependencies": {
     "@restatedev/restate": "^1.0.2",

@@ -21,6 +21,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
     - This will register the Web2Text service with the restate server
     - This also clears any existing state, in-flight invocations, and re-registers the service with restate. So you can run it whenever you need to remove/rename/create a handler, reset the KV store of the service or stop any in-flight invocations.
 8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/Lead/{endpoint}`
+    - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
 
 ## What is Restate

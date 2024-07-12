@@ -1,0 +1,30 @@
+name: web2text
+services:
+  web2text:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - restate-network
+    ports:
+    # Restate service port
+      - "9075:9075"
+    # NodeJS debug port
+      - "9080:9080"
+    volumes:
+      - ./:/app
+    restart: always
+    command: "sleep infinity"
+  restate-server:
+    image: "docker.io/restatedev/restate:latest"
+    networks:
+      - restate-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+    - "8080:8080"
+    - "9070:9070"
+    - "9071:9071"
+
+networks:
+  restate-network:

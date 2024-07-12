@@ -1,0 +1,52 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+	"name": "Web2Text Lead Processor DevContainer",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"dockerComposeFile": ["../docker-compose.yaml"],
+
+	"service": "web2text",
+	"workspaceFolder": "/app",
+	"mounts": [
+		"source=${localWorkspaceFolderBasename}-perfdiskaccess-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+		"source=${env:HOME}${env:USERPROFILE}/.aws,target=/root/.aws,type=bind"
+	],
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"username": "automatic",
+			"uid": "automatic",
+			"gid": "automatic",
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"upgradePackages": true,
+			"nonFreePackages": false
+		},
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
+	"forwardPorts": [9075],
+	"postStartCommand": "bun install && echo \"alias restate='bun restate'\" >> ~/.zshrc",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				"editor.defaultFormatter": "biomejs.biome"
+			},
+			"extensions": ["biomejs.biome", "eamodio.gitlens"]
+		}
+	},
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "yarn install",
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

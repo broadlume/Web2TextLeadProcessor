@@ -1,21 +1,7 @@
-FROM node:18-alpine
+# use the official Bun image
+# see all versions at https://hub.docker.com/r/oven/bun/tags
+FROM oven/bun:latest AS base
+RUN mkdir -p /app
+WORKDIR /app
+COPY . /app
 
-# dumb-init helps handling SIGTERM and SIGINT correctly
-RUN apk add dumb-init
-
-WORKDIR /usr/src/app
-
-# copy package.json and package-lock.json separately to cache dependencies
-COPY package*.json .
-RUN npm install
-
-COPY --chown=node:node . .
-
-RUN npm run build
-
-RUN npm prune --production
-ENV NODE_ENV production
-
-EXPOSE 9080
-USER node
-CMD ["dumb-init", "node", "./dist/app.js"]

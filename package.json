@@ -10,9 +10,11 @@
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/index.js",
     "postbundle": "cd dist && zip -r index.zip index.js*",
     "app": "node ./dist/app.js",
-    "app-dev": "ts-node-dev --watch ./src --respawn --transpile-only ./src/app.ts"
+    "app-dev": "ts-node-dev --watch ./src --respawn --transpile-only ./src/app.ts",
+    "reset-restate": "restate invocations cancel 'Lead' --kill --yes || true; restate state clear 'Lead' --yes || true; restate deployments reg web2text-web2text-1:9075 --force --yes"
   },
   "dependencies": {
+    "@restatedev/restate": "^1.0.2",
     "@restatedev/restate-sdk": "^1.0.0",
     "@twilio/conversations": "^2.5.0",
     "dotenv": "^16.4.5",

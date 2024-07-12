@@ -1,0 +1,1 @@
+alias restate="bun restate"

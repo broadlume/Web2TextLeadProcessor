@@ -3,7 +3,7 @@ import { Item } from "dynamoose/dist/Item";
 
 class APIKeyItem extends Item {
     API_Key!: string;
-    DateCreated!: Date;
+    DateCreated!: string;
     Active!: boolean;
     Description?: string;
 }

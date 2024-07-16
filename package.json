@@ -14,7 +14,7 @@
     "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9075 --force --yes --quiet",
     "clear-restate": "restate invocations cancel 'Lead' --kill --yes --quiet || true; restate state clear 'Lead' --yes --quiet || true;",
     "clear-restate-test": "restate invocations cancel 'Lead-test' --kill --yes --quiet || true; restate state clear 'Lead-test' --yes --quiet || true;",
-    "e2e-tests": "bun test e2e_tests/ --preload './e2e_tests/setup.ts' "
+    "e2e-tests": "bun test e2e_tests/ --preload './e2e_tests/setup.ts'"
   },
   "dependencies": {
     "@restatedev/restate": "^1.0.2",

@@ -62,7 +62,7 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectSharedContext,
 				_internalToken?: string,
 			): Promise<LeadState> => {
-				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				const state = await GetObjectState(ctx);
@@ -82,7 +82,7 @@ export const LeadVirtualObject = restate.object({
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
@@ -135,7 +135,7 @@ export const LeadVirtualObject = restate.object({
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
@@ -204,7 +204,7 @@ export const LeadVirtualObject = restate.object({
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (_internalToken !== process.env.INTERNAL_TOKEN) {
+				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup

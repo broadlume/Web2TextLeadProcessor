@@ -3,9 +3,9 @@ import type * as restate from "@restatedev/restate-sdk";
 import AccessToken, { ChatGrant } from "twilio/lib/jwt/AccessToken";
 import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import type { ExternalIntegrationState, IExternalIntegration } from "..";
 import type { SubmittedLeadState } from "../../restate/common";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
+import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -20,7 +20,6 @@ export class TwilioIntegration
 	Name = "Twilio";
 	defaultState(): TwilioIntegrationState {
 		return {
-			Name: "Twilio",
 			SyncStatus: "NOT SYNCED",
 		};
 	}

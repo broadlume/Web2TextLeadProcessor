@@ -66,7 +66,9 @@ export async function SyncWithDB(
 }
 
 export async function GetObjectState(ctx: restate.ObjectSharedContext): Promise<LeadState> {
-    const keys = LeadStateSchema.options.flatMap(opt => Object.keys(opt.shape));
+    let keys = LeadStateSchema.options.flatMap(opt => Object.keys(opt.shape));
+    const contextKeys = await ctx.stateKeys();
+    keys = keys.filter(k => contextKeys.includes(k));
     let entries = await Promise.all(keys.map(async k => [k,await ctx.get(k)]));
     if (entries.length === 0) {
        entries = [["Status", "NONEXISTANT"]]; 

@@ -10,6 +10,8 @@ declare global {
         NEXUS_API_USERNAME: string;
         NEXUS_API_PASSWORD: string;
         RLM_API_URL: string;
+        RESTATE_SERVICE_PORT?: string;
+        LOCAL_DYNAMODB_URL?: string;
       }
     }
   }

@@ -1,8 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
 import type { UUID } from "node:crypto";
 import {
-	DefaultIntegrationState,
-	type ExternalIntegrationState,
 	Web2TextIntegrations,
 } from "../external";
 import {
@@ -13,6 +11,7 @@ import {
 } from "./common";
 import { ParseAndVerifyLeadCreation, ValidateAPIKey } from "./validators";
 import { z } from "zod";
+import type { ExternalIntegrationState } from "../external/types";
 
 /**
  * Helper function that runs before all of our exclusive handlers
@@ -89,7 +88,7 @@ export const LeadVirtualObject = restate.object({
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
-					ctx.set("Request", req);
+					ctx.set("Request", req ?? {});
 					ctx.set<LeadState["Status"]>("Status", "VALIDATING");
 					// Validate the submitted lead
 					const { Lead } = await ParseAndVerifyLeadCreation(ctx, req);

@@ -11,12 +11,16 @@
     "postbundle": "cd dist && zip -r index.zip index.js*",
     "app": "node ./dist/app.js",
     "app-dev": "ts-node-dev --watch ./src --respawn --inspect=9229 --transpile-only ./src/app.ts",
-    "register-with-restate": "restate invocations cancel 'Lead' --kill --yes || true; restate state clear 'Lead' --yes || true; restate deployments reg web2text-web2text-1:9075 --force --yes"
+    "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9075 --force --yes --quiet",
+    "clear-restate": "restate invocations cancel 'Lead' --kill --yes --quiet || true; restate state clear 'Lead' --yes --quiet || true;",
+    "clear-restate-test": "restate invocations cancel 'Lead-test' --kill --yes --quiet || true; restate state clear 'Lead-test' --yes --quiet || true;",
+    "e2e-tests": "bun test e2e_tests/ --preload './e2e_tests/setup.ts' "
   },
   "dependencies": {
     "@restatedev/restate": "^1.0.2",
     "@restatedev/restate-sdk": "^1.0.0",
     "@twilio/conversations": "^2.5.0",
+    "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
     "dynamoose": "^4.0.1",
     "libphonenumber-js": "^1.11.4",
@@ -26,8 +30,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.2",
+    "@types/bun": "^1.1.6",
     "@types/node": "^20.12.7",
     "esbuild": "^0.18.12",
+    "supertest": "^7.0.0",
     "ts-node-dev": "^1.1.1",
     "typescript": "^5.4.5"
   }

@@ -21,7 +21,8 @@
 			"upgradePackages": true,
 			"nonFreePackages": false
 		},
-		"ghcr.io/devcontainers/features/node:1": {}
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/aws-cli:1": {}
 	},
 	"forwardPorts": [9075],
 	"postStartCommand": "bun install && echo \"alias restate='bun restate'\" >> ~/.zshrc",

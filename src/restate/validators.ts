@@ -12,7 +12,7 @@ import { Nexus_GetRetailerStoreByID } from "../external/nexus/StoresAPI";
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
  */
-export async function ValidateAPIKey(auth: string | undefined) {
+export async function ValidateAPIKey(auth: string | undefined): Promise<boolean> {
 	if (auth == null) {
 		throw new restate.TerminalError("Must pass authorization header with valid API key", {errorCode: 401});
 	}
@@ -33,6 +33,7 @@ export async function ValidateAPIKey(auth: string | undefined) {
 			errorCode: 401,
 		});
 	}
+	return apiKeyValid;
 }
 
 /**

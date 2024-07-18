@@ -23,8 +23,12 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
 5. Wait for the dev container to spin up
-    - This will provision two containers. One is the Web2Text dev container (which will run the Web2Text restate service) and another is the Restate server container (which will handle taking in requests, durable execution & retries and dispatching them to the service)
+    - This will provision three containers:
+        - The Web2Text dev container where your VSCode window will open in
+        - The restate admin server which will handle taking in requests, durable execution & retries and dispatching them to the service
+        - A local DynamoDB database that Web2Text uses for development
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
+    - Verify the dynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
 6. Open a new terminal within the dev container and run `bun run app-dev`
     - This will start the Web2Text service, and will watch for changes to the files
     - **ALTERNATIVELY**: Run the `Debug Service` launch configuration in VSCode to run and attach the NodeJS debugger (allows you to use breakpoints and inspect variables)

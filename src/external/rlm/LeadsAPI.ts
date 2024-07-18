@@ -82,7 +82,7 @@ export async function RLM_CreateLead(web2TextLeadId: string, lead: RLMCreateLead
 
     const headers = new Headers();
     headers.set("content-type","application/json");
-    const response = await fetch(rlmURL,{
+    const response = await fetch(rlmURL.toString(),{
         method: "POST",
         headers:headers,
         body: JSON.stringify(lead)

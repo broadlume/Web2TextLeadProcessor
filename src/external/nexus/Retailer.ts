@@ -31,7 +31,7 @@ export async function Nexus_GetRetailerByID(universalId: UUID): Promise<NexusRet
     const nexusURL = new URL(process.env.NEXUS_API_URL!);
     nexusURL.pathname += `retailers/${universalId}`;
 
-    const response = await fetch(nexusURL,{
+    const response = await fetch(nexusURL.toString(),{
         method: "GET",
         headers: NEXUS_AUTHORIZATION_HEADERS()
     });

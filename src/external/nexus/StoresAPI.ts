@@ -39,7 +39,7 @@ export async function Nexus_GetAllRetailerStores(
 	const nexusURL = new URL(process.env.NEXUS_API_URL!);
 	nexusURL.pathname += `retailers/${universalId}/stores`;
 
-	const response = await fetch(nexusURL, {
+	const response = await fetch(nexusURL.toString(), {
 		method: "GET",
 		headers: NEXUS_AUTHORIZATION_HEADERS(),
 	});
@@ -62,7 +62,7 @@ export async function Nexus_GetRetailerStoreByID(
 	const nexusURL = new URL(process.env.NEXUS_API_URL!);
 	nexusURL.pathname += `retailers/${universalId}/stores/${locationId}`;
 
-	const response = await fetch(nexusURL, {
+	const response = await fetch(nexusURL.toString(), {
 		method: "GET",
 		headers: NEXUS_AUTHORIZATION_HEADERS(),
 	});

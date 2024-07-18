@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --noEmitOnError",
     "prebundle": "rm -rf dist",
-    "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/index.js",
+    "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/app.js",
     "postbundle": "cd dist && zip -r index.zip index.js*",
     "app": "node ./dist/app.js",
     "app-dev": "ts-node-dev --watch ./src --respawn --inspect=9229 --transpile-only ./src/app.ts",

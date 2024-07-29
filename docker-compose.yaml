@@ -41,5 +41,18 @@ services:
    working_dir: /home/dynamodblocal
    networks:
       - restate-network
+  twilio_proxy:
+    container_name: web2text-twilio-proxy
+    build: 
+      context: ./twilio_proxy/
+      dockerfile: Dockerfile
+    networks:
+      - restate-network
+    ports:
+    # Proxy service port
+      - "3000:3000"
+    volumes:
+      - ./twilio_proxy/:/app
+    restart: always
 networks:
   restate-network:

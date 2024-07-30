@@ -87,11 +87,11 @@ export async function RLM_CreateLead(web2TextLeadId: string, lead: RLMCreateLead
         headers:headers,
         body: JSON.stringify(lead)
     });
-    try {
+
+    if (response.ok) {
         const responseBody = await response.json();
         return responseBody as RLMLeadResponse;
     }
-    catch (error) {
-        throw new Error(`Failed to post lead '${web2TextLeadId}' to RLM`, {cause: {status: response.status, error}});
-    }
+    const error = await response.text().catch(_ => response.status);
+    throw new Error(`Failed to post lead '${web2TextLeadId}' to RLM`, {cause: {status: response.status, error}});
 }

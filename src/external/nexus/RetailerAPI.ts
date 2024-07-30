@@ -41,6 +41,6 @@ export async function Nexus_GetRetailerByID(universalId: UUID): Promise<NexusRet
     if (response.status === 404) {
         return null;
     }
-    const error = await response.json().catch(() => response.status);
+    const error = await response.text().catch(() => response.status);
     throw new Error(`Failed to fetch retailer from Nexus for UniversalClientId: ${universalId}`, {cause: {status: response.status, error}});
 }

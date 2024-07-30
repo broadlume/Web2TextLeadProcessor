@@ -12,6 +12,9 @@ declare global {
         RLM_API_URL: string;
         RESTATE_SERVICE_PORT?: string;
         LOCAL_DYNAMODB_URL?: string;
+        TWILIO_PROXY_URL: string;
+        TWILIO_PROXY_USER: string;
+        TWILIO_PROXY_PASS: string;
       }
     }
   }

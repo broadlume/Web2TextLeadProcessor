@@ -6,6 +6,8 @@ import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conv
 import type { SubmittedLeadState } from "../../restate/common";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
+import { TwilioProxy_CreateSession } from "./TwilioProxyAPI";
+import { E164Number, parsePhoneNumber } from "libphonenumber-js";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -37,13 +39,13 @@ export class TwilioIntegration
 	): Promise<TwilioIntegrationState> {
 		const LeadID = (await context.get<SubmittedLeadState["LeadId"]>("LeadId"))!;
 		const Lead = (await context.get<SubmittedLeadState["Lead"]>("Lead"))!;
-		// TODO: Don't hardcode, fetch from subaccount using Twilio API
-		const DealerTwilioNumber = "+18332219478";
+		// TODO: Don't hardcode, fetch from Nexus API
+		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
 		const UniversalClientId = Lead.UniversalClientId;
 		const preExistingConversationID =
 			await this.checkForPreexistingConversation(
 				Lead.LeadInformation.PhoneNumber,
-				DealerTwilioNumber,
+				DealerPhoneNumber,
 			);
 		let conversation: ConversationInstance;
 		if (preExistingConversationID) {
@@ -55,30 +57,32 @@ export class TwilioIntegration
 				async () =>
 					await this.twilioClient.conversations.v1
 						.conversations(preExistingConversationID)
-						.fetch(),
+						.update((err, conv) => {
+							// Add this LeadID to the conversation meta data
+							const attributes = JSON.parse(conv?.attributes ?? "{}");
+							attributes["LeadIds"] = Array.from(
+								new Set([...(attributes["LeadIds"] ?? []), LeadID]),
+							);
+							conv!.attributes = JSON.stringify(attributes);
+							return conv;
+						}),
 			);
 		} else {
 			conversation = await context.run(
-				"Twilio Conversation Create API Call",
+				"Twilio Proxy Conversation Create API Call",
 				async () =>
-					await this.twilioClient.conversations.v1.conversations.create({
-						attributes: JSON.stringify({
-							LeadID,
-							UniversalClientId,
-						}),
-						friendlyName: `Web2Text Lead Conversation: ${LeadID}`,
-						"timers.inactive": "P30D",
-					}),
-			);
-			const userParticipant = await context.run(
-				"Add User as SMS Participant",
-				async () =>
-					await this.twilioClient.conversations.v1
-						.conversations(conversation.sid)
-						.participants.create({
-							"messagingBinding.address": Lead.LeadInformation.PhoneNumber,
-							"messagingBinding.proxyAddress": DealerTwilioNumber,
-						}),
+					await TwilioProxy_CreateSession(
+						[Lead.LeadInformation.PhoneNumber, DealerPhoneNumber],
+						{
+							friendlyName: `Client: [${Lead.UniversalClientId}]\nLocation: [${Lead.LeadInformation.LocationID}]\nWeb2Text Lead with [${Lead.LeadInformation.PhoneNumber}]`,
+							"timers.inactive": "P30D",
+							attributes: JSON.stringify({
+								LeadIDs: [LeadID],
+								UniversalClientId,
+								LocationID: Lead.LeadInformation.LocationID
+							}),
+						},
+					),
 			);
 			const systemParticipant = await context.run(
 				"Add Broadlume as Chat Participant",
@@ -90,7 +94,7 @@ export class TwilioIntegration
 		}
 
 		await context.run("Send initial message", async () => {
-			await this.sendInitialMessage(state, conversation, context);
+			await this.sendSystemMessage(state, conversation, context, "Testing!");
 		});
 		return {
 			...state,
@@ -122,7 +126,9 @@ export class TwilioIntegration
 			const LeadID = (await context.get<SubmittedLeadState["LeadId"]>(
 				"LeadId",
 			))!;
-			context.objectSendClient(LeadVirtualObject, LeadID).close(process.env.INTERNAL_TOKEN);
+			context
+				.objectSendClient(LeadVirtualObject, LeadID)
+				.close(process.env.INTERNAL_TOKEN);
 		}
 		return {
 			...state,
@@ -138,28 +144,67 @@ export class TwilioIntegration
 		state: TwilioIntegrationState,
 		context: restate.ObjectSharedContext,
 	): Promise<TwilioIntegrationState> {
-		return state;
+		const LeadID = (await context.get<SubmittedLeadState["LeadId"]>("LeadId"))!;
+		const conversationID = state.Data?.ConversationSID;
+		if (conversationID == null) return state;
+		const conversation = await this.twilioClient.conversations.v1
+			.conversations(conversationID)
+			.fetch();
+		const attributes = JSON.parse(conversation?.attributes ?? "{}");
+		attributes["LeadIds"] = ((attributes["LeadIds"] as string[]) ?? []).filter(
+			(id) => id !== LeadID,
+		);
+		conversation.attributes = JSON.stringify(attributes);
+		// If no other leads are using this conversation, close it
+		if (attributes["LeadIds"].length === 0) {
+			await context.run("Send closing message", async () => {
+				await this.sendSystemMessage(
+					state,
+					conversation,
+					context,
+					"This conversation has been marked closed",
+				);
+			});
+			conversation.state = "closed";
+		}
+		await context.run("Remove Lead from Twilio Conversation", async () => {
+			await this.twilioClient.conversations.v1
+				.conversations(conversationID)
+				.update({
+					attributes: conversation.attributes,
+					state: conversation.state,
+				});
+		});
+		return {
+			...state,
+			SyncStatus: "SYNCED",
+			LastSynced: new Date().toISOString(),
+		};
 	}
 	private async checkForPreexistingConversation(
-		customerPhone: string,
-		dealerPhone: string,
+		customerPhone: E164Number,
+		dealerPhone: E164Number,
 	): Promise<string | null> {
-		const conversations =
-			await this.twilioClient.conversations.v1.participantConversations.list({
-				address: customerPhone,
-			});
-		return (
-			conversations.find(
-				(x) =>
-					x.participantMessagingBinding?.proxy_address === dealerPhone &&
-					x.conversationState !== "closed",
-			)?.conversationSid ?? null
-		);
+		const conversationsUserIsIn =
+			await this.twilioClient.conversations.v1.participantConversations
+				.list({
+					address: customerPhone,
+				})
+				.then((convos) => convos.filter(c => c.conversationState !== "closed").map((c) => c.conversationSid));
+		const conversationsDealerIsIn =
+			await this.twilioClient.conversations.v1.participantConversations
+				.list({
+					address: dealerPhone,
+				})
+				.then((convos) => convos.filter(c => c.conversationState !== "closed").map((c) => c.conversationSid));
+		const conversation = conversationsUserIsIn.filter(x => conversationsDealerIsIn.includes(x));
+		return conversation?.[0];
 	}
-	private async sendInitialMessage(
+	private async sendSystemMessage(
 		state: TwilioIntegrationState,
 		twilioConversation: ConversationInstance,
 		context: restate.ObjectSharedContext,
+		message: string,
 	) {
 		const chatGrant = new ChatGrant({
 			serviceSid: twilioConversation.chatServiceSid,
@@ -190,6 +235,6 @@ export class TwilioIntegration
 		);
 		(
 			await conversationClient.getConversationBySid(twilioConversation.sid)
-		).sendMessage("Testing!");
+		).sendMessage(message);
 	}
 }

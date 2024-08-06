@@ -3,11 +3,12 @@ import type * as restate from "@restatedev/restate-sdk";
 import AccessToken, { ChatGrant } from "twilio/lib/jwt/AccessToken";
 import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import type { SubmittedLeadState } from "../../restate/common";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 import { TwilioProxy_CreateSession } from "./TwilioProxyAPI";
-import { E164Number, parsePhoneNumber } from "libphonenumber-js";
+import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
+import type { Web2TextLead } from "../../types";
+import type { TypedState } from "@restatedev/restate-sdk/dist/cjs/src/context";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -35,16 +36,15 @@ export class TwilioIntegration
 	}
 	async create(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext,
+		context: restate.ObjectSharedContext<Web2TextLead>,
 	): Promise<TwilioIntegrationState> {
-		const LeadID = (await context.get<SubmittedLeadState["LeadId"]>("LeadId"))!;
-		const Lead = (await context.get<SubmittedLeadState["Lead"]>("Lead"))!;
+		const leadState = await context.getAll();
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
-		const UniversalClientId = Lead.UniversalClientId;
+		const UniversalClientId = leadState.UniversalClientId;
 		const preExistingConversationID =
 			await this.checkForPreexistingConversation(
-				Lead.LeadInformation.PhoneNumber,
+				leadState.Lead.PhoneNumber,
 				DealerPhoneNumber,
 			);
 		let conversation: ConversationInstance;
@@ -61,7 +61,7 @@ export class TwilioIntegration
 							// Add this LeadID to the conversation meta data
 							const attributes = JSON.parse(conv?.attributes ?? "{}");
 							attributes["LeadIds"] = Array.from(
-								new Set([...(attributes["LeadIds"] ?? []), LeadID]),
+								new Set([...(attributes["LeadIds"] ?? []), leadState.LeadId]),
 							);
 							conv!.attributes = JSON.stringify(attributes);
 							return conv;
@@ -72,14 +72,14 @@ export class TwilioIntegration
 				"Twilio Proxy Conversation Create API Call",
 				async () =>
 					await TwilioProxy_CreateSession(
-						[Lead.LeadInformation.PhoneNumber, DealerPhoneNumber],
+						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
-							friendlyName: `Client: [${Lead.UniversalClientId}]\nLocation: [${Lead.LeadInformation.LocationID}]\nWeb2Text Lead with [${Lead.LeadInformation.PhoneNumber}]`,
+							friendlyName: `Client: [${leadState.UniversalClientId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
 							"timers.inactive": "P30D",
 							attributes: JSON.stringify({
-								LeadIDs: [LeadID],
+								LeadIDs: [leadState.LeadId],
 								UniversalClientId,
-								LocationID: Lead.LeadInformation.LocationID
+								LocationID: leadState.LocationId
 							}),
 						},
 					),
@@ -108,7 +108,7 @@ export class TwilioIntegration
 	}
 	async sync(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext,
+		context: restate.ObjectSharedContext<Web2TextLead>,
 	): Promise<TwilioIntegrationState> {
 		const conversationSID = state.Data?.ConversationSID!;
 		if (conversationSID == null) {
@@ -123,11 +123,11 @@ export class TwilioIntegration
 		);
 		// Signal to close this lead if the Twilio conversation is closed
 		if (conversation.state === "closed") {
-			const LeadID = (await context.get<SubmittedLeadState["LeadId"]>(
+			const LeadId = (await context.get(
 				"LeadId",
 			))!;
 			context
-				.objectSendClient(LeadVirtualObject, LeadID)
+				.objectSendClient(LeadVirtualObject, LeadId)
 				.close(process.env.INTERNAL_TOKEN);
 		}
 		return {
@@ -142,9 +142,9 @@ export class TwilioIntegration
 	}
 	async close(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext,
+		context: restate.ObjectSharedContext<Web2TextLead>,
 	): Promise<TwilioIntegrationState> {
-		const LeadID = (await context.get<SubmittedLeadState["LeadId"]>("LeadId"))!;
+		const LeadID = (await context.get("LeadId"))!;
 		const conversationID = state.Data?.ConversationSID;
 		if (conversationID == null) return state;
 		const conversation = await this.twilioClient.conversations.v1
@@ -200,10 +200,10 @@ export class TwilioIntegration
 		const conversation = conversationsUserIsIn.filter(x => conversationsDealerIsIn.includes(x));
 		return conversation?.[0];
 	}
-	private async sendSystemMessage(
+	private async sendSystemMessage<T extends TypedState>(
 		state: TwilioIntegrationState,
 		twilioConversation: ConversationInstance,
-		context: restate.ObjectSharedContext,
+		context: restate.ObjectSharedContext<T>,
 		message: string,
 	) {
 		const chatGrant = new ChatGrant({

@@ -1,17 +1,12 @@
 import * as restate from "@restatedev/restate-sdk";
 import type { UUID } from "node:crypto";
-import {
-	Web2TextIntegrations,
-} from "../external";
-import {
-	type LeadState,
-	type SubmittedLeadState,
-	SyncWithDB,
-	GetObjectState,
-} from "./common";
+import { Web2TextIntegrations } from "../external";
+import { type LeadState, SyncWithDB } from "./common";
 import { ParseAndVerifyLeadCreation, ValidateAPIKey } from "./validators";
 import { z } from "zod";
 import type { ExternalIntegrationState } from "../external/types";
+import { assert, is } from "tsafe";
+import type { Web2TextLead } from "../types";
 
 /**
  * Helper function that runs before all of our exclusive handlers
@@ -20,7 +15,7 @@ import type { ExternalIntegrationState } from "../external/types";
  * @param allowedStates a set of lead status states that we should allow this handler to run with
  */
 async function setup(
-	ctx: restate.ObjectContext,
+	ctx: restate.ObjectContext<LeadState>,
 	allowedStates: LeadState["Status"][],
 ) {
 	const uuidParser = z.string().uuid();
@@ -35,13 +30,14 @@ async function setup(
 	try {
 		await SyncWithDB(ctx, "RECEIVE");
 	} catch (e) {
-		ctx.set("Status", "ERROR");
-		ctx.set("Error", (e as Error).message);
+		await ctx.update((_) => ({
+			Status: "ERROR",
+			Error: (e as Error).message,
+		}));
 		throw e;
 	}
 
-	const status =
-		(await ctx.get<LeadState["Status"]>("Status")) ?? "NONEXISTANT";
+	const status = (await ctx.get("Status")) ?? "NONEXISTANT";
 	const canRun = allowedStates.includes(status);
 	if (!canRun) {
 		throw new restate.TerminalError(
@@ -59,13 +55,16 @@ export const LeadVirtualObject = restate.object({
 		 */
 		status: restate.handlers.object.shared(
 			async (
-				ctx: restate.ObjectSharedContext,
+				ctx: restate.ObjectSharedContext<LeadState>,
 				_internalToken?: string,
 			): Promise<LeadState> => {
-				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
+				if (
+					process.env.INTERNAL_TOKEN == null ||
+					_internalToken !== process.env.INTERNAL_TOKEN
+				) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
-				const state = await GetObjectState(ctx);
+				const state = await ctx.getAll();
 				if (state.Status == null) {
 					return { Status: "NONEXISTANT" };
 				}
@@ -77,42 +76,44 @@ export const LeadVirtualObject = restate.object({
 		 */
 		create: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext,
+				ctx: restate.ObjectContext<LeadState>,
 				req: unknown,
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
+				if (
+					process.env.INTERNAL_TOKEN == null ||
+					_internalToken !== process.env.INTERNAL_TOKEN
+				) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
-					ctx.set("Request", req ?? {});
-					ctx.set<LeadState["Status"]>("Status", "VALIDATING");
+					await ctx.update((_) => ({
+						Status: "VALIDATING",
+						Request: req ?? {},
+					}));
 					// Validate the submitted lead
-					const { Lead } = await ParseAndVerifyLeadCreation(ctx, req);
+					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
 
-					ctx.set<SubmittedLeadState["SchemaVersion"]>(
-						"SchemaVersion",
-						"1.0.0",
-					);
-					ctx.set<SubmittedLeadState["LeadId"]>("LeadId", ctx.key as UUID);
-					ctx.set<SubmittedLeadState["Lead"]>("Lead", Lead);
 					const currentDate = new Date(await ctx.date.now());
-					ctx.set<SubmittedLeadState["DateSubmitted"]>(
-						"DateSubmitted",
-						currentDate.toISOString(),
-					);
-					ctx.set<SubmittedLeadState["Integrations"]>("Integrations", {});
-					ctx.clear("Request");
-
+					await ctx.update((_) => ({
+						...Lead,
+						LeadId: ctx.key as UUID,
+						Status: "ACTIVE",
+						SchemaVersion: "1.0.0",
+						DateSubmitted: currentDate.toISOString(),
+						Integrations: {},
+					}));
 					// Mark the lead as ACTIVE and sync with the database
 					ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 					await SyncWithDB(ctx, "SEND");
 				} catch (e) {
-					ctx.set("Status", "ERROR");
-					ctx.set("Error", (e as Error).message);
+					await ctx.update(_ => ({
+						Status: "ERROR",
+						Error: (e as Error).message
+					}));
 					throw e;
 				}
 				// Schedule syncing the lead to external integrations
@@ -131,24 +132,27 @@ export const LeadVirtualObject = restate.object({
 		 */
 		sync: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext,
+				ctx: restate.ObjectContext<LeadState>,
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
+				if (
+					process.env.INTERNAL_TOKEN == null ||
+					_internalToken !== process.env.INTERNAL_TOKEN
+				) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				try {
+					assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
 					// Update the state of the lead to SYNCING
 					ctx.set("Status", "SYNCING");
 					await SyncWithDB(ctx, "SEND");
-
 					// Iterate through all integrations and call their create/sync handlers
 					const integrations = Web2TextIntegrations;
 					const integrationStates =
-						(await ctx.get<SubmittedLeadState["Integrations"]>(
+						(await ctx.get(
 							"Integrations",
 						)) ?? {};
 					for (const integration of integrations) {
@@ -181,8 +185,10 @@ export const LeadVirtualObject = restate.object({
 						await SyncWithDB(ctx, "SEND");
 					}
 				} catch (e) {
-					ctx.set("Status", "ERROR");
-					ctx.set("Error", (e as Error).message);
+					await ctx.update((_) => ({
+						Status: "ERROR",
+						Error: (e as Error).message
+					}));
 					throw e;
 				}
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
@@ -200,20 +206,24 @@ export const LeadVirtualObject = restate.object({
 		 */
 		close: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext,
+				ctx: restate.ObjectContext<LeadState>,
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
-				if (process.env.INTERNAL_TOKEN == null || _internalToken !== process.env.INTERNAL_TOKEN) {
+				if (
+					process.env.INTERNAL_TOKEN == null ||
+					_internalToken !== process.env.INTERNAL_TOKEN
+				) {
 					await ValidateAPIKey(ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
 				try {
+					assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
 					// Iterate through all integrations and call their close handlers
 					const integrations = Web2TextIntegrations;
 					const integrationStates =
-						(await ctx.get<SubmittedLeadState["Integrations"]>(
+						(await ctx.get(
 							"Integrations",
 						)) ?? {};
 					for (const integration of integrations) {
@@ -243,8 +253,10 @@ export const LeadVirtualObject = restate.object({
 					ctx.set<LeadState["Status"]>("Status", "CLOSED");
 					await SyncWithDB(ctx, "SEND");
 				} catch (e) {
-					ctx.set("Status", "ERROR");
-					ctx.set("Error", (e as Error).message);
+					await ctx.update(_ => ({
+						Status: "ERROR",
+						Error: (e as Error).message
+					}));
 					throw e;
 				}
 				// Return the status of the lead

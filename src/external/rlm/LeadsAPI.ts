@@ -1,4 +1,4 @@
-import type { SubmittedLeadState } from "../../restate/common";
+import type { Web2TextLead } from "../../types";
 
 type RLMLeadResponse = {
     result: "Success";
@@ -39,37 +39,37 @@ interface RLMCreateLeadRequest {
     }
 }
 
-export function RLM_CreateLeadRequest(lead: SubmittedLeadState): RLMCreateLeadRequest {
+export function RLM_CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
     const rlmLead: RLMCreateLeadRequest["lead"] = {
         location_name: "Per Pipeline configuration",
         divison_name: "Per Pipeline configuration",
         source_name: "Web2Text"
     };
-    const [first_name, ...last_name] = lead.Lead.LeadInformation.Name.split(/\s+/)
+    const [first_name, ...last_name] = lead.Lead.Name.split(/\s+/)
     rlmLead.first_name =  first_name;
     rlmLead.last_name = last_name.join(" ");
-    rlmLead.phone = lead.Lead.LeadInformation.PhoneNumber;
-    rlmLead.mobile_phone = lead.Lead.LeadInformation.PhoneNumber;
+    rlmLead.phone = lead.Lead.PhoneNumber;
+    rlmLead.mobile_phone = lead.Lead.PhoneNumber;
     rlmLead.website = new URL(lead.Lead.PageUrl).hostname;
     rlmLead.note = `--------------------
     Web2Text Lead Information
     --------------------
     PageUrl: ${lead.Lead.PageUrl}
-    Customer Name: ${lead.Lead.LeadInformation.Name}
-    Customer Phone: ${lead.Lead.LeadInformation.PhoneNumber}
+    Customer Name: ${lead.Lead.Name}
+    Customer Phone: ${lead.Lead.PhoneNumber}
     Date Submitted: ${new Date(lead.DateSubmitted).toUTCString()}
-    Preferred Method of Contact: ${lead.Lead.LeadInformation.PreferredMethodOfContact}
+    Preferred Method of Contact: ${lead.Lead.PreferredMethodOfContact}
     `;
 
-    if (lead.Lead.LeadInformation.AssociatedProductInfo) {
+    if (lead.Lead.AssociatedProductInfo) {
         rlmLead.note = `${rlmLead.note}
-        Customer was looking at ${lead.Lead.LeadInformation.AssociatedProductInfo.Product} by ${lead.Lead.LeadInformation.AssociatedProductInfo.Brand} | ${lead.Lead.LeadInformation.AssociatedProductInfo.Variant}`
+        Customer was looking at ${lead.Lead.AssociatedProductInfo.Product} by ${lead.Lead.AssociatedProductInfo.Brand} | ${lead.Lead.AssociatedProductInfo.Variant}`
     }
     rlmLead.note = `${rlmLead.note}
     --------------------
     Customer Message:
     
-    ${lead.Lead.LeadInformation.CustomerMessage}`;
+    ${lead.Lead.CustomerMessage}`;
     return {
         lead: rlmLead
     };

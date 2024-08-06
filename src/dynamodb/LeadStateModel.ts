@@ -1,16 +1,23 @@
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
-import type { SubmittedLeadState } from "../restate/common";
 import type { ExternalIntegrationState } from "../external/types";
+import type { Web2TextLead } from "../types";
+import type { UUID } from "node:crypto";
 class LeadStateItem extends Item {
+    SchemaVersion!: string;
     LeadId!: string;
     Status!: string;
-    SchemaVersion!: string;
-    Lead!: SubmittedLeadState;
+    UniversalClientID!: UUID;
+    LocationId!: UUID;
+    Lead!: Web2TextLead;
     DateSubmitted!: Date;
     Integrations!: Record<string, ExternalIntegrationState>;
 }
 const DynamoDBLeadStateSchema = new dynamoose.Schema({
+    SchemaVersion: {
+        type: String,
+        required: true
+    },
     LeadId: {
         type: String,
         required: true,
@@ -21,7 +28,11 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema({
         required: true,
         enum: ["ACTIVE","SYNCING","CLOSED"]
     },
-    SchemaVersion: {
+    UniversalClientId: {
+        type: String,
+        required: true
+    },
+    LocationId: {
         type: String,
         required: true
     },

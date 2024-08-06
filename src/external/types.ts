@@ -1,5 +1,6 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 import { z } from "zod";
+import type { Web2TextLead } from "../types";
 
 export const ExternalIntegrationStateSchema = z.object({
 	SyncStatus: z.enum(["NOT SYNCED", "SYNCING", "SYNCED", "ERROR"]),
@@ -17,7 +18,7 @@ export abstract class IExternalIntegration<
 > {
     abstract Name: string;
     abstract defaultState(): State
-	abstract create(state: State, context: ObjectSharedContext): Promise<State>;
-	abstract sync(state: State, context: ObjectSharedContext): Promise<State>;
-	abstract close(state: State, context: ObjectSharedContext): Promise<State>;
+	abstract create(state: State, context: ObjectSharedContext<Web2TextLead>): Promise<State>;
+	abstract sync(state: State, context: ObjectSharedContext<Web2TextLead>): Promise<State>;
+	abstract close(state: State, context: ObjectSharedContext<Web2TextLead>): Promise<State>;
 }

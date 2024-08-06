@@ -1,7 +1,7 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
-import { GetObjectState, type SubmittedLeadState } from "../../restate/common";
 import { RLM_CreateLead, RLM_CreateLeadRequest } from "./LeadsAPI";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
+import type { Web2TextLead } from "../../types";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
     Data?: {
@@ -17,8 +17,8 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
             SyncStatus: "NOT SYNCED",
         }
     }
-    async create(state: RLMIntegrationState, context: ObjectSharedContext): Promise<RLMIntegrationState> {
-        const leadState = await GetObjectState(context) as SubmittedLeadState;
+    async create(state: RLMIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
+        const leadState = await context.getAll();
         const rlmLead = RLM_CreateLeadRequest(leadState);
         const response = await context.run("Create RLM Lead", async () => await RLM_CreateLead(leadState.LeadId,rlmLead,"4eb5038bcba07abbc5c43937bd462c8c"));
         if (response.result !== "Success") {
@@ -35,10 +35,10 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
             }
         }
     }
-    async sync(state: RLMIntegrationState, context: ObjectSharedContext): Promise<RLMIntegrationState> {
+    async sync(state: RLMIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         return state;
     }
-    async close(state: RLMIntegrationState, context: ObjectSharedContext): Promise<RLMIntegrationState> {
+    async close(state: RLMIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         return state;
     }
 

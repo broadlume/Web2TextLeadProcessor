@@ -69,7 +69,7 @@ export async function Nexus_GetRetailerStoreByID(
 	if (response.ok) {
 		return (await response.json()) as RetailerStore;
 	}
-	if (response.status === 404) {
+	if (response.status === 404 || response.status === 400) {
 		return null;
 	}
 	const error = await response.text().catch(() => response.status);

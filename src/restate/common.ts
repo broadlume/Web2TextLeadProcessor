@@ -3,16 +3,6 @@ import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { fromError } from "zod-validation-error";
-import { ExternalIntegrationStateSchema } from "../external/types";
-
-export const SubmittedLeadStateSchema = z.object({
-	LeadId: z.string().uuid(),
-	Status: z.enum(["ACTIVE", "SYNCING", "CLOSED"]),
-	SchemaVersion: z.enum(["1.0.0"]),
-	Lead: Web2TextLeadSchema,
-	DateSubmitted: z.coerce.string().datetime(),
-	Integrations: z.record(z.string(), ExternalIntegrationStateSchema),
-});
 
 export const LeadStateSchema = z.discriminatedUnion("Status", [
 	z.object({
@@ -22,7 +12,7 @@ export const LeadStateSchema = z.discriminatedUnion("Status", [
 		Status: z.literal("VALIDATING"),
 		Request: z.unknown(),
 	}),
-	SubmittedLeadStateSchema,
+	Web2TextLeadSchema,
 	z.object({
 		Status: z.literal("ERROR"),
 		Error: z.string(),
@@ -30,19 +20,16 @@ export const LeadStateSchema = z.discriminatedUnion("Status", [
 	}),
 ]);
 export type LeadState = z.infer<typeof LeadStateSchema>;
-export type SubmittedLeadState = z.infer<typeof SubmittedLeadStateSchema>;
-const a: SubmittedLeadState["Integrations"] = {
-	Twilio: { SyncStatus: "SYNCING" },
-};
 
 export async function SyncWithDB(
-	ctx: restate.ObjectContext,
+	ctx: restate.ObjectContext<LeadState>,
 	direction: "SEND" | "RECEIVE",
 ) {
 	switch (direction) {
 		case "SEND": {
-			const objectState = (await GetObjectState(ctx)) as SubmittedLeadState;
-			const parsed = SubmittedLeadStateSchema.parse(objectState);
+			const objectState = await ctx.getAll();
+			const parsed = Web2TextLeadSchema.parse(objectState);
+			console.log(parsed);
 			const dynamoDBModel = new LeadStateModel(parsed);
 			await ctx.run(
 				"Sending lead to database",
@@ -61,30 +48,32 @@ export async function SyncWithDB(
 				return false;
 			}
 			const { data, success, error } =
-				await SubmittedLeadStateSchema.safeParseAsync(lead);
+				await Web2TextLeadSchema.safeParseAsync(lead);
 			if (!success) {
 				throw new restate.TerminalError(
 					`Could not parse lead ID '${leadID}' from database`,
 					{ cause: fromError(error) },
 				);
 			}
-			for (const key of Object.keys(data)) {
-				await ctx.set(key, data[key as keyof SubmittedLeadState]);
-			}
+			await ctx.update((_) => data);
 			return true;
 		}
 	}
 }
 
-export async function GetObjectState(
-	ctx: restate.ObjectSharedContext,
-): Promise<LeadState> {
-	let keys = LeadStateSchema.options.flatMap((opt) => Object.keys(opt.shape));
-	const contextKeys = await ctx.stateKeys();
-	keys = keys.filter((k) => contextKeys.includes(k));
-	let entries = await Promise.all(keys.map(async (k) => [k, await ctx.get(k)]));
-	if (entries.length === 0) {
-		entries = [["Status", "NONEXISTANT"]];
-	}
-	return Object.fromEntries(entries);
-}
+// export async function GetObjectState<T extends TypedState>(
+// 	ctx: restate.ObjectSharedContext<T>,
+// ): Promise<T> {
+// 	const keys = await ctx.stateKeys();
+// 	const entries = await Promise.all(keys.map(async (k) => [k, await ctx.get(k as keyof LeadState)]));
+// 	return Object.fromEntries(entries);
+// }
+// export async function UpdateState<T extends TypedState>(ctx: restate.ObjectContext<T>, operation: (state: T) => T) {
+// 	const state = await GetObjectState(ctx) as unknown as T;
+// 	const newState = operation(state);
+// 	await ctx.clearAll();
+// 	for (const key of Object.keys(newState)) {
+// 		ctx.set(key,newState[key]);
+// 	}
+// 	return newState;
+// }

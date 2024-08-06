@@ -8,6 +8,7 @@ import { APIKeyModel } from "../dynamodb/APIKeyModel";
 import { fromError } from 'zod-validation-error';
 import { Nexus_GetRetailerByID } from "../external/nexus/RetailerAPI";
 import { Nexus_GetRetailerStoreByID } from "../external/nexus/StoresAPI";
+import type { LeadState } from "./common";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -29,7 +30,7 @@ export async function ValidateAPIKey(auth: string | undefined): Promise<boolean>
 	const apiKey = await APIKeyModel.get(key);
 	const apiKeyValid = apiKey?.Active ?? false;
 	if (apiKeyValid === false) {
-		throw new restate.TerminalError(`API Key '${apiKey}' is invalid`, {
+		throw new restate.TerminalError(`API Key '${key}' is invalid`, {
 			errorCode: 401,
 		});
 	}
@@ -79,7 +80,7 @@ async function ValidateLocation(universalId: UUID, locationId: UUID): Promise<bo
  * @returns a parsed Web2TextLeadCreateRequest if the lead passed validation - throws an error otherwise
  */
 export async function ParseAndVerifyLeadCreation(
-	ctx: restate.ObjectContext,
+	ctx: restate.ObjectContext<LeadState>,
 	req: unknown,
 ): Promise<Web2TextLeadCreateRequest> {
 	const parseRequest =
@@ -94,36 +95,36 @@ export async function ParseAndVerifyLeadCreation(
 			errorCode: 400,
 		});
 	}
-	const { Lead } = parseRequest.data;
+	const leadState = parseRequest.data;
 	const ipAddressValid = await ctx.run<boolean>(
 		"IP address validation",
-		async () => await ValidateIPAddress(Lead.IPAddress),
+		async () => await ValidateIPAddress(leadState.Lead.IPAddress),
 	);
 	if (!ipAddressValid) {
 		throw new restate.TerminalError(
-			`IP Address '${Lead}' is invalid or blocked`,
+			`IP Address '${leadState}' is invalid or blocked`,
 			{ errorCode: 401 },
 		);
 	}
 
 	const clientStatus = await ctx.run<ClientStatus>(
 		"Client status check",
-		async () => await CheckClientStatus(Lead.UniversalClientId),
+		async () => await CheckClientStatus(leadState.UniversalClientId),
 	);
 	if (clientStatus !== "ELIGIBLE") {
 		throw new restate.TerminalError(
-			`UniversalClientID '${Lead.UniversalClientId}' has status '${clientStatus}'`,
+			`UniversalClientID '${leadState.UniversalClientId}' has status '${clientStatus}'`,
 			{ errorCode: 400 },
 		);
 	}
 
 	const locationValid = await ctx.run<boolean>(
 		"Location validation",
-		async () => await ValidateLocation(Lead.UniversalClientId,Lead.LeadInformation.LocationID),
+		async () => await ValidateLocation(leadState.UniversalClientId,leadState.LocationId),
 	);
 	if (!locationValid) {
 		throw new restate.TerminalError(
-			`Location ID '${Lead.LeadInformation.LocationID}' is invalid or does not exist'`,
+			`Location ID '${leadState.LocationId}' is invalid or does not exist'`,
 			{ errorCode: 400 },
 		);
 	}

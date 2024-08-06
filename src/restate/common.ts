@@ -60,20 +60,3 @@ export async function SyncWithDB(
 		}
 	}
 }
-
-// export async function GetObjectState<T extends TypedState>(
-// 	ctx: restate.ObjectSharedContext<T>,
-// ): Promise<T> {
-// 	const keys = await ctx.stateKeys();
-// 	const entries = await Promise.all(keys.map(async (k) => [k, await ctx.get(k as keyof LeadState)]));
-// 	return Object.fromEntries(entries);
-// }
-// export async function UpdateState<T extends TypedState>(ctx: restate.ObjectContext<T>, operation: (state: T) => T) {
-// 	const state = await GetObjectState(ctx) as unknown as T;
-// 	const newState = operation(state);
-// 	await ctx.clearAll();
-// 	for (const key of Object.keys(newState)) {
-// 		ctx.set(key,newState[key]);
-// 	}
-// 	return newState;
-// }

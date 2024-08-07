@@ -3,7 +3,7 @@ services:
   web2text:
     container_name: web2text-devcontainer
     build: 
-      context: .
+      context: ./
       dockerfile: Dockerfile
     networks:
       - restate-network

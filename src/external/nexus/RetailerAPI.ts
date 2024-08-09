@@ -9,22 +9,23 @@ interface NexusRetailer {
     salesforce_url: string,
     website_last_validated_at: string,
     temporary_website: boolean,
-    primary_account_email: string,
-    primary_account_phone: string,
+    primary_account_email?: string,
+    primary_account_phone?: string,
     account_manager: {
         id: string,
         email: string,
         first_name: string,
         last_name: string
     },
-    preflight_completed_at: string,
-    corporate_name: string,
-    facebook_url: string,
-    linked_in_url: string,
-    twitter_url: string,
-    instagram_url: string,
-    pinterest_url: string,
-    youtube_url: string
+    rlm_api_key?: string,
+    preflight_completed_at?: string,
+    corporate_name?: string,
+    facebook_url?: string,
+    linked_in_url?: string,
+    twitter_url?: string,
+    instagram_url?: string,
+    pinterest_url?: string,
+    youtube_url?: string
 }
 
 export async function Nexus_GetRetailerByID(universalId: UUID): Promise<NexusRetailer | null> {

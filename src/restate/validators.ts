@@ -67,8 +67,8 @@ export async function CheckClientStatus(
  * @param locationId the location ID within the client
  * @returns true if the location exists, false otherwise
  */
-async function ValidateLocation(universalId: UUID, locationId: UUID): Promise<boolean> {
-	const location = await Nexus_GetRetailerStoreByID(universalId, locationId);
+async function ValidateLocation(locationId: UUID): Promise<boolean> {
+	const location = await Nexus_GetRetailerStoreByID(locationId);
 	if (location == null) return false;
 	return true;
 }
@@ -120,7 +120,7 @@ export async function ParseAndVerifyLeadCreation(
 
 	const locationValid = await ctx.run<boolean>(
 		"Location validation",
-		async () => await ValidateLocation(leadState.UniversalClientId,leadState.LocationId),
+		async () => await ValidateLocation(leadState.LocationId),
 	);
 	if (!locationValid) {
 		throw new restate.TerminalError(

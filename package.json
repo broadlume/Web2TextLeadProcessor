@@ -8,8 +8,7 @@
     "build": "tsc --noEmitOnError",
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/app.js",
-    "postbundle": "cd dist && zip -r index.zip index.js*",
-    "app": "node ./dist/app.js",
+    "app": "bun run ./dist/app.js",
     "app-dev": "ts-node-dev --watch ./src --respawn --inspect=9229 --transpile-only ./src/app.ts",
     "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
     "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9075 --force --yes --quiet",
@@ -20,7 +19,7 @@
   },
   "dependencies": {
     "@restatedev/restate": "^1.0.2",
-    "@restatedev/restate-sdk": "^1.1.2",
+    "@restatedev/restate-sdk": "^1.2.1",
     "@twilio/conversations": "^2.5.0",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
@@ -41,6 +40,9 @@
     "typescript": "^5.4.5"
   },
   "patchedDependencies": {
-    "@restatedev/restate-sdk@1.1.2": "patches/@restatedev%2Frestate-sdk@1.1.2.patch"
-  }
+    "@restatedev/restate-sdk@1.2.1": "patches/@restatedev%2Frestate-sdk@1.2.1.patch"
+  },
+  "trustedDependencies": [
+    "@biomejs/biome"
+  ]
 }

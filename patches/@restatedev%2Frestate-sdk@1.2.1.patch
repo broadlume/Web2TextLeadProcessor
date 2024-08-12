@@ -1,8 +1,23 @@
+diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-12669939252843d9 b/.bun-tag-12669939252843d9
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-bbfc6056a96ea8e8 b/.bun-tag-bbfc6056a96ea8e8
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/dist/cjs/src/context.d.ts b/dist/cjs/src/context.d.ts
-index 137b6d3d5466fcef9f36cc315c00d482f601a185..c3c97b4ca3bb0f9a059abc126449a11da976e653 100644
+index 56cb5ca6ea16862fec35e3dc955a3950f142ce69..a471702f6df865bd76ef67ab7c8f08a8dbfef629 100644
 --- a/dist/cjs/src/context.d.ts
 +++ b/dist/cjs/src/context.d.ts
 @@ -50,6 +50,8 @@ export interface KeyValueStore<TState extends TypedState> {
+     /**
+      * Get/retrieve state from the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
++    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
+      * and deserialized with `JSON.parse(value.toString()) as T`.
+      *
+      * @param name key of the state to retrieve
+@@ -60,6 +62,8 @@ export interface KeyValueStore<TState extends TypedState> {
       */
      get<TValue, TKey extends keyof TState = string>(name: TState extends UntypedState ? string : TKey): Promise<(TState extends UntypedState ? TValue : TState[TKey]) | null>;
      stateKeys(): Promise<Array<string>>;
@@ -11,17 +26,25 @@ index 137b6d3d5466fcef9f36cc315c00d482f601a185..c3c97b4ca3bb0f9a059abc126449a11d
      /**
       * Set/store state in the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
-@@ -415,6 +417,8 @@ export interface ObjectSharedContext<TState extends TypedState = UntypedState> e
+@@ -415,6 +419,8 @@ export interface ObjectSharedContext<TState extends TypedState = UntypedState> e
+     key: string;
+     /**
+      * Get/retrieve state from the Restate runtime.
++
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+      * and deserialized with `JSON.parse(value.toString()) as T`.
+      *
+@@ -425,6 +431,7 @@ export interface ObjectSharedContext<TState extends TypedState = UntypedState> e
       * const state = await ctx.get<string>("STATE");
       */
      get<TValue, TKey extends keyof TState = string>(name: TState extends UntypedState ? string : TKey): Promise<(TState extends UntypedState ? TValue : TState[TKey]) | null>;
-+
 +    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
      /**
       * Retrieve all the state keys for this object.
       */
 diff --git a/dist/cjs/src/context_impl.d.ts b/dist/cjs/src/context_impl.d.ts
-index 6a1484e70c92e102567d5af87dee008f6874c71a..e1ec92ec543b933de4d3d327a1bff29232d4b15d 100644
+index a6e39c646dd03c3dad6d5efbc9835c0e4ef06736..865a3284cd018f126eb846948f850460f6d9d35e 100644
 --- a/dist/cjs/src/context_impl.d.ts
 +++ b/dist/cjs/src/context_impl.d.ts
 @@ -27,6 +27,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
@@ -34,18 +57,18 @@ index 6a1484e70c92e102567d5af87dee008f6874c71a..e1ec92ec543b933de4d3d327a1bff292
      clearAll(): void;
      private invoke;
 diff --git a/dist/cjs/src/context_impl.js b/dist/cjs/src/context_impl.js
-index 1c6ad0385ad60abef59fc4cc12947d8e5785cb6b..bc7e3e1a2513016c57b4625060e8aedbcc5df2b8 100644
+index 6ce9d3a2315cb2c0375f9cd759ad31b9b321714e..9e592798c651fc42135956da4ba491fb9972f87a 100644
 --- a/dist/cjs/src/context_impl.js
 +++ b/dist/cjs/src/context_impl.js
-@@ -131,6 +131,19 @@ class ContextImpl {
-             .handleUserCodeMessage(protocol_js_1.SET_STATE_ENTRY_MESSAGE_TYPE, msg)
-             .catch((e) => this.stateMachine.handleDanglingPromiseError(e));
+@@ -112,6 +112,19 @@ class ContextImpl {
+         };
+         return getState();
      }
 +    async getAll() {
-+        const keys = await this.stateKeys();
-+        const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
-+        return Object.fromEntries(entries);
-+    }
++            const keys = await this.stateKeys();
++            const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
++            return Object.fromEntries(entries);
++        }
 +    async update(operation) {
 +        const state = await this.getAll();
 +        const newState = operation(state);
@@ -54,30 +77,31 @@ index 1c6ad0385ad60abef59fc4cc12947d8e5785cb6b..bc7e3e1a2513016c57b4625060e8aedb
 +            this.set(key,newState[key]);
 +        }
 +    }
-     clear(name) {
-         this.checkState("clear state");
-         const msg = this.stateMachine.localStateStore.clear(name);
+     // DON'T make this function async!!! see sideEffect comment for details.
+     stateKeys() {
+         // Check if this is a valid action
 diff --git a/dist/esm/src/context.d.ts b/dist/esm/src/context.d.ts
-index 55a95a023ac77c39688286dd0296f11cdc55565b..829fd91ed01e4a35f4e8f5a10094e757b33de005 100644
+index fd0302d552cb611b107487b8861ea18bb750f7ef..0ec93c3cfdb6fea362bf4f84d34a3fdab3138137 100644
 --- a/dist/esm/src/context.d.ts
 +++ b/dist/esm/src/context.d.ts
-@@ -49,6 +49,7 @@ export interface KeyValueStore<TState extends TypedState> {
-      * const state = await ctx.get<string>("STATE");
+@@ -60,6 +60,8 @@ export interface KeyValueStore<TState extends TypedState> {
       */
      get<TValue, TKey extends keyof TState = string>(name: TState extends UntypedState ? string : TKey): Promise<(TState extends UntypedState ? TValue : TState[TKey]) | null>;
-+    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
      stateKeys(): Promise<Array<string>>;
-     /**
-      * Set/store state in the Restate runtime.
-@@ -62,6 +63,7 @@ export interface KeyValueStore<TState extends TypedState> {
-      * ctx.set("STATE", "Hello");
-      */
-     set<TValue, TKey extends keyof TState = string>(name: TState extends UntypedState ? string : TKey, value: TState extends UntypedState ? TValue : TState[TKey]): void;
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
 +    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
      /**
-      * Clear/delete state in the Restate runtime.
-      * @param name key of the state to delete
+      * Set/store state in the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
 @@ -415,6 +417,7 @@ export interface ObjectSharedContext<TState extends TypedState = UntypedState> e
+     key: string;
+     /**
+      * Get/retrieve state from the Restate runtime.
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+      * and deserialized with `JSON.parse(value.toString()) as T`.
+      *
+@@ -425,6 +428,7 @@ export interface ObjectSharedContext<TState extends TypedState = UntypedState> e
       * const state = await ctx.get<string>("STATE");
       */
      get<TValue, TKey extends keyof TState = string>(name: TState extends UntypedState ? string : TKey): Promise<(TState extends UntypedState ? TValue : TState[TKey]) | null>;
@@ -86,7 +110,7 @@ index 55a95a023ac77c39688286dd0296f11cdc55565b..829fd91ed01e4a35f4e8f5a10094e757
       * Retrieve all the state keys for this object.
       */
 diff --git a/dist/esm/src/context_impl.d.ts b/dist/esm/src/context_impl.d.ts
-index 9a07b344dc81a30a2a66698cbe6fa8b5a040e7d3..384e3f801f38a48ba7f25f78589a6f005114f971 100644
+index df0a753b4db071517abf07fb09ffecf19a5c2027..573701ce728f228f955a9aaf6b902107769ad36c 100644
 --- a/dist/esm/src/context_impl.d.ts
 +++ b/dist/esm/src/context_impl.d.ts
 @@ -29,6 +29,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
@@ -99,12 +123,12 @@ index 9a07b344dc81a30a2a66698cbe6fa8b5a040e7d3..384e3f801f38a48ba7f25f78589a6f00
      private invokeOneWay;
      serviceClient<D>({ name }: ServiceDefinitionFrom<D>): Client<Service<D>>;
 diff --git a/dist/esm/src/context_impl.js b/dist/esm/src/context_impl.js
-index 23e08406c72e4d620f5037f2c014ec7502ed0155..29e1780949c0e72a4dfff1db62deb76274844972 100644
+index 9ee5afd1d0b55125687127469a2467c481cfff77..c29d7bb4063376c5643cbb928801d109f7333768 100644
 --- a/dist/esm/src/context_impl.js
 +++ b/dist/esm/src/context_impl.js
-@@ -121,6 +121,19 @@ export class ContextImpl {
+@@ -109,6 +109,19 @@ export class ContextImpl {
          };
-         return getStateKeys();
+         return getState();
      }
 +    async getAll() {
 +        const keys = await this.stateKeys();
@@ -119,6 +143,26 @@ index 23e08406c72e4d620f5037f2c014ec7502ed0155..29e1780949c0e72a4dfff1db62deb762
 +            this.set(key,newState[key]);
 +        }
 +    }
+     // DON'T make this function async!!! see sideEffect comment for details.
+     stateKeys() {
+         // Check if this is a valid action
+@@ -121,6 +134,19 @@ export class ContextImpl {
+             return result.keys.map((b) => b.toString());
+         };
+         return getStateKeys();
++    async getAll() {
++        const keys = await this.stateKeys();
++        const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
++        return Object.fromEntries(entries);
++    }
++    async update(operation) {
++        const state = await this.getAll();
++        const newState = operation(state);
++        await this.clearAll();
++        for (const key of Object.keys(newState)) {
++            this.set(key,newState[key]);
++        }
++    }
+     }
      set(name, value) {
          this.checkState("set state");
-         const msg = this.stateMachine.localStateStore.set(name, value);

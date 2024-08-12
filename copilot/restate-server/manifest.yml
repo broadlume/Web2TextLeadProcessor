@@ -1,0 +1,47 @@
+# The manifest for the "restate-server" service.
+# Read the full specification for the "Backend Service" type at:
+#  https://aws.github.io/copilot-cli/docs/manifest/backend-service/
+
+# Your service name will be used in naming your resources like log groups, ECS services, etc.
+name: restate-server
+type: Load Balanced Web Service
+
+# Your service does not allow any traffic.
+
+# Configuration for your containers and service.
+image:
+  location: docker.io/restatedev/restate:latest
+  port: 8080
+
+
+cpu: 1024       # Number of CPU units for the task.
+memory: 2048    # Amount of memory in MiB used by the task.
+count: 1       # Number of tasks that should be running in your service.
+exec: true     # Enable running commands in your container.
+nlb:
+  port: 8080/tcp              # Traffic on port 8080/tcp is forwarded to the main container, on port 8080.
+  additional_listeners:  
+    - port: 9070/tcp          # Traffic on port 9070/tcp is forwarded to the main container, on port 8084. 
+  healthcheck:
+    port: 9070/tcp
+http: false
+network:
+  connect:
+    alias: web2text-restate-server # Allows us to use service discovery to communicate with the other services
+# storage:
+  # readonly_fs: true       # Limit to read-only access to mounted root filesystems.
+
+# Optional fields for more advanced use-cases.
+#
+#variables:                    # Pass environment variables as key value pairs.
+#  LOG_LEVEL: info
+
+#secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
+#  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.
+
+# You can override any of the values defined above by environment.
+#environments:
+#  test:
+#    count: 2               # Number of tasks to run for the "test" environment.
+#    deployment:            # The deployment strategy for the "test" environment.
+#       rolling: 'recreate' # Stops existing tasks before new ones are started for faster deployments.

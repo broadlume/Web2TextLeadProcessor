@@ -1,0 +1,41 @@
+# This docker compose is unused for prod deployment (we use AWS Copilot to deploy)
+# This is just for testing the production application locally
+# Run with `docker compose -f docker-compose.prod.yaml up --build --force-recreate`
+name: web2text
+services:
+  web2text:
+    container_name: web2text-service
+    build: 
+      context: ./
+      dockerfile: Dockerfile.prod
+    networks:
+      - restate-network
+    ports:
+    # Restate service port
+      - "9075:9075"
+    # NodeJS debug port
+      - "9080:9080"
+    restart: always
+  restate-server:
+    image: "docker.io/restatedev/restate:latest"
+    container_name: web2text-restate-server
+    networks:
+      - restate-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+    - "8080:8080"
+    - "9070:9070"
+  twilio_proxy:
+    container_name: web2text-twilio-proxy
+    build: 
+      context: ./twilio_proxy/
+      dockerfile: Dockerfile
+    networks:
+      - restate-network
+    ports:
+    # Proxy service port
+      - "3000:3000"
+    restart: always
+networks:
+  restate-network:

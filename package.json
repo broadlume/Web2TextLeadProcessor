@@ -1,14 +1,14 @@
 {
-  "name": "restate-ts-template",
-  "version": "0.0.1",
-  "description": "Template for JavaScript/TypeScript services running with Restate (https://github.com/restatedev/) ",
+  "name": "web2text-service",
+  "version": "1.0.0",
+  "description": "Web2Text Lead Processor",
   "main": "app.js",
   "type": "commonjs",
   "scripts": {
     "build": "tsc --noEmitOnError",
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/app.js",
-    "app": "bun run ./dist/app.js",
+    "app": "node ./dist/app.js",
     "app-dev": "ts-node-dev --watch ./src --respawn --inspect=9229 --transpile-only ./src/app.ts",
     "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
     "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9075 --force --yes --quiet",

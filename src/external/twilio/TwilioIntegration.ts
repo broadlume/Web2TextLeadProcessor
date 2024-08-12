@@ -94,7 +94,7 @@ export class TwilioIntegration
 		}
 
 		await context.run("Send initial message", async () => {
-			await this.sendSystemMessage(state, conversation, context, "Testing!");
+			await this.sendSystemMessage(state, conversation, context, "Hello from Broadlume! We've set up a chat session between you and the dealer.");
 		});
 		return {
 			...state,
@@ -162,7 +162,7 @@ export class TwilioIntegration
 					state,
 					conversation,
 					context,
-					"This conversation has been marked closed",
+					"Hello from Broadlume! We've marked this conversation as closed due to inactivity. If you would like to re-open it, please reply 'CONTINUE' and we will open a new conversation.",
 				);
 			});
 			conversation.state = "closed";

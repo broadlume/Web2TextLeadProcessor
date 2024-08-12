@@ -1,6 +1,9 @@
 diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-12669939252843d9 b/.bun-tag-12669939252843d9
 new file mode 100644
 index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-6339068ed2861b73 b/.bun-tag-6339068ed2861b73
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-bbfc6056a96ea8e8 b/.bun-tag-bbfc6056a96ea8e8
 new file mode 100644
 index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
@@ -123,7 +126,7 @@ index df0a753b4db071517abf07fb09ffecf19a5c2027..573701ce728f228f955a9aaf6b902107
      private invokeOneWay;
      serviceClient<D>({ name }: ServiceDefinitionFrom<D>): Client<Service<D>>;
 diff --git a/dist/esm/src/context_impl.js b/dist/esm/src/context_impl.js
-index 9ee5afd1d0b55125687127469a2467c481cfff77..c29d7bb4063376c5643cbb928801d109f7333768 100644
+index 9ee5afd1d0b55125687127469a2467c481cfff77..0b0a5be724f83b1da7631ff6b2224c99c1170716 100644
 --- a/dist/esm/src/context_impl.js
 +++ b/dist/esm/src/context_impl.js
 @@ -109,6 +109,19 @@ export class ContextImpl {
@@ -146,23 +149,12 @@ index 9ee5afd1d0b55125687127469a2467c481cfff77..c29d7bb4063376c5643cbb928801d109
      // DON'T make this function async!!! see sideEffect comment for details.
      stateKeys() {
          // Check if this is a valid action
-@@ -121,6 +134,19 @@ export class ContextImpl {
+@@ -120,7 +133,7 @@ export class ContextImpl {
+             const result = await this.stateMachine.handleUserCodeMessage(GET_STATE_KEYS_ENTRY_MESSAGE_TYPE, msg, completed);
              return result.keys.map((b) => b.toString());
          };
-         return getStateKeys();
-+    async getAll() {
-+        const keys = await this.stateKeys();
-+        const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
-+        return Object.fromEntries(entries);
-+    }
-+    async update(operation) {
-+        const state = await this.getAll();
-+        const newState = operation(state);
-+        await this.clearAll();
-+        for (const key of Object.keys(newState)) {
-+            this.set(key,newState[key]);
-+        }
-+    }
+-        return getStateKeys();
++        return getStateKeys();    
      }
      set(name, value) {
          this.checkState("set state");

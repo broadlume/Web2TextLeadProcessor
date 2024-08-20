@@ -24,7 +24,7 @@
 		"ghcr.io/devcontainers/features/node:1": {},
 		"ghcr.io/devcontainers/features/aws-cli:1": {}
 	},
-	"forwardPorts": [9075],
+	"forwardPorts": [9080],
 	"postStartCommand": "bun install && echo \"alias restate='bun restate'\" >> ~/.zshrc",
 	"customizations": {
 		"vscode": {

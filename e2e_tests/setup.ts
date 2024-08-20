@@ -38,7 +38,7 @@ beforeAll(async () => {
 	// Setup restate handler as an HTTP1 handler (Bun doesn't support HTTP2 servers yet)
 	const handler = restateFetch.endpoint().bind(LeadVirtualObject).handler();
 	TEST_SERVER = Bun.serve({
-		port: 9075,
+		port: 9080,
 		...handler,
 	});
 

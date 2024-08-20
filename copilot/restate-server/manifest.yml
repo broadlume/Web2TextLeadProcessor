@@ -20,10 +20,14 @@ count: 1       # Number of tasks that should be running in your service.
 exec: true     # Enable running commands in your container.
 nlb:
   port: 8080/tcp              # Traffic on port 8080/tcp is forwarded to the main container, on port 8080.
-  additional_listeners:  
+  additional_listeners:
+    - port: 80/tcp
+    - port: 5122/tcp
+    - port: 5123/tcp  
     - port: 9070/tcp          # Traffic on port 9070/tcp is forwarded to the main container, on port 8084. 
+    - port: 9071/tcp
   healthcheck:
-    port: 9070/tcp
+    port: 9070
 http: false
 network:
   connect:

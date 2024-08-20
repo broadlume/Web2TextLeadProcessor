@@ -5,4 +5,4 @@ import { randomUUID } from "node:crypto";
 import "./dynamodb/index";
 process.env.INTERNAL_TOKEN ??= randomUUID();
 // Create the Restate server to accept requests
-restate.endpoint().bind(LeadVirtualObject).listen(9075);
+restate.endpoint().bind(LeadVirtualObject).listen(9080);

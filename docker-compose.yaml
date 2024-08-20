@@ -9,7 +9,7 @@ services:
       - restate-network
     ports:
     # Restate service port
-      - "9075:9075"
+      - "9080:9080"
     # NodeJS debug port
       - "9080:9080"
     volumes:
@@ -27,6 +27,8 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:
+    - "5122:5122"
+    - "5123:5123"
     - "8080:8080"
     - "9070:9070"
     - "9071:9071"

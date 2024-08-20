@@ -39,5 +39,5 @@ COPY .env.prod .env
 
 
 # run the app
-EXPOSE 9075/tcp
+EXPOSE 9080/tcp
 ENTRYPOINT [ "npm", "run", "app" ]

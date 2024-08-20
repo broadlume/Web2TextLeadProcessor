@@ -10,6 +10,8 @@ type: Environment
 network:
   vpc:
     id: vpc-086692d4081db1b6f
+    security_groups:
+      groups: [sg-003563f01665b9f80]
     subnets:
       private:
         - id: subnet-00734449e15fcada0

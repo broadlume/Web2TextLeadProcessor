@@ -22,18 +22,22 @@ nlb:
   port: 8080/tcp              # Traffic on port 8080/tcp is forwarded to the main container, on port 8080.
   additional_listeners:
     - port: 80/tcp
+      target_port: 8080
     - port: 5122/tcp
     - port: 5123/tcp  
     - port: 9070/tcp          # Traffic on port 9070/tcp is forwarded to the main container, on port 8084. 
-    - port: 9071/tcp
   healthcheck:
     port: 9070
 http: false
 network:
   connect:
     alias: web2text-restate-server # Allows us to use service discovery to communicate with the other services
-# storage:
-  # readonly_fs: true       # Limit to read-only access to mounted root filesystems.
+storage:
+  volumes:
+    restate-data:
+      path: "/restate-data"
+      efs: true
+      read_only: false
 
 # Optional fields for more advanced use-cases.
 #

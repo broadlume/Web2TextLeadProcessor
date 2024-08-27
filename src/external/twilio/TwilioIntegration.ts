@@ -41,7 +41,7 @@ export class TwilioIntegration
 		const leadState = await context.getAll();
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
-		const UniversalClientId = leadState.UniversalClientId;
+		const UniversalRetailerId = leadState.UniversalRetailerId;
 		const preExistingConversationID =
 			await this.checkForPreexistingConversation(
 				leadState.Lead.PhoneNumber,
@@ -74,11 +74,11 @@ export class TwilioIntegration
 					await TwilioProxy_CreateSession(
 						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
-							friendlyName: `Client: [${leadState.UniversalClientId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
+							friendlyName: `Client: [${leadState.UniversalRetailerId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
 							"timers.inactive": "P30D",
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
-								UniversalClientId,
+								UniversalRetailerId,
 								LocationID: leadState.LocationId
 							}),
 						},

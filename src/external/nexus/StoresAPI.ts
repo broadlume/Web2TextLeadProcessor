@@ -48,7 +48,7 @@ export async function Nexus_GetAllRetailerStores(
 	}
 	const error = await response.text().catch(() => response.status);
 	throw new Error(
-		`Failed to fetch retailer stores from Nexus for UniversalClientId: ${universalId}`,
+		`Failed to fetch retailer stores from Nexus for UniversalRetailerId: ${universalId}`,
 		{ cause: { status: response.status, error } },
 	);
 }

@@ -7,7 +7,7 @@ class LeadStateItem extends Item {
     SchemaVersion!: string;
     LeadId!: string;
     Status!: string;
-    UniversalClientID!: UUID;
+    UniversalRetailerId!: UUID;
     LocationId!: UUID;
     Lead!: Web2TextLead;
     DateSubmitted!: Date;
@@ -28,7 +28,7 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema({
         required: true,
         enum: ["ACTIVE","SYNCING","CLOSED"]
     },
-    UniversalClientId: {
+    UniversalRetailerId: {
         type: String,
         required: true
     },

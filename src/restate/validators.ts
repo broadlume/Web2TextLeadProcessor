@@ -109,11 +109,11 @@ export async function ParseAndVerifyLeadCreation(
 
 	const clientStatus = await ctx.run<ClientStatus>(
 		"Client status check",
-		async () => await CheckClientStatus(leadState.UniversalClientId),
+		async () => await CheckClientStatus(leadState.UniversalRetailerId),
 	);
 	if (clientStatus !== "ELIGIBLE") {
 		throw new restate.TerminalError(
-			`UniversalClientID '${leadState.UniversalClientId}' has status '${clientStatus}'`,
+			`UniversalRetailerId '${leadState.UniversalRetailerId}' has status '${clientStatus}'`,
 			{ errorCode: 400 },
 		);
 	}

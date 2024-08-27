@@ -20,9 +20,9 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
     }
     async create(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         const leadState = await context.getAll();
-        const retailer = await context.run("Fetch Retailer from Nexus", async () => await Nexus_GetRetailerByID(leadState.UniversalClientId));
+        const retailer = await context.run("Fetch Retailer from Nexus", async () => await Nexus_GetRetailerByID(leadState.UniversalRetailerId));
         if (retailer?.rlm_api_key == null) {
-            throw new Error(`RLM API Key doesn't exist for retailer: '${leadState.UniversalClientId}'`);
+            throw new Error(`RLM API Key doesn't exist for retailer: '${leadState.UniversalRetailerId}'`);
         } 
         const rlmLead = RLM_CreateLeadRequest(leadState);
         const response = await context.run("Create RLM Lead", async () => await RLM_CreateLead(leadState.LeadId,rlmLead,retailer.rlm_api_key!));

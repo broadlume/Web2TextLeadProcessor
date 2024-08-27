@@ -20,7 +20,7 @@ export const Web2TextLeadSchema = z.object({
     SchemaVersion: z.enum(["1.0.0"]).default("1.0.0"),
 	LeadId: UUID(),
 	Status: z.enum(["ACTIVE", "SYNCING", "CLOSED"]),
-	UniversalClientId: UUID(),
+	UniversalRetailerId: UUID(),
 	LocationId: UUID(),
 	Lead: z.object({
 		PageUrl: NonEmptyString().url(),

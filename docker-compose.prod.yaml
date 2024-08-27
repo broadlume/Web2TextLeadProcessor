@@ -29,6 +29,8 @@ services:
     - "8080:8080"
     - "9070:9070"
     - "9071:9071"
+    environment:
+      RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
   twilio_proxy:
     container_name: web2text-twilio-proxy
     build: 
@@ -40,5 +42,15 @@ services:
     # Proxy service port
       - "3000:3000"
     restart: always
+  jaeger:
+    container_name: web2text-jaeger
+    image: jaegertracing/all-in-one:1.46
+    networks:
+      - restate-network
+    ports:
+      - "4317:4317"
+      - "16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
 networks:
   restate-network:

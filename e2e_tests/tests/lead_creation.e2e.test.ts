@@ -3,7 +3,7 @@ import { SERVICE_NAME, supertest, TEST_API_KEY } from "../setup";
 import { randomUUID } from "node:crypto";
 
 const testLead = {
-	UniversalClientId: "e2653bf4-593e-490c-acbf-d41a2eca6a43",
+	UniversalRetailerId: "e2653bf4-593e-490c-acbf-d41a2eca6a43",
 	LocationId: "4f99ebbd-e9e5-4d64-9507-cded95ae1044",
 	Lead: {
 		PageUrl: "https://carpetdirect.com/d/some-product/some-sku",

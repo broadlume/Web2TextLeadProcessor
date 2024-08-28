@@ -1,8 +1,9 @@
-import { describe } from "bun:test";
-import { test } from "bun:test";
-import { SERVICE_NAME, supertest, TEST_API_KEY } from "../setup";
+import { describe, test } from "vitest";
+import { supertest } from "../setup";
+import { inject } from "vitest";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
+import { SERVICE_NAME, TEST_API_KEY } from "../setup";
 describe("Restate Server", () => {
 	test("Check health", async () => {
 		await request(`http://${process.env.RESTATE_HOST}:9070`)

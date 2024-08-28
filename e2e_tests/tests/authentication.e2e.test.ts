@@ -1,5 +1,6 @@
-import { describe, test } from "bun:test";
-import { SERVICE_NAME, supertest, TEST_API_KEY } from "../setup";
+import { describe, inject, test } from "vitest";
+import { supertest } from "../setup";
+import { SERVICE_NAME, TEST_API_KEY } from "../setup";
 import { randomUUID } from "node:crypto";
 describe("Authentication", () => {
 	const endpoints = ["status", "create", "sync", "close"];
@@ -32,7 +33,7 @@ describe("Authentication", () => {
 				.post(`/${SERVICE_NAME}/${leadID}/${endpoint}`)
 				.send({})
 				.auth(TEST_API_KEY, { type: "bearer" })
-				.expect((resp) => resp.status !== 401);
+				.expect((resp) => resp.status === 200);
         })
 	}
 });

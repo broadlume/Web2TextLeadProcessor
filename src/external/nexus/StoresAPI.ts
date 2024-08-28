@@ -29,7 +29,7 @@ export async function Nexus_GetAllRetailerStores(
 	universalId: UUID,
 ): Promise<RetailerStore[] | null> {
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
-	nexusURL.pathname += "/nexus/retailerLocations";
+	nexusURL.pathname += "nexus/retailerLocations";
 	nexusURL.search = `?retailer_id=${universalId}`
 
 	const response = await fetch(nexusURL.toString(), {
@@ -56,7 +56,7 @@ export async function Nexus_GetRetailerStoreByID(
 	locationId: string
 ): Promise<RetailerStore | null> {
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
-	nexusURL.pathname += "/nexus/location";
+	nexusURL.pathname += "nexus/location";
 	nexusURL.search = `?location_id=${locationId}`;
 
 	const response = await fetch(nexusURL.toString(), {

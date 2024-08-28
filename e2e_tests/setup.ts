@@ -1,21 +1,21 @@
-import { beforeAll, beforeEach, afterAll } from "bun:test";
-import { $, type Server } from "bun";
-import * as restateFetch from "@restatedev/restate-sdk/fetch";
-import { LeadVirtualObject } from "../src/restate/LeadVirtualObject";
+import { beforeAll, beforeEach } from "vitest";
 import request from "supertest";
-import dynamoose from "dynamoose";
-import { APIKeyModel } from "../src/dynamodb/APIKeyModel";
-import { Web2TextIntegrations } from "../src/external";
-import { MockIntegration } from "./mockIntegration";
+import shelljs from "shelljs";
 import { randomUUID } from "node:crypto";
+import { APIKeyModel } from "../src/dynamodb/APIKeyModel";
+import dynamoose from "dynamoose";
+import { LeadVirtualObject } from "../src/restate/LeadVirtualObject";
+import * as restate from "@restatedev/restate-sdk";
+import "dotenv/config";
 
-export let TEST_SERVER: Server;
 export const supertest = request(`http://${process.env.RESTATE_HOST}:8080/`);
 export const SERVICE_NAME = "Lead-test";
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
+export let TEST_SERVER: restate.RestateEndpoint;
 
 beforeAll(async () => {
-	process.env.INTERNAL_TOKEN ??= randomUUID();
+	if (globalThis.ranSetup) return;
+	process.env.INTERNAL_TOKEN = randomUUID();
 	// Point dynamoose to our local DynamoDB for testing
 	dynamoose.aws.ddb.local(process.env.LOCAL_DYNAMODB_URL);
 	// Create a testing API key in the DynamoDB
@@ -32,35 +32,21 @@ beforeAll(async () => {
 	// Overwrite the service name with our own testing service name so we don't interfere with any other services running
 	Object.assign(LeadVirtualObject, { name: SERVICE_NAME });
 
-	// Replace integrations with a mock integration
-	Object.assign(Web2TextIntegrations, [new MockIntegration()]);
-
-	// Setup restate handler as an HTTP1 handler (Bun doesn't support HTTP2 servers yet)
-	const handler = restateFetch.endpoint().bind(LeadVirtualObject).handler();
-	TEST_SERVER = Bun.serve({
-		port: 9080,
-		...handler,
+	// Setup restate handler
+	TEST_SERVER = restate.endpoint().bind(LeadVirtualObject);
+	await TEST_SERVER.listen(9080);
+	// Register the service with the restate server
+	await new Promise((resolve,reject) => shelljs.exec("bun run register-with-restate", { silent: true, async: true}, (code,stdout,stderr) => code === 0 ? resolve(stdout) : reject(stderr))).then((out) => {
+		console.info(
+			"[E2E Tests] Registered test service with Restate server",
+		);
+	}, (err) => {
+		console.error(err);
 	});
-
-	// Register the service and clear ports
-	await $`bun run register-with-restate -- --use-http1.1`.quiet().then(() => {
-		console.info("[E2E Tests] Registered test service with Restate server");
-	});
+	globalThis.ranSetup = true;
 });
 
 beforeEach(async () => {
 	// Clear the state between each test
-	await $`bun run clear-restate-test`.quiet();
-});
-
-afterAll(async () => {
-	await $`bun run clear-restate-test`.quiet();
-	// De register the deployment
-	const table = await $`restate services list`.text();
-	const deploymentId = /dp_[a-zA-z\d]+/.exec(table)?.[0];
-	if (deploymentId != null) {
-		await $`restate deployments remove ${deploymentId} --force --yes`.quiet();
-		console.info("[E2E Tests] De-registered test service with Restate server");
-	}
-	TEST_SERVER.stop(true);
+	shelljs.exec("bun run clear-restate-test", { silent: true });
 });

@@ -22,6 +22,16 @@
             "skipFiles": [
                 "<node_internals>/**"
             ]
+        },
+        {
+            "name": "Debug E2E",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bun run e2e",
+            "autoAttachChildProcesses": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
         
     ]

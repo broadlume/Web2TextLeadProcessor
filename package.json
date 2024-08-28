@@ -15,7 +15,7 @@
     "clear-restate": "restate invocations cancel 'Lead' --kill --yes --quiet || true; restate state clear 'Lead' --yes --quiet || true;",
     "clear-restate-test": "restate invocations cancel 'Lead-test' --kill --yes --quiet || true; restate state clear 'Lead-test' --yes --quiet || true;",
     "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 ./scripts/clearDynamoDb.sh",
-    "e2e": "bun test e2e_tests/ --preload './e2e_tests/setup.ts'"
+    "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.ts'"
   },
   "dependencies": {
     "@restatedev/restate": "^1.0.2",
@@ -25,6 +25,7 @@
     "dotenv": "^16.4.5",
     "dynamoose": "^4.0.1",
     "libphonenumber-js": "^1.11.4",
+    "shelljs": "^0.8.5",
     "tsafe": "^1.7.2",
     "twilio": "^5.2.0",
     "zod": "^3.23.8",
@@ -35,9 +36,11 @@
     "@types/bun": "^1.1.6",
     "@types/node": "^20.12.7",
     "esbuild": "^0.18.12",
+    "nock": "^14.0.0-beta.11",
     "supertest": "^7.0.0",
     "ts-node-dev": "^1.1.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.5"
   },
   "patchedDependencies": {
     "@restatedev/restate-sdk@1.2.1": "patches/@restatedev%2Frestate-sdk@1.2.1.patch"

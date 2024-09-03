@@ -174,7 +174,7 @@ export const LeadVirtualObject = restate.object({
 							newState = {
 								...state,
 								SyncStatus: "ERROR",
-								Error: {
+								Info: {
 									Message: "An error occurred during sync",
 									Details: `${e}`,
 								},
@@ -239,7 +239,7 @@ export const LeadVirtualObject = restate.object({
 							newState = {
 								...state,
 								SyncStatus: "ERROR",
-								Error: {
+								Info: {
 									Message: "An error occurred during close",
 									Details: `${e}`,
 								},

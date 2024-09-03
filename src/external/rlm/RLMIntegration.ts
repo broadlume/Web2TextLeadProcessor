@@ -16,13 +16,18 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
     defaultState(): RLMIntegrationState {
         return {
             SyncStatus: "NOT SYNCED",
+            Info: {
+                Message: "Sync has not started yet"
+            }
         }
     }
     async create(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         const leadState = await context.getAll();
         const retailer = await context.run("Fetch Retailer from Nexus", async () => await RetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
         if (retailer?.rlm_api_key == null) {
-            throw new Error(`RLM API Key doesn't exist for retailer: '${leadState.UniversalRetailerId}'`);
+            return {...this.defaultState(), Info: {
+                Message: "RLM API Key is missing"
+            }}
         } 
         const rlmLead = LeadsAPI.CreateLeadRequest(leadState);
         const response = await context.run("Create RLM Lead", async () => await LeadsAPI.CreateLead(leadState.LeadId,rlmLead,retailer.rlm_api_key!));

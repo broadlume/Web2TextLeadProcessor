@@ -1,8 +1,8 @@
-import { RLM_CreateLead, RLM_CreateLeadRequest } from "./LeadsAPI";
+import { LeadsAPI } from ".";
 import type restate from "@restatedev/restate-sdk";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import type { Web2TextLead } from "../../types";
-import { Nexus_GetRetailerByID } from "../nexus/RetailerAPI";
+import { RetailerAPI } from "../nexus";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
     Data?: {
@@ -20,12 +20,12 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
     }
     async create(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         const leadState = await context.getAll();
-        const retailer = await context.run("Fetch Retailer from Nexus", async () => await Nexus_GetRetailerByID(leadState.UniversalRetailerId));
+        const retailer = await context.run("Fetch Retailer from Nexus", async () => await RetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
         if (retailer?.rlm_api_key == null) {
             throw new Error(`RLM API Key doesn't exist for retailer: '${leadState.UniversalRetailerId}'`);
         } 
-        const rlmLead = RLM_CreateLeadRequest(leadState);
-        const response = await context.run("Create RLM Lead", async () => await RLM_CreateLead(leadState.LeadId,rlmLead,retailer.rlm_api_key!));
+        const rlmLead = LeadsAPI.CreateLeadRequest(leadState);
+        const response = await context.run("Create RLM Lead", async () => await LeadsAPI.CreateLead(leadState.LeadId,rlmLead,retailer.rlm_api_key!));
         if (response.result !== "Success") {
             throw new Error(`Got error response from RLM API for lead: '${leadState.LeadId}'`, {cause: response});
         }

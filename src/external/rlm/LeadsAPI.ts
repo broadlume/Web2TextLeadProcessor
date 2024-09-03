@@ -39,7 +39,7 @@ interface RLMCreateLeadRequest {
     }
 }
 
-export function RLM_CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
+export function CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
     const rlmLead: RLMCreateLeadRequest["lead"] = {
         location_name: "Per Pipeline configuration",
         divison_name: "Per Pipeline configuration",
@@ -76,7 +76,7 @@ export function RLM_CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest 
 }
 
 
-export async function RLM_CreateLead(web2TextLeadId: string, lead: RLMCreateLeadRequest, apiKey: string): Promise<RLMLeadResponse> {
+export async function CreateLead(web2TextLeadId: string, lead: RLMCreateLeadRequest, apiKey: string): Promise<RLMLeadResponse> {
     const rlmURL = new URL(process.env.RLM_API_URL);
     rlmURL.pathname += `api/${apiKey}/leads`;
 

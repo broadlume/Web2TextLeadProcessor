@@ -28,7 +28,7 @@ interface NexusRetailer {
     youtube_url?: string
 }
 
-export async function Nexus_GetRetailerByID(universalId: UUID): Promise<NexusRetailer | null> {
+export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer | null> {
     const nexusURL = new URL(process.env.NEXUS_API_URL!);
     nexusURL.pathname += `retailers/${universalId}`;
 

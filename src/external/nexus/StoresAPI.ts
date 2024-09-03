@@ -25,7 +25,7 @@ interface RetailerStore {
 	"zip_code": string
   }
 
-export async function Nexus_GetAllRetailerStores(
+export async function GetAllRetailerStores(
 	universalId: UUID,
 ): Promise<RetailerStore[] | null> {
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
@@ -52,7 +52,7 @@ export async function Nexus_GetAllRetailerStores(
 		{ cause: { status: response.status, error } },
 	);
 }
-export async function Nexus_GetRetailerStoreByID(
+export async function GetRetailerStoreByID(
 	locationId: string
 ): Promise<RetailerStore | null> {
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);

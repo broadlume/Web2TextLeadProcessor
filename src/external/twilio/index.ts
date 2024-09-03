@@ -5,3 +5,5 @@ export const TWILIO_PROXY_AUTHORIZATION_HEADERS = () => {
     headers.set("Content-Type", "application/json");
     return headers;
 }
+export * as TwilioProxyAPI from "./TwilioProxyAPI";
+export {TwilioIntegration} from "./TwilioIntegration";

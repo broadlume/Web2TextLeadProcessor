@@ -5,7 +5,7 @@ import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
-import { TwilioProxy_CreateSession } from "./TwilioProxyAPI";
+import * as TwilioProxyAPI from "./TwilioProxyAPI";
 import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";
 import type { TypedState } from "@restatedev/restate-sdk/dist/cjs/src/context";
@@ -71,7 +71,7 @@ export class TwilioIntegration
 			conversation = await context.run(
 				"Twilio Proxy Conversation Create API Call",
 				async () =>
-					await TwilioProxy_CreateSession(
+					await TwilioProxyAPI.CreateSession(
 						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
 							friendlyName: `Client: [${leadState.UniversalRetailerId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,

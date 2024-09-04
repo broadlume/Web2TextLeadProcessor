@@ -179,6 +179,10 @@ export class TwilioIntegration
 		return {
 			...state,
 			SyncStatus: "SYNCED",
+			Data: {
+				...state.Data!,
+				ConversationStatus: conversation.state
+			},
 			LastSynced: new Date().toISOString(),
 		};
 	}

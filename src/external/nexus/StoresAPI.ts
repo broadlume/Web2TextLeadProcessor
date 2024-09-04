@@ -1,7 +1,7 @@
 import type { UUID } from "node:crypto";
 import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 
-interface RetailerStore {
+export interface RetailerStore {
 	"birdeye_account_id": string,
 	"birdeye_business_account_id": string,
 	"call_tracking_number": string,

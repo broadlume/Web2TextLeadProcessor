@@ -16,6 +16,8 @@ declare global {
         TWILIO_PROXY_URL: string;
         TWILIO_PROXY_USER: string;
         TWILIO_PROXY_PASS: string;
+        DHQ_API_URL: string;
+        DHQ_API_KEY: string;
       }
     }
   }

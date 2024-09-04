@@ -31,6 +31,7 @@ services:
     - "9071:9071"
     environment:
       RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
+    restart: always
   twilio_proxy:
     container_name: web2text-twilio-proxy
     build: 
@@ -52,5 +53,6 @@ services:
       - "16686:16686"
     environment:
       COLLECTOR_OTLP_ENABLED: true
+    restart: always
 networks:
   restate-network:

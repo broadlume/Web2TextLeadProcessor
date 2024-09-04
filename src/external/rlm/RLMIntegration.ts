@@ -23,7 +23,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
         }
     }
     private twilioClient: Twilio;
-    public constructor(client: Twilio) {
+    public constructor(client?: Twilio) {
         super();
         client ??= new Twilio(
 			process.env.TWILIO_ACCOUNT_SID,

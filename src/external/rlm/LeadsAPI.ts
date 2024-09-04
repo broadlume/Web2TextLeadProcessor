@@ -48,6 +48,28 @@ interface RLMAttachNoteRequest {
     message: string;
     date: string;
 }
+function FormatLeadIntoMessage(lead: Web2TextLead): string {
+    let message = `--------------------
+    Web2Text Lead Information
+    --------------------
+    PageUrl: ${lead.Lead.PageUrl}
+    Customer Name: ${lead.Lead.Name}
+    Customer Phone: ${lead.Lead.PhoneNumber}
+    Date Submitted: ${new Date(lead.DateSubmitted).toUTCString()}
+    Preferred Method of Contact: ${lead.Lead.PreferredMethodOfContact}
+    `;
+
+    if (lead.Lead.AssociatedProductInfo) {
+        message = `${message}
+        Customer was looking at ${lead.Lead.AssociatedProductInfo.Product} by ${lead.Lead.AssociatedProductInfo.Brand} | ${lead.Lead.AssociatedProductInfo.Variant}`
+    }
+    message = `${message}
+    --------------------
+    Customer Message:
+    
+    ${lead.Lead.CustomerMessage}`;
+    return message;
+}
 
 export function CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
     const rlmLead: RLMCreateLeadRequest["lead"] = {
@@ -61,25 +83,7 @@ export function CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
     rlmLead.phone = lead.Lead.PhoneNumber;
     rlmLead.mobile_phone = lead.Lead.PhoneNumber;
     rlmLead.website = new URL(lead.Lead.PageUrl).hostname;
-    rlmLead.note = `--------------------
-    Web2Text Lead Information
-    --------------------
-    PageUrl: ${lead.Lead.PageUrl}
-    Customer Name: ${lead.Lead.Name}
-    Customer Phone: ${lead.Lead.PhoneNumber}
-    Date Submitted: ${new Date(lead.DateSubmitted).toUTCString()}
-    Preferred Method of Contact: ${lead.Lead.PreferredMethodOfContact}
-    `;
-
-    if (lead.Lead.AssociatedProductInfo) {
-        rlmLead.note = `${rlmLead.note}
-        Customer was looking at ${lead.Lead.AssociatedProductInfo.Product} by ${lead.Lead.AssociatedProductInfo.Brand} | ${lead.Lead.AssociatedProductInfo.Variant}`
-    }
-    rlmLead.note = `${rlmLead.note}
-    --------------------
-    Customer Message:
-    
-    ${lead.Lead.CustomerMessage}`;
+    rlmLead.note = FormatLeadIntoMessage(lead);
     return {
         lead: rlmLead
     };

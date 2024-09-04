@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach",
+            "name": "Attach Web2Text Service",
             "port": 9229,
             "request": "attach",
             "skipFiles": [
@@ -14,7 +14,7 @@
             "type": "node"
         },
         {
-            "name": "Debug Service",
+            "name": "Debug Web2Text Service",
             "type": "node-terminal",
             "request": "launch",
             "command": "bun run app-dev",
@@ -24,7 +24,7 @@
             ]
         },
         {
-            "name": "Debug E2E",
+            "name": "Debug E2E Tests",
             "type": "node-terminal",
             "request": "launch",
             "command": "bun run e2e",

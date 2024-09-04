@@ -1,8 +1,10 @@
+import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import type { Web2TextLead } from "../../types";
 
 type RLMLeadResponse = {
     result: "Success";
     lead_id: number;
+    lead_uuid?: string;
 } | {
     result: "Error" | "No data";
     messages?: string;
@@ -37,6 +39,14 @@ interface RLMCreateLeadRequest {
         promo_type?: string;
         note?: string;
     }
+}
+
+interface RLMAttachNoteRequest {
+    lead_uuid: string;
+    sender_phone: string;
+    sender_name: string;
+    message: string;
+    date: string;
 }
 
 export function CreateLeadRequest(lead: Web2TextLead): RLMCreateLeadRequest {
@@ -94,4 +104,33 @@ export async function CreateLead(web2TextLeadId: string, lead: RLMCreateLeadRequ
     }
     const error = await response.text().catch(_ => response.status);
     throw new Error(`Failed to post lead '${web2TextLeadId}' to RLM`, {cause: {status: response.status, error}});
+}
+
+export async function AttachNoteToLead(RLMLeadUUID: string, web2TextLead: Web2TextLead, twilioMessage: MessageInstance): Promise<RLMLeadResponse> {
+    const senderName = twilioMessage.author === web2TextLead.Lead.PhoneNumber ? web2TextLead.Lead.Name : "Dealer";
+    const note: RLMAttachNoteRequest = {
+        lead_uuid: RLMLeadUUID,
+        sender_name: senderName,
+        sender_phone: twilioMessage.author,
+        date: twilioMessage.dateCreated.toISOString(),
+        message: twilioMessage.body
+    };
+
+    const rlmURL = new URL(process.env.RLM_API_URL);
+    rlmURL.pathname += "api/note_from_sms";
+
+    const headers = new Headers();
+    headers.set("content-type","application/json");
+    const response = await fetch(rlmURL.toString(),{
+        method: "POST",
+        headers:headers,
+        body: JSON.stringify(note)
+    });
+
+    if (response.ok) {
+        const responseBody = await response.json();
+        return responseBody as RLMLeadResponse;
+    }
+    const error = await response.text().catch(_ => response.status);
+    throw new Error(`Failed to post note to RLM for Twilio message SID ${twilioMessage.sid}`, {cause: {status: response.status, error}});
 }

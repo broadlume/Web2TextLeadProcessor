@@ -79,7 +79,8 @@ export class TwilioIntegration
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
 								UniversalRetailerId,
-								LocationID: leadState.LocationId
+								LocationID: leadState.LocationId,
+								Environment: process.env['COPILOT_ENVIRONMENT_NAME'] ?? "Local Development"
 							}),
 						},
 					),

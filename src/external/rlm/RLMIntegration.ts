@@ -3,10 +3,14 @@ import type restate from "@restatedev/restate-sdk";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import type { Web2TextLead } from "../../types";
 import { RetailerAPI } from "../nexus";
+import { Twilio } from "twilio";
+import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
     Data?: {
         LeadId: number,
+        LeadUUID: string,
         SyncedMessageIds: string[]
     }
 }
@@ -16,21 +20,28 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
     defaultState(): RLMIntegrationState {
         return {
             SyncStatus: "NOT SYNCED",
-            Info: {
-                Message: "Sync has not started yet"
-            }
         }
+    }
+    private twilioClient: Twilio;
+    public constructor(client: Twilio) {
+        super();
+        client ??= new Twilio(
+			process.env.TWILIO_ACCOUNT_SID,
+			process.env.TWILIO_AUTH_TOKEN,
+		);
+		this.twilioClient = client;
     }
     async create(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         const leadState = await context.getAll();
         const retailer = await context.run("Fetch Retailer from Nexus", async () => await RetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
-        if (retailer?.rlm_api_key == null) {
+        const rlm_api_key = process.env["RLM_API_KEY_OVERRIDE"] ?? retailer?.rlm_api_key;
+        if (rlm_api_key == null) {
             return {...this.defaultState(), Info: {
                 Message: "RLM API Key is missing"
             }}
         } 
         const rlmLead = LeadsAPI.CreateLeadRequest(leadState);
-        const response = await context.run("Create RLM Lead", async () => await LeadsAPI.CreateLead(leadState.LeadId,rlmLead,retailer.rlm_api_key!));
+        const response = await context.run("Create RLM Lead", async () => await LeadsAPI.CreateLead(leadState.LeadId,rlmLead,rlm_api_key!));
         if (response.result !== "Success") {
             throw new Error(`Got error response from RLM API for lead: '${leadState.LeadId}'`, {cause: response});
         }
@@ -41,12 +52,67 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
             LastSynced: new Date(await context.date.now()).toISOString(),
             Data: {
                 LeadId: response.lead_id,
+                LeadUUID: response.lead_uuid!,
                 SyncedMessageIds: []
             }
         }
     }
     async sync(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
-        return state;
+        const lead = await context.getAll();
+        const twilioIntegration: TwilioIntegrationState | undefined = lead.Integrations?.["Twilio"];
+        if (twilioIntegration?.SyncStatus !== "SYNCED") {
+            return {
+                ...state,
+                SyncStatus: "ERROR",
+                Info: {
+                    Message: "Twilio integration is not in correct state 'SYNCED' to sync RLM"
+                }
+            }
+        }
+        
+        const conversationSID = twilioIntegration.Data?.ConversationSID!;
+        const conversation = await context.run(
+			"Fetching Twilio conversation",
+			async () =>
+				this.twilioClient.conversations.v1
+					.conversations(conversationSID)
+					.fetch(),
+		);
+        const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
+        const messages = await context.run("Fetching Twilio messages", async () => await conversation.messages().list());
+        for (const message of messages) {
+            if (syncedMessageIds.has(message.sid)) continue;
+            if (!isValidPhoneNumber(message.author)) continue;
+            const result = await context.run("Posting note to RLM", async () => await LeadsAPI.AttachNoteToLead(state.Data!.LeadUUID, lead, message));
+            if (result.result === "Success") {
+                syncedMessageIds.add(message.sid);
+            }
+            else {
+                return {
+                    ...state,
+                    SyncStatus: "ERROR",
+                    Data: {
+                        ...state.Data!,
+                        SyncedMessageIds: Array.from(syncedMessageIds)
+                    },
+                    Info: {
+                        Message: `Error with RLM note endpoint syncing message '${message.sid}'`,
+                        Details: {
+                            message: message.toJSON(),
+                            response: result
+                        }
+                    }
+                }
+            }
+        }
+        return {
+            SyncStatus: "SYNCED",
+            Data: {
+                ...state.Data!,
+                SyncedMessageIds: Array.from(syncedMessageIds)
+            },
+            LastSynced: new Date(await context.date.now()).toISOString()
+        }
     }
     async close(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         return state;

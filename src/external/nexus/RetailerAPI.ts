@@ -37,7 +37,8 @@ export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer 
         headers: NEXUS_AUTHORIZATION_HEADERS()
     });
     if (response.ok) {
-        return await response.json() as NexusRetailer;
+        const json = await response.json() as NexusRetailer;
+        return json;
     }
     if (response.status === 404) {
         return null;

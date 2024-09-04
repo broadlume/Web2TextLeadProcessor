@@ -1,2 +1,2 @@
-export * as LeadsAPI from "./LeadsAPI";
+export * as RLMLeadsAPI from "./RLMLeadsAPI";
 export {RLMIntegration} from "./RLMIntegration"

@@ -7,5 +7,5 @@ export const NEXUS_AUTHORIZATION_HEADERS = () => {
 	return headers;
 };
 
-export * as RetailerAPI from "./RetailerAPI";
-export * as StoresAPI from "./StoresAPI";
+export * as NexusRetailerAPI from "./NexusRetailerAPI";
+export * as NexusStoresAPI from "./NexusStoresAPI";

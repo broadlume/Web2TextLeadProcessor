@@ -1,8 +1,8 @@
-import { LeadsAPI } from ".";
+import { RLMLeadsAPI } from ".";
 import type restate from "@restatedev/restate-sdk";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import type { Web2TextLead } from "../../types";
-import { RetailerAPI } from "../nexus";
+import { NexusRetailerAPI } from "../nexus";
 import { Twilio } from "twilio";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -33,15 +33,15 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
     }
     async create(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
         const leadState = await context.getAll();
-        const retailer = await context.run("Fetch Retailer from Nexus", async () => await RetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
+        const retailer = await context.run("Fetch Retailer from Nexus", async () => await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
         const rlm_api_key = process.env["RLM_API_KEY_OVERRIDE"] ?? retailer?.rlm_api_key;
         if (rlm_api_key == null) {
             return {...this.defaultState(), Info: {
                 Message: "RLM API Key is missing"
             }}
         } 
-        const rlmLead = LeadsAPI.CreateLeadRequest(leadState);
-        const response = await context.run("Create RLM Lead", async () => await LeadsAPI.CreateLead(leadState.LeadId,rlmLead,rlm_api_key!));
+        const rlmLead = RLMLeadsAPI.CreateLeadRequest(leadState);
+        const response = await context.run("Create RLM Lead", async () => await RLMLeadsAPI.CreateLead(leadState.LeadId,rlmLead,rlm_api_key!));
         if (response.result !== "Success") {
             throw new Error(`Got error response from RLM API for lead: '${leadState.LeadId}'`, {cause: response});
         }
@@ -83,7 +83,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
         for (const message of messages) {
             if (syncedMessageIds.has(message.sid)) continue;
             if (!isValidPhoneNumber(message.author)) continue;
-            const result = await context.run("Posting note to RLM", async () => await LeadsAPI.AttachNoteToLead(state.Data!.LeadUUID, lead, message));
+            const result = await context.run("Posting note to RLM", async () => await RLMLeadsAPI.AttachNoteToLead(state.Data!.LeadUUID, lead, message));
             if (result.result === "Success") {
                 syncedMessageIds.add(message.sid);
             }

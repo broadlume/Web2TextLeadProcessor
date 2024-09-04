@@ -2,8 +2,8 @@ import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 import type { Web2TextLead } from "../../types";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import { Twilio } from "twilio";
-import { StoresAPI } from "../nexus";
-import * as StoreInquiryAPI from "./StoreInquiryAPI";
+import { NexusStoresAPI } from "../nexus";
+import * as StoreInquiryAPI from "./DHQStoreInquiryAPI";
 interface DHQIntegrationState extends ExternalIntegrationState {
     Data?: {
         InquiryId: string;
@@ -29,7 +29,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
     }
     async create(state: DHQIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<DHQIntegrationState> {
         const leadState = await context.getAll();
-        const store = await context.run("Fetch Store from Nexus", async () => await StoresAPI.GetRetailerStoreByID(leadState.LocationId));
+        const store = await context.run("Fetch Store from Nexus", async () => await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId));
         if (store === null) {
             return {
                 ...state,

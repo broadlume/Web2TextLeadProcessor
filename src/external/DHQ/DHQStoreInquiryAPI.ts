@@ -1,6 +1,6 @@
 import type { Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
-import type { StoresAPI } from "../nexus";
+import type { NexusStoresAPI } from "../nexus";
 import { DHQ_AUTHORIZATION_HEADERS } from ".";
 
 /**
@@ -170,7 +170,7 @@ export interface AddCommentRequest {
 	/** ID of the comment author */
 	comment_author_id: number;
 }
-export async function SubmitStoreInquiry(lead: Web2TextLead, storeInfo: StoresAPI.RetailerStore) {
+export async function SubmitStoreInquiry(lead: Web2TextLead, storeInfo: NexusStoresAPI.RetailerStore) {
   const dhqLead: StoreInquiryRequest = {
     occurred_at: lead.DateSubmitted,
     store_address: storeInfo.street_address,

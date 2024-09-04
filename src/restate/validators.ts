@@ -6,8 +6,8 @@ import {
 import * as restate from "@restatedev/restate-sdk";
 import { APIKeyModel } from "../dynamodb/APIKeyModel";
 import { fromError } from 'zod-validation-error';
-import { RetailerAPI } from "../external/nexus";
-import { StoresAPI } from "../external/nexus";
+import { NexusRetailerAPI } from "../external/nexus";
+import { NexusStoresAPI } from "../external/nexus";
 import type { LeadState } from "./common";
 /**
  * Validate that the authorization header on requests is a valid API key
@@ -55,7 +55,7 @@ type ClientStatus = "ELIGIBLE" | "INELIGIBLE" | "NONEXISTANT";
 export async function CheckClientStatus(
 	universalId: UUID,
 ): Promise<ClientStatus> {
-	const nexusRetailer = await RetailerAPI.GetRetailerByID(universalId);
+	const nexusRetailer = await NexusRetailerAPI.GetRetailerByID(universalId);
 	if (nexusRetailer == null) return "NONEXISTANT";
 	if (nexusRetailer.status === "Churned_Customer") return "INELIGIBLE";
 	return "ELIGIBLE";
@@ -68,7 +68,7 @@ export async function CheckClientStatus(
  * @returns true if the location exists, false otherwise
  */
 async function ValidateLocation(locationId: UUID): Promise<boolean> {
-	const location = await StoresAPI.GetRetailerStoreByID(locationId);
+	const location = await NexusStoresAPI.GetRetailerStoreByID(locationId);
 	if (location == null) return false;
 	return true;
 }

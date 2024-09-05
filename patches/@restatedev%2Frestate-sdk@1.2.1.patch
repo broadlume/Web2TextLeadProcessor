@@ -7,6 +7,9 @@ index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2
 diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-bbfc6056a96ea8e8 b/.bun-tag-bbfc6056a96ea8e8
 new file mode 100644
 index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/@restatedev/restate-sdk/.bun-tag-be3997075b2cf674 b/.bun-tag-be3997075b2cf674
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/dist/cjs/src/context.d.ts b/dist/cjs/src/context.d.ts
 index 56cb5ca6ea16862fec35e3dc955a3950f142ce69..a471702f6df865bd76ef67ab7c8f08a8dbfef629 100644
 --- a/dist/cjs/src/context.d.ts
@@ -60,18 +63,21 @@ index a6e39c646dd03c3dad6d5efbc9835c0e4ef06736..865a3284cd018f126eb846948f850460
      clearAll(): void;
      private invoke;
 diff --git a/dist/cjs/src/context_impl.js b/dist/cjs/src/context_impl.js
-index 6ce9d3a2315cb2c0375f9cd759ad31b9b321714e..9e592798c651fc42135956da4ba491fb9972f87a 100644
+index 6ce9d3a2315cb2c0375f9cd759ad31b9b321714e..7c625b09be2b93717c9a6341bd3a04eb8da912ac 100644
 --- a/dist/cjs/src/context_impl.js
 +++ b/dist/cjs/src/context_impl.js
-@@ -112,6 +112,19 @@ class ContextImpl {
+@@ -112,6 +112,22 @@ class ContextImpl {
          };
          return getState();
      }
 +    async getAll() {
-+            const keys = await this.stateKeys();
-+            const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
-+            return Object.fromEntries(entries);
++        const keys = await this.stateKeys();
++        const entries = [];
++        for (const key of keys) {
++            entries.push([key,await this.get(key)]);
 +        }
++        return Object.fromEntries(entries);
++    }
 +    async update(operation) {
 +        const state = await this.getAll();
 +        const newState = operation(state);
@@ -126,16 +132,19 @@ index df0a753b4db071517abf07fb09ffecf19a5c2027..573701ce728f228f955a9aaf6b902107
      private invokeOneWay;
      serviceClient<D>({ name }: ServiceDefinitionFrom<D>): Client<Service<D>>;
 diff --git a/dist/esm/src/context_impl.js b/dist/esm/src/context_impl.js
-index 9ee5afd1d0b55125687127469a2467c481cfff77..0b0a5be724f83b1da7631ff6b2224c99c1170716 100644
+index 9ee5afd1d0b55125687127469a2467c481cfff77..3934c584bc05ce795b765256d800ee866bf5cb34 100644
 --- a/dist/esm/src/context_impl.js
 +++ b/dist/esm/src/context_impl.js
-@@ -109,6 +109,19 @@ export class ContextImpl {
+@@ -109,6 +109,22 @@ export class ContextImpl {
          };
          return getState();
      }
 +    async getAll() {
 +        const keys = await this.stateKeys();
-+        const entries = await Promise.all(keys.map(async (k) => [k, await this.get(k)]));
++        const entries = [];
++        for (const key of keys) {
++            entries.push([key,await this.get(key)]);
++        }
 +        return Object.fromEntries(entries);
 +    }
 +    async update(operation) {
@@ -149,7 +158,7 @@ index 9ee5afd1d0b55125687127469a2467c481cfff77..0b0a5be724f83b1da7631ff6b2224c99
      // DON'T make this function async!!! see sideEffect comment for details.
      stateKeys() {
          // Check if this is a valid action
-@@ -120,7 +133,7 @@ export class ContextImpl {
+@@ -120,7 +136,7 @@ export class ContextImpl {
              const result = await this.stateMachine.handleUserCodeMessage(GET_STATE_KEYS_ENTRY_MESSAGE_TYPE, msg, completed);
              return result.keys.map((b) => b.toString());
          };

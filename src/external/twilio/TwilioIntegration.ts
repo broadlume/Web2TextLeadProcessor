@@ -104,7 +104,7 @@ export class TwilioIntegration
 				ConversationSID: conversation.sid,
 				ConversationStatus: conversation.state,
 			},
-			LastSynced: new Date().toISOString(),
+			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
 	}
 	async sync(
@@ -138,7 +138,7 @@ export class TwilioIntegration
 				ConversationSID: conversationSID,
 				ConversationStatus: conversation.state,
 			},
-			LastSynced: new Date().toISOString(),
+			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
 	}
 	async close(
@@ -183,7 +183,7 @@ export class TwilioIntegration
 				...state.Data!,
 				ConversationStatus: conversation.state
 			},
-			LastSynced: new Date().toISOString(),
+			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
 	}
 	private async checkForPreexistingConversation(

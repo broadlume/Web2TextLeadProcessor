@@ -29,11 +29,13 @@ export async function SyncWithDB(
 		case "SEND": {
 			const objectState = await ctx.getAll();
 			const parsed = Web2TextLeadSchema.parse(objectState);
-			console.log(parsed);
-			const dynamoDBModel = new LeadStateModel(parsed);
+			ctx.console.log(parsed);
 			await ctx.run(
 				"Sending lead to database",
-				async () => await dynamoDBModel.save(),
+				async () => {
+					const dynamoDBModel = new LeadStateModel(parsed);
+					await dynamoDBModel.save()
+				},
 			);
 			return true;
 		}

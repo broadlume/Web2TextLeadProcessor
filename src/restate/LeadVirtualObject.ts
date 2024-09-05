@@ -62,7 +62,7 @@ export const LeadVirtualObject = restate.object({
 					process.env.INTERNAL_TOKEN == null ||
 					_internalToken !== process.env.INTERNAL_TOKEN
 				) {
-					await ValidateAPIKey(ctx.request().headers.get("authorization"));
+					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
 				}
 				const state = await ctx.getAll();
 				if (state.Status == null) {
@@ -85,7 +85,7 @@ export const LeadVirtualObject = restate.object({
 					process.env.INTERNAL_TOKEN == null ||
 					_internalToken !== process.env.INTERNAL_TOKEN
 				) {
-					await ValidateAPIKey(ctx.request().headers.get("authorization"));
+					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
@@ -140,7 +140,7 @@ export const LeadVirtualObject = restate.object({
 					process.env.INTERNAL_TOKEN == null ||
 					_internalToken !== process.env.INTERNAL_TOKEN
 				) {
-					await ValidateAPIKey(ctx.request().headers.get("authorization"));
+					await ValidateAPIKey(ctx,ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
@@ -214,7 +214,7 @@ export const LeadVirtualObject = restate.object({
 					process.env.INTERNAL_TOKEN == null ||
 					_internalToken !== process.env.INTERNAL_TOKEN
 				) {
-					await ValidateAPIKey(ctx.request().headers.get("authorization"));
+					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);

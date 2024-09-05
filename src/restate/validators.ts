@@ -13,7 +13,7 @@ import type { LeadState } from "./common";
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
  */
-export async function ValidateAPIKey(auth: string | undefined): Promise<boolean> {
+export async function ValidateAPIKey(context: restate.ObjectSharedContext<LeadState>, auth: string | undefined): Promise<boolean> {
 	if (auth == null) {
 		throw new restate.TerminalError("Must pass authorization header with valid API key", {errorCode: 401});
 	}
@@ -27,7 +27,7 @@ export async function ValidateAPIKey(auth: string | undefined): Promise<boolean>
 	if (key == null || key === "") {
 		throw new restate.TerminalError("Authorization token is missing", {errorCode: 401});
 	}
-	const apiKey = await APIKeyModel.get(key);
+	const apiKey = await context.run("Fetch API Key", async () => await APIKeyModel.get(key));
 	const apiKeyValid = apiKey?.Active ?? false;
 	if (apiKeyValid === false) {
 		throw new restate.TerminalError(`API Key '${key}' is invalid`, {

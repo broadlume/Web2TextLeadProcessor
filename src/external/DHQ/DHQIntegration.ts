@@ -4,9 +4,12 @@ import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import { Twilio } from "twilio";
 import { NexusStoresAPI } from "../nexus";
 import * as StoreInquiryAPI from "./DHQStoreInquiryAPI";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
+import { DHQStoreInquiryAPI } from ".";
 interface DHQIntegrationState extends ExternalIntegrationState {
     Data?: {
-        InquiryId: string;
+        LeadId: string;
         SyncedMessageIds: string[];
     }
 } 
@@ -49,13 +52,67 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
             SyncStatus: "SYNCED",
             LastSynced: new Date(await context.date.now()).toISOString(),
             Data: {
-                InquiryId: response.data!.store_inquiry.Id,
+                LeadId: response.data!.lead.id,
                 SyncedMessageIds: []
             }
         }
     }
     async sync(state: DHQIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<DHQIntegrationState> {
-        return state;
+        const lead = await context.getAll();
+        const twilioIntegration: TwilioIntegrationState | undefined = lead.Integrations?.["Twilio"];
+        if (twilioIntegration?.SyncStatus !== "SYNCED") {
+            return {
+                ...state,
+                SyncStatus: "ERROR",
+                Info: {
+                    Message: "Twilio integration is not in correct state 'SYNCED' to sync DHQ"
+                }
+            }
+        }
+        
+        const conversationSID = twilioIntegration.Data?.ConversationSID!;
+        const conversation = await context.run(
+			"Fetching Twilio conversation for DHQ",
+			async () =>
+				this.twilioClient.conversations.v1
+					.conversations(conversationSID)
+					.fetch(),
+		);
+        const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
+        const messages = await context.run("Fetching twilio messages for DHQ", async () => await conversation.messages().list());
+        for (const message of messages) {
+            if (syncedMessageIds.has(message.sid)) continue;
+            if (!isValidPhoneNumber(message.author)) continue;
+            const result = await context.run("Posting comment to DHQ", async () => await DHQStoreInquiryAPI.AddCommentToInquiry(state.Data!.LeadId, lead, message));
+            if (result.status === "success") {
+                syncedMessageIds.add(message.sid);
+            }
+            else {
+                return {
+                    ...state,
+                    SyncStatus: "ERROR",
+                    Data: {
+                        ...state.Data!,
+                        SyncedMessageIds: Array.from(syncedMessageIds)
+                    },
+                    Info: {
+                        Message: `Error with DHQ comment endpoint syncing message '${message.sid}'`,
+                        Details: {
+                            message: message.toJSON(),
+                            response: result
+                        }
+                    }
+                }
+            }
+        }
+        return {
+            SyncStatus: "SYNCED",
+            Data: {
+                ...state.Data!,
+                SyncedMessageIds: Array.from(syncedMessageIds)
+            },
+            LastSynced: new Date(await context.date.now()).toISOString()
+        }
     }
     async close(state: DHQIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<DHQIntegrationState> {
         return state;

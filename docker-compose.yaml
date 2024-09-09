@@ -10,8 +10,6 @@ services:
     ports:
     # Restate service port
       - "9080:9080"
-    # NodeJS debug port
-      - "9080:9080"
     volumes:
       - ./:/app
     restart: always

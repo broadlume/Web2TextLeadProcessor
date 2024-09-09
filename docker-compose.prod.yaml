@@ -1,7 +1,7 @@
 # This docker compose is unused for prod deployment (we use AWS Copilot to deploy)
 # This is just for testing the production application locally
 # Run with `docker compose -f docker-compose.prod.yaml up --build --force-recreate`
-name: web2text
+name: web2text-prod
 services:
   web2text:
     container_name: web2text-service
@@ -13,9 +13,9 @@ services:
     ports:
     # Restate service port
       - "9080:9080"
-    # NodeJS debug port
-      - "9080:9080"
     restart: always
+    depends_on: 
+      - restate-server
   restate-server:
     image: "docker.io/restatedev/restate:latest"
     container_name: web2text-restate-server

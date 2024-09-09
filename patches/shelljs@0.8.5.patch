@@ -1,0 +1,41 @@
+diff --git a/shell.js b/shell.js
+index f9c6f36df9de7c10958b01d08dbaa1b20034ad8c..7394a239761ca5b4db9e20c676db6c897ab66150 100644
+--- a/shell.js
++++ b/shell.js
+@@ -21,9 +21,33 @@ var common = require('./src/common');
+ //@commands
+ 
+ // Load all default commands
+-require('./commands').forEach(function (command) {
+-  require('./src/' + command);
+-});
++require('./src/cat.js')
++require('./src/cd.js')
++require('./src/chmod.js')
++require('./src/cp.js')
++require('./src/dirs.js')
++require('./src/echo.js')
++require('./src/exec.js')
++require('./src/find.js')
++require('./src/grep.js')
++require('./src/head.js')
++require('./src/ln.js')
++require('./src/ls.js')
++require('./src/mkdir.js')
++require('./src/mv.js')
++require('./src/pwd.js')
++require('./src/rm.js')
++require('./src/sed.js')
++require('./src/set.js')
++require('./src/sort.js')
++require('./src/tail.js')
++require('./src/tempdir.js')
++require('./src/test.js')
++require('./src/to.js')
++require('./src/toEnd.js')
++require('./src/touch.js')
++require('./src/uniq.js')
++require('./src/which.js')
+ 
+ //@
+ //@ ### exit(code)

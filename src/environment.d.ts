@@ -18,6 +18,8 @@ declare global {
         TWILIO_PROXY_PASS: string;
         DHQ_API_URL: string;
         DHQ_API_KEY: string;
+        COPILOT_ENVIRONMENT_NAME: "development" | "production" | undefined;
+        NODE_ENV: string;
       }
     }
   }

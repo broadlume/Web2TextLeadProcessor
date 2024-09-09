@@ -241,7 +241,7 @@ export async function SubmitStoreInquiry(
 		},
 		inquiry: {
 			contact_method: "cys_inquiry",
-			email: `poweredbytextdirect${lead.Lead.PhoneNumber.replace(/\D+/g, "")}@broadlume.com`,
+			email: `poweredbytextdirect+${lead.Lead.PhoneNumber.replace(/\D+/g,"")}@broadlume.com`,
 			external_id: lead.LeadId,
 			message: lead.Lead.CustomerMessage,
 			name: lead.Lead.Name,
@@ -265,7 +265,7 @@ export async function SubmitStoreInquiry(
 			{
 				name: "Twilio Conversation SID",
 				value:
-					(lead.Integrations?.["Twilo"] as TwilioIntegrationState | undefined)
+					(lead.Integrations?.["Twilio"] as TwilioIntegrationState | undefined)
 						?.Data?.ConversationSID ?? "null",
 				displayable: false,
 			},

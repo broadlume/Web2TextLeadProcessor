@@ -19,6 +19,14 @@ COPY package.json bun.lockb /temp/prod/
 COPY patches/ /temp/prod/patches/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
+# Install Restate CLI globally
+RUN apt-get -y update; apt-get -y install curl
+RUN BIN=/usr/local/bin && RESTATE_PLATFORM=aarch64-unknown-linux-musl && \
+curl -LO https://github.com/restatedev/restate/releases/latest/download/restate.$RESTATE_PLATFORM.tar.gz && \
+tar -xvf restate.$RESTATE_PLATFORM.tar.gz && \
+chmod +x restate && \
+mv restate $BIN
+
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS prerelease
@@ -33,11 +41,16 @@ RUN bun run build && bun run bundle
 # copy production dependencies and source code into final image
 FROM node:slim AS release
 COPY --from=install /temp/prod/node_modules node_modules
+COPY --from=install /usr/local/bin/restate /usr/local/bin/restate
 COPY --from=prerelease /app/dist/app.js ./dist/app.js
 COPY --from=prerelease /app/package.json .
 COPY .env.prod .env
 
 
+
+
+
 # run the app
 EXPOSE 9080/tcp
-ENTRYPOINT [ "npm", "run", "app" ]
+ENV NODE_ENV=production
+ENTRYPOINT ["node", "./dist/app.js"]

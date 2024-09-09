@@ -20,7 +20,7 @@ export async function GetDeployment(
 export async function GetDeployments(): Promise<RestateDeployment[]> {
 	const registeredDeploymentsOut = (await new Promise((resolve, reject) =>
 		shelljs.exec(
-			"RESTATE_HOST=web2text-restate-server restate dep list",
+			"restate dep list",
 			{ async: true, silent: true },
 			(code, stdout, stderr) =>
 				code === 0 ? resolve(stdout as string) : reject(stderr as string),
@@ -63,7 +63,7 @@ export async function RegisterThisServiceWithRestate(port: number): Promise<os.N
 		);
 		const registered = await new Promise((resolve, reject) =>
 			shelljs.exec(
-				`RESTATE_HOST=web2text-restate-server restate dep reg ${restateServiceHost} --yes`,
+				`restate dep reg ${restateServiceHost} --yes`,
 				{ async: true, silent: true },
 				(code, stdout, stderr) =>
 					code === 0 ? resolve(stdout) : reject(stderr),
@@ -128,8 +128,8 @@ export async function DeregisterThisServiceWithRestate(
             await sleep(options.attemptDelayMs);
 		}
 	} else {
-		console.warn(
-			`[SHUTDOWN] Could not find deployment ID for '${ipAddr}:${port}' - failed to de-register service!`,
+		console.info(
+			`[SHUTDOWN] Could not find deployment ID for '${ipAddr}:${port}'`,
 		);
 	}
 }

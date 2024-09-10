@@ -11,7 +11,7 @@ declare global {
         NEXUS_API_USERNAME: string;
         NEXUS_API_PASSWORD: string;
         RLM_API_URL: string;
-        RESTATE_SERVICE_PORT?: string;
+        RESTATE_ADMIN_URL: string;
         LOCAL_DYNAMODB_URL?: string;
         TWILIO_PROXY_URL: string;
         TWILIO_PROXY_USER: string;

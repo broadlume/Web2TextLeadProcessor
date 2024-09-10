@@ -9,7 +9,7 @@ import * as restate from "@restatedev/restate-sdk";
 import "dotenv/config";
 import nock from "nock";
 
-export const supertest = request(`http://${process.env.RESTATE_HOST}:8080/`);
+export const supertest = request(`http://${new URL(process.env.RESTATE_ADMIN_URL!).hostname}:8080/`);
 export const SERVICE_NAME = "Lead-test";
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
 export let TEST_SERVER: restate.RestateEndpoint;
@@ -56,7 +56,7 @@ beforeEach(async () => {
 	});
 	nock.disableNetConnect();
 	nock.enableNetConnect(host => {
-		const allowedHosts = ["lead-test","127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,process.env.RESTATE_HOST!];
+		const allowedHosts = ["lead-test","127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,new URL(process.env.RESTATE_ADMIN_URL!).hostname];
 		return allowedHosts.find(allowedHost => host.toLowerCase().includes(allowedHost.toLowerCase())) != null;
 	});
 });

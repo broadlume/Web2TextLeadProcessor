@@ -16,6 +16,10 @@ services:
     restart: always
     depends_on: 
       - restate-server
+      - twilio_proxy
+      - jaeger
+    environment:
+      RESTATE_ADMIN_URL: "http://web2text-restate-server:9070"
   restate-server:
     image: "docker.io/restatedev/restate:latest"
     container_name: web2text-restate-server

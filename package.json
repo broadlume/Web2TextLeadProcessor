@@ -9,7 +9,7 @@
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/app.js",
     "app": "NODE_ENV=production node ./dist/app.js",
-    "app-dev": "ts-node-dev --watch ./src --respawn --inspect=9229 --transpile-only ./src/app.ts",
+    "app-dev": "tsx watch ./src/app.ts --inspect=9229",
     "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
     "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9080 --force --yes --quiet",
     "clear-restate": "/app/scripts/clearRestate.sh Lead",
@@ -31,15 +31,15 @@
     "zod-validation-error": "^3.3.0"
   },
   "devDependencies": {
-    "shelljs": "0.8.5",
-    "@types/shelljs": "^0.8.15",
-    "@types/supertest": "^6.0.2",
     "@biomejs/biome": "1.8.2",
     "@types/node": "^20.12.7",
+    "@types/shelljs": "^0.8.15",
+    "@types/supertest": "^6.0.2",
     "esbuild": "^0.18.12",
     "nock": "^14.0.0-beta.11",
+    "shelljs": "0.8.5",
     "supertest": "^7.0.0",
-    "ts-node-dev": "^1.1.1",
+    "tsx": "^4.19.0",
     "typescript": "^5.4.5",
     "vitest": "^2.0.5"
   },
@@ -48,6 +48,8 @@
     "shelljs@0.8.5": "patches/shelljs@0.8.5.patch"
   },
   "trustedDependencies": [
-    "@biomejs/biome"
+    "@biomejs/biome",
+    "core-js",
+    "esbuild"
   ]
 }

@@ -42,7 +42,8 @@ RUN bun run build && bun run bundle
 FROM node:slim AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=install /usr/local/bin/restate /usr/local/bin/restate
-COPY --from=prerelease /app/dist/app.js ./dist/app.js
+COPY --from=prerelease /app/dist/* ./dist/
+
 COPY --from=prerelease /app/package.json .
 COPY .env.prod .env
 

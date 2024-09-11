@@ -1,0 +1,825 @@
+diff --git a/dist/cjs/src/context.d.ts b/dist/cjs/src/context.d.ts
+index 75a0b1431ff8049d5a41fd8b190ac8cb0f08e28d..5f1467fb10e352438b7e467f676e9b1d8149c73c 100644
+--- a/dist/cjs/src/context.d.ts
++++ b/dist/cjs/src/context.d.ts
+@@ -47,6 +47,8 @@ export type UntypedState = {
+  * Key value store operations. Only keyed services have an attached key-value store.
+  */
+ export interface KeyValueStore<TState extends TypedState> {
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
++    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
+     /**
+      * Get/retrieve state from the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+@@ -445,6 +447,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+  */
+ export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
+     key: string;
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
++    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
+     /**
+      * Get/retrieve state from the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+diff --git a/dist/cjs/src/context_impl.d.ts b/dist/cjs/src/context_impl.d.ts
+index 6189902b184242689a9e35b156856edaacaa588b..f834c7d28ff22217d02d5a8687530de7d19f13ca 100644
+--- a/dist/cjs/src/context_impl.d.ts
++++ b/dist/cjs/src/context_impl.d.ts
+@@ -21,6 +21,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+     promise<T>(name: string, serde?: Serde<T>): DurablePromise<T>;
+     get key(): string;
+     request(): Request;
++    getAll(): Promise<object>;
++    update(operation: (state: object) => unknown): Promise<void>;
+     get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
+     stateKeys(): Promise<Array<string>>;
+     set<T>(name: string, value: T, serde?: Serde<T>): void;
+diff --git a/dist/cjs/src/context_impl.js b/dist/cjs/src/context_impl.js
+index f11ad0c564bb7f41e5676ec061efa089848addd9..938e2aa069e6a167f7fd6cadcfa78d0f64992443 100644
+--- a/dist/cjs/src/context_impl.js
++++ b/dist/cjs/src/context_impl.js
+@@ -101,6 +101,22 @@ class ContextImpl {
+         };
+         return getState();
+     }
++    async getAll() {
++        const keys = await this.stateKeys();
++        const entries = [];
++        for (const key of keys) {
++            entries.push([key,await this.get(key)]);
++        }
++        return Object.fromEntries(entries);
++    }
++    async update(operation) {
++        const state = await this.getAll();
++        const newState = operation(state);
++        await this.clearAll();
++        for (const key of Object.keys(newState)) {
++            this.set(key,newState[key]);
++        }
++    }
+     // DON'T make this function async!!! see sideEffect comment for details.
+     stateKeys() {
+         // Check if this is a valid action
+diff --git a/dist/esm/src/common_api.d.ts b/dist/esm/test/src/common_api.d.ts
+similarity index 100%
+rename from dist/esm/src/common_api.d.ts
+rename to dist/esm/test/src/common_api.d.ts
+diff --git a/dist/esm/src/common_api.d.ts.map b/dist/esm/test/src/common_api.d.ts.map
+similarity index 100%
+rename from dist/esm/src/common_api.d.ts.map
+rename to dist/esm/test/src/common_api.d.ts.map
+diff --git a/dist/esm/src/common_api.js b/dist/esm/test/src/common_api.js
+similarity index 100%
+rename from dist/esm/src/common_api.js
+rename to dist/esm/test/src/common_api.js
+diff --git a/dist/esm/src/common_api.js.map b/dist/esm/test/src/common_api.js.map
+similarity index 100%
+rename from dist/esm/src/common_api.js.map
+rename to dist/esm/test/src/common_api.js.map
+diff --git a/dist/esm/src/connection/connection.d.ts b/dist/esm/test/src/connection/connection.d.ts
+similarity index 100%
+rename from dist/esm/src/connection/connection.d.ts
+rename to dist/esm/test/src/connection/connection.d.ts
+diff --git a/dist/esm/src/connection/connection.d.ts.map b/dist/esm/test/src/connection/connection.d.ts.map
+similarity index 100%
+rename from dist/esm/src/connection/connection.d.ts.map
+rename to dist/esm/test/src/connection/connection.d.ts.map
+diff --git a/dist/esm/src/connection/connection.js b/dist/esm/test/src/connection/connection.js
+similarity index 100%
+rename from dist/esm/src/connection/connection.js
+rename to dist/esm/test/src/connection/connection.js
+diff --git a/dist/esm/src/connection/connection.js.map b/dist/esm/test/src/connection/connection.js.map
+similarity index 100%
+rename from dist/esm/src/connection/connection.js.map
+rename to dist/esm/test/src/connection/connection.js.map
+diff --git a/dist/esm/src/context.d.ts b/dist/esm/test/src/context.d.ts
+similarity index 98%
+rename from dist/esm/src/context.d.ts
+rename to dist/esm/test/src/context.d.ts
+index 8732ff823402b4efe91227098bcc9e61888c83cf..2f0afbadc6774f05c635e7ff1ab4abba8e566d03 100644
+--- a/dist/esm/src/context.d.ts
++++ b/dist/esm/test/src/context.d.ts
+@@ -47,6 +47,8 @@ export type UntypedState = {
+  * Key value store operations. Only keyed services have an attached key-value store.
+  */
+ export interface KeyValueStore<TState extends TypedState> {
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
++    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
+     /**
+      * Get/retrieve state from the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+@@ -445,6 +447,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+  */
+ export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
+     key: string;
++    getAll(): Promise<(TState extends UntypedState ? object : TState)>;
++    update(operation: (state:(TState extends UntypedState ? object : TState)) => TState): Promise<void>;
+     /**
+      * Get/retrieve state from the Restate runtime.
+      * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
+diff --git a/dist/esm/src/context.d.ts.map b/dist/esm/test/src/context.d.ts.map
+similarity index 100%
+rename from dist/esm/src/context.d.ts.map
+rename to dist/esm/test/src/context.d.ts.map
+diff --git a/dist/esm/src/context.js b/dist/esm/test/src/context.js
+similarity index 100%
+rename from dist/esm/src/context.js
+rename to dist/esm/test/src/context.js
+diff --git a/dist/esm/src/context.js.map b/dist/esm/test/src/context.js.map
+similarity index 100%
+rename from dist/esm/src/context.js.map
+rename to dist/esm/test/src/context.js.map
+diff --git a/dist/esm/src/context_impl.d.ts b/dist/esm/test/src/context_impl.d.ts
+similarity index 96%
+rename from dist/esm/src/context_impl.d.ts
+rename to dist/esm/test/src/context_impl.d.ts
+index 400a985f8f6cea15a91dcb9d4f3bbbb889e81846..64508565498441ef52393ebac06eccb9515ce432 100644
+--- a/dist/esm/src/context_impl.d.ts
++++ b/dist/esm/test/src/context_impl.d.ts
+@@ -21,6 +21,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+     promise<T>(name: string, serde?: Serde<T>): DurablePromise<T>;
+     get key(): string;
+     request(): Request;
++    getAll(): Promise<object>;
++    update(operation: (state: object) => unknown): Promise<void>;
+     get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
+     stateKeys(): Promise<Array<string>>;
+     set<T>(name: string, value: T, serde?: Serde<T>): void;
+diff --git a/dist/esm/src/context_impl.d.ts.map b/dist/esm/test/src/context_impl.d.ts.map
+similarity index 100%
+rename from dist/esm/src/context_impl.d.ts.map
+rename to dist/esm/test/src/context_impl.d.ts.map
+diff --git a/dist/esm/src/context_impl.js b/dist/esm/test/src/context_impl.js
+similarity index 97%
+rename from dist/esm/src/context_impl.js
+rename to dist/esm/test/src/context_impl.js
+index 4658d495a497116ec28d1f5c5fb866ebf88c9266..28eab18c30066245cd1d702ffcb6cf547ddacaa0 100644
+--- a/dist/esm/src/context_impl.js
++++ b/dist/esm/test/src/context_impl.js
+@@ -98,6 +98,22 @@ export class ContextImpl {
+         };
+         return getState();
+     }
++    async getAll() {
++        const keys = await this.stateKeys();
++        const entries = [];
++        for (const key of keys) {
++            entries.push([key,await this.get(key)]);
++        }
++        return Object.fromEntries(entries);
++    }
++    async update(operation) {
++        const state = await this.getAll();
++        const newState = operation(state);
++        await this.clearAll();
++        for (const key of Object.keys(newState)) {
++            this.set(key,newState[key]);
++        }
++    }
+     // DON'T make this function async!!! see sideEffect comment for details.
+     stateKeys() {
+         // Check if this is a valid action
+diff --git a/dist/esm/src/context_impl.js.map b/dist/esm/test/src/context_impl.js.map
+similarity index 100%
+rename from dist/esm/src/context_impl.js.map
+rename to dist/esm/test/src/context_impl.js.map
+diff --git a/dist/esm/src/endpoint/endpoint_builder.d.ts b/dist/esm/test/src/endpoint/endpoint_builder.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/endpoint_builder.d.ts
+rename to dist/esm/test/src/endpoint/endpoint_builder.d.ts
+diff --git a/dist/esm/src/endpoint/endpoint_builder.d.ts.map b/dist/esm/test/src/endpoint/endpoint_builder.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/endpoint_builder.d.ts.map
+rename to dist/esm/test/src/endpoint/endpoint_builder.d.ts.map
+diff --git a/dist/esm/src/endpoint/endpoint_builder.js b/dist/esm/test/src/endpoint/endpoint_builder.js
+similarity index 100%
+rename from dist/esm/src/endpoint/endpoint_builder.js
+rename to dist/esm/test/src/endpoint/endpoint_builder.js
+diff --git a/dist/esm/src/endpoint/endpoint_builder.js.map b/dist/esm/test/src/endpoint/endpoint_builder.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/endpoint_builder.js.map
+rename to dist/esm/test/src/endpoint/endpoint_builder.js.map
+diff --git a/dist/esm/src/endpoint/fetch_endpoint.d.ts b/dist/esm/test/src/endpoint/fetch_endpoint.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/fetch_endpoint.d.ts
+rename to dist/esm/test/src/endpoint/fetch_endpoint.d.ts
+diff --git a/dist/esm/src/endpoint/fetch_endpoint.d.ts.map b/dist/esm/test/src/endpoint/fetch_endpoint.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/fetch_endpoint.d.ts.map
+rename to dist/esm/test/src/endpoint/fetch_endpoint.d.ts.map
+diff --git a/dist/esm/src/endpoint/fetch_endpoint.js b/dist/esm/test/src/endpoint/fetch_endpoint.js
+similarity index 100%
+rename from dist/esm/src/endpoint/fetch_endpoint.js
+rename to dist/esm/test/src/endpoint/fetch_endpoint.js
+diff --git a/dist/esm/src/endpoint/fetch_endpoint.js.map b/dist/esm/test/src/endpoint/fetch_endpoint.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/fetch_endpoint.js.map
+rename to dist/esm/test/src/endpoint/fetch_endpoint.js.map
+diff --git a/dist/esm/src/endpoint/handlers/fetch.d.ts b/dist/esm/test/src/endpoint/handlers/fetch.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/fetch.d.ts
+rename to dist/esm/test/src/endpoint/handlers/fetch.d.ts
+diff --git a/dist/esm/src/endpoint/handlers/fetch.d.ts.map b/dist/esm/test/src/endpoint/handlers/fetch.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/fetch.d.ts.map
+rename to dist/esm/test/src/endpoint/handlers/fetch.d.ts.map
+diff --git a/dist/esm/src/endpoint/handlers/fetch.js b/dist/esm/test/src/endpoint/handlers/fetch.js
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/fetch.js
+rename to dist/esm/test/src/endpoint/handlers/fetch.js
+diff --git a/dist/esm/src/endpoint/handlers/fetch.js.map b/dist/esm/test/src/endpoint/handlers/fetch.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/fetch.js.map
+rename to dist/esm/test/src/endpoint/handlers/fetch.js.map
+diff --git a/dist/esm/src/endpoint/handlers/generic.d.ts b/dist/esm/test/src/endpoint/handlers/generic.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/generic.d.ts
+rename to dist/esm/test/src/endpoint/handlers/generic.d.ts
+diff --git a/dist/esm/src/endpoint/handlers/generic.d.ts.map b/dist/esm/test/src/endpoint/handlers/generic.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/generic.d.ts.map
+rename to dist/esm/test/src/endpoint/handlers/generic.d.ts.map
+diff --git a/dist/esm/src/endpoint/handlers/generic.js b/dist/esm/test/src/endpoint/handlers/generic.js
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/generic.js
+rename to dist/esm/test/src/endpoint/handlers/generic.js
+diff --git a/dist/esm/src/endpoint/handlers/generic.js.map b/dist/esm/test/src/endpoint/handlers/generic.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/generic.js.map
+rename to dist/esm/test/src/endpoint/handlers/generic.js.map
+diff --git a/dist/esm/src/endpoint/handlers/lambda.d.ts b/dist/esm/test/src/endpoint/handlers/lambda.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/lambda.d.ts
+rename to dist/esm/test/src/endpoint/handlers/lambda.d.ts
+diff --git a/dist/esm/src/endpoint/handlers/lambda.d.ts.map b/dist/esm/test/src/endpoint/handlers/lambda.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/lambda.d.ts.map
+rename to dist/esm/test/src/endpoint/handlers/lambda.d.ts.map
+diff --git a/dist/esm/src/endpoint/handlers/lambda.js b/dist/esm/test/src/endpoint/handlers/lambda.js
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/lambda.js
+rename to dist/esm/test/src/endpoint/handlers/lambda.js
+diff --git a/dist/esm/src/endpoint/handlers/lambda.js.map b/dist/esm/test/src/endpoint/handlers/lambda.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/handlers/lambda.js.map
+rename to dist/esm/test/src/endpoint/handlers/lambda.js.map
+diff --git a/dist/esm/src/endpoint/lambda_endpoint.d.ts b/dist/esm/test/src/endpoint/lambda_endpoint.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/lambda_endpoint.d.ts
+rename to dist/esm/test/src/endpoint/lambda_endpoint.d.ts
+diff --git a/dist/esm/src/endpoint/lambda_endpoint.d.ts.map b/dist/esm/test/src/endpoint/lambda_endpoint.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/lambda_endpoint.d.ts.map
+rename to dist/esm/test/src/endpoint/lambda_endpoint.d.ts.map
+diff --git a/dist/esm/src/endpoint/lambda_endpoint.js b/dist/esm/test/src/endpoint/lambda_endpoint.js
+similarity index 100%
+rename from dist/esm/src/endpoint/lambda_endpoint.js
+rename to dist/esm/test/src/endpoint/lambda_endpoint.js
+diff --git a/dist/esm/src/endpoint/lambda_endpoint.js.map b/dist/esm/test/src/endpoint/lambda_endpoint.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/lambda_endpoint.js.map
+rename to dist/esm/test/src/endpoint/lambda_endpoint.js.map
+diff --git a/dist/esm/src/endpoint/node_endpoint.d.ts b/dist/esm/test/src/endpoint/node_endpoint.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/node_endpoint.d.ts
+rename to dist/esm/test/src/endpoint/node_endpoint.d.ts
+diff --git a/dist/esm/src/endpoint/node_endpoint.d.ts.map b/dist/esm/test/src/endpoint/node_endpoint.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/node_endpoint.d.ts.map
+rename to dist/esm/test/src/endpoint/node_endpoint.d.ts.map
+diff --git a/dist/esm/src/endpoint/node_endpoint.js b/dist/esm/test/src/endpoint/node_endpoint.js
+similarity index 100%
+rename from dist/esm/src/endpoint/node_endpoint.js
+rename to dist/esm/test/src/endpoint/node_endpoint.js
+diff --git a/dist/esm/src/endpoint/node_endpoint.js.map b/dist/esm/test/src/endpoint/node_endpoint.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/node_endpoint.js.map
+rename to dist/esm/test/src/endpoint/node_endpoint.js.map
+diff --git a/dist/esm/src/endpoint/request_signing/basex.d.ts b/dist/esm/test/src/endpoint/request_signing/basex.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/basex.d.ts
+rename to dist/esm/test/src/endpoint/request_signing/basex.d.ts
+diff --git a/dist/esm/src/endpoint/request_signing/basex.d.ts.map b/dist/esm/test/src/endpoint/request_signing/basex.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/basex.d.ts.map
+rename to dist/esm/test/src/endpoint/request_signing/basex.d.ts.map
+diff --git a/dist/esm/src/endpoint/request_signing/basex.js b/dist/esm/test/src/endpoint/request_signing/basex.js
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/basex.js
+rename to dist/esm/test/src/endpoint/request_signing/basex.js
+diff --git a/dist/esm/src/endpoint/request_signing/basex.js.map b/dist/esm/test/src/endpoint/request_signing/basex.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/basex.js.map
+rename to dist/esm/test/src/endpoint/request_signing/basex.js.map
+diff --git a/dist/esm/src/endpoint/request_signing/ed25519.d.ts b/dist/esm/test/src/endpoint/request_signing/ed25519.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/ed25519.d.ts
+rename to dist/esm/test/src/endpoint/request_signing/ed25519.d.ts
+diff --git a/dist/esm/src/endpoint/request_signing/ed25519.d.ts.map b/dist/esm/test/src/endpoint/request_signing/ed25519.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/ed25519.d.ts.map
+rename to dist/esm/test/src/endpoint/request_signing/ed25519.d.ts.map
+diff --git a/dist/esm/src/endpoint/request_signing/ed25519.js b/dist/esm/test/src/endpoint/request_signing/ed25519.js
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/ed25519.js
+rename to dist/esm/test/src/endpoint/request_signing/ed25519.js
+diff --git a/dist/esm/src/endpoint/request_signing/ed25519.js.map b/dist/esm/test/src/endpoint/request_signing/ed25519.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/ed25519.js.map
+rename to dist/esm/test/src/endpoint/request_signing/ed25519.js.map
+diff --git a/dist/esm/src/endpoint/request_signing/v1.d.ts b/dist/esm/test/src/endpoint/request_signing/v1.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/v1.d.ts
+rename to dist/esm/test/src/endpoint/request_signing/v1.d.ts
+diff --git a/dist/esm/src/endpoint/request_signing/v1.d.ts.map b/dist/esm/test/src/endpoint/request_signing/v1.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/v1.d.ts.map
+rename to dist/esm/test/src/endpoint/request_signing/v1.d.ts.map
+diff --git a/dist/esm/src/endpoint/request_signing/v1.js b/dist/esm/test/src/endpoint/request_signing/v1.js
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/v1.js
+rename to dist/esm/test/src/endpoint/request_signing/v1.js
+diff --git a/dist/esm/src/endpoint/request_signing/v1.js.map b/dist/esm/test/src/endpoint/request_signing/v1.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/v1.js.map
+rename to dist/esm/test/src/endpoint/request_signing/v1.js.map
+diff --git a/dist/esm/src/endpoint/request_signing/validate.d.ts b/dist/esm/test/src/endpoint/request_signing/validate.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/validate.d.ts
+rename to dist/esm/test/src/endpoint/request_signing/validate.d.ts
+diff --git a/dist/esm/src/endpoint/request_signing/validate.d.ts.map b/dist/esm/test/src/endpoint/request_signing/validate.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/validate.d.ts.map
+rename to dist/esm/test/src/endpoint/request_signing/validate.d.ts.map
+diff --git a/dist/esm/src/endpoint/request_signing/validate.js b/dist/esm/test/src/endpoint/request_signing/validate.js
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/validate.js
+rename to dist/esm/test/src/endpoint/request_signing/validate.js
+diff --git a/dist/esm/src/endpoint/request_signing/validate.js.map b/dist/esm/test/src/endpoint/request_signing/validate.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint/request_signing/validate.js.map
+rename to dist/esm/test/src/endpoint/request_signing/validate.js.map
+diff --git a/dist/esm/src/endpoint.d.ts b/dist/esm/test/src/endpoint.d.ts
+similarity index 100%
+rename from dist/esm/src/endpoint.d.ts
+rename to dist/esm/test/src/endpoint.d.ts
+diff --git a/dist/esm/src/endpoint.d.ts.map b/dist/esm/test/src/endpoint.d.ts.map
+similarity index 100%
+rename from dist/esm/src/endpoint.d.ts.map
+rename to dist/esm/test/src/endpoint.d.ts.map
+diff --git a/dist/esm/src/endpoint.js b/dist/esm/test/src/endpoint.js
+similarity index 100%
+rename from dist/esm/src/endpoint.js
+rename to dist/esm/test/src/endpoint.js
+diff --git a/dist/esm/src/endpoint.js.map b/dist/esm/test/src/endpoint.js.map
+similarity index 100%
+rename from dist/esm/src/endpoint.js.map
+rename to dist/esm/test/src/endpoint.js.map
+diff --git a/dist/esm/src/fetch.d.ts b/dist/esm/test/src/fetch.d.ts
+similarity index 100%
+rename from dist/esm/src/fetch.d.ts
+rename to dist/esm/test/src/fetch.d.ts
+diff --git a/dist/esm/src/fetch.d.ts.map b/dist/esm/test/src/fetch.d.ts.map
+similarity index 100%
+rename from dist/esm/src/fetch.d.ts.map
+rename to dist/esm/test/src/fetch.d.ts.map
+diff --git a/dist/esm/src/fetch.js b/dist/esm/test/src/fetch.js
+similarity index 100%
+rename from dist/esm/src/fetch.js
+rename to dist/esm/test/src/fetch.js
+diff --git a/dist/esm/src/fetch.js.map b/dist/esm/test/src/fetch.js.map
+similarity index 100%
+rename from dist/esm/src/fetch.js.map
+rename to dist/esm/test/src/fetch.js.map
+diff --git a/dist/esm/src/generated/proto/discovery_pb.d.ts b/dist/esm/test/src/generated/proto/discovery_pb.d.ts
+similarity index 100%
+rename from dist/esm/src/generated/proto/discovery_pb.d.ts
+rename to dist/esm/test/src/generated/proto/discovery_pb.d.ts
+diff --git a/dist/esm/src/generated/proto/discovery_pb.d.ts.map b/dist/esm/test/src/generated/proto/discovery_pb.d.ts.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/discovery_pb.d.ts.map
+rename to dist/esm/test/src/generated/proto/discovery_pb.d.ts.map
+diff --git a/dist/esm/src/generated/proto/discovery_pb.js b/dist/esm/test/src/generated/proto/discovery_pb.js
+similarity index 100%
+rename from dist/esm/src/generated/proto/discovery_pb.js
+rename to dist/esm/test/src/generated/proto/discovery_pb.js
+diff --git a/dist/esm/src/generated/proto/discovery_pb.js.map b/dist/esm/test/src/generated/proto/discovery_pb.js.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/discovery_pb.js.map
+rename to dist/esm/test/src/generated/proto/discovery_pb.js.map
+diff --git a/dist/esm/src/generated/proto/javascript_pb.d.ts b/dist/esm/test/src/generated/proto/javascript_pb.d.ts
+similarity index 100%
+rename from dist/esm/src/generated/proto/javascript_pb.d.ts
+rename to dist/esm/test/src/generated/proto/javascript_pb.d.ts
+diff --git a/dist/esm/src/generated/proto/javascript_pb.d.ts.map b/dist/esm/test/src/generated/proto/javascript_pb.d.ts.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/javascript_pb.d.ts.map
+rename to dist/esm/test/src/generated/proto/javascript_pb.d.ts.map
+diff --git a/dist/esm/src/generated/proto/javascript_pb.js b/dist/esm/test/src/generated/proto/javascript_pb.js
+similarity index 100%
+rename from dist/esm/src/generated/proto/javascript_pb.js
+rename to dist/esm/test/src/generated/proto/javascript_pb.js
+diff --git a/dist/esm/src/generated/proto/javascript_pb.js.map b/dist/esm/test/src/generated/proto/javascript_pb.js.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/javascript_pb.js.map
+rename to dist/esm/test/src/generated/proto/javascript_pb.js.map
+diff --git a/dist/esm/src/generated/proto/protocol_pb.d.ts b/dist/esm/test/src/generated/proto/protocol_pb.d.ts
+similarity index 100%
+rename from dist/esm/src/generated/proto/protocol_pb.d.ts
+rename to dist/esm/test/src/generated/proto/protocol_pb.d.ts
+diff --git a/dist/esm/src/generated/proto/protocol_pb.d.ts.map b/dist/esm/test/src/generated/proto/protocol_pb.d.ts.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/protocol_pb.d.ts.map
+rename to dist/esm/test/src/generated/proto/protocol_pb.d.ts.map
+diff --git a/dist/esm/src/generated/proto/protocol_pb.js b/dist/esm/test/src/generated/proto/protocol_pb.js
+similarity index 100%
+rename from dist/esm/src/generated/proto/protocol_pb.js
+rename to dist/esm/test/src/generated/proto/protocol_pb.js
+diff --git a/dist/esm/src/generated/proto/protocol_pb.js.map b/dist/esm/test/src/generated/proto/protocol_pb.js.map
+similarity index 100%
+rename from dist/esm/src/generated/proto/protocol_pb.js.map
+rename to dist/esm/test/src/generated/proto/protocol_pb.js.map
+diff --git a/dist/esm/src/generated/version.d.ts b/dist/esm/test/src/generated/version.d.ts
+similarity index 100%
+rename from dist/esm/src/generated/version.d.ts
+rename to dist/esm/test/src/generated/version.d.ts
+diff --git a/dist/esm/src/generated/version.d.ts.map b/dist/esm/test/src/generated/version.d.ts.map
+similarity index 100%
+rename from dist/esm/src/generated/version.d.ts.map
+rename to dist/esm/test/src/generated/version.d.ts.map
+diff --git a/dist/esm/src/generated/version.js b/dist/esm/test/src/generated/version.js
+similarity index 100%
+rename from dist/esm/src/generated/version.js
+rename to dist/esm/test/src/generated/version.js
+diff --git a/dist/esm/src/generated/version.js.map b/dist/esm/test/src/generated/version.js.map
+similarity index 100%
+rename from dist/esm/src/generated/version.js.map
+rename to dist/esm/test/src/generated/version.js.map
+diff --git a/dist/esm/src/invocation.d.ts b/dist/esm/test/src/invocation.d.ts
+similarity index 100%
+rename from dist/esm/src/invocation.d.ts
+rename to dist/esm/test/src/invocation.d.ts
+diff --git a/dist/esm/src/invocation.d.ts.map b/dist/esm/test/src/invocation.d.ts.map
+similarity index 100%
+rename from dist/esm/src/invocation.d.ts.map
+rename to dist/esm/test/src/invocation.d.ts.map
+diff --git a/dist/esm/src/invocation.js b/dist/esm/test/src/invocation.js
+similarity index 100%
+rename from dist/esm/src/invocation.js
+rename to dist/esm/test/src/invocation.js
+diff --git a/dist/esm/src/invocation.js.map b/dist/esm/test/src/invocation.js.map
+similarity index 100%
+rename from dist/esm/src/invocation.js.map
+rename to dist/esm/test/src/invocation.js.map
+diff --git a/dist/esm/src/io/decoder.d.ts b/dist/esm/test/src/io/decoder.d.ts
+similarity index 100%
+rename from dist/esm/src/io/decoder.d.ts
+rename to dist/esm/test/src/io/decoder.d.ts
+diff --git a/dist/esm/src/io/decoder.d.ts.map b/dist/esm/test/src/io/decoder.d.ts.map
+similarity index 100%
+rename from dist/esm/src/io/decoder.d.ts.map
+rename to dist/esm/test/src/io/decoder.d.ts.map
+diff --git a/dist/esm/src/io/decoder.js b/dist/esm/test/src/io/decoder.js
+similarity index 100%
+rename from dist/esm/src/io/decoder.js
+rename to dist/esm/test/src/io/decoder.js
+diff --git a/dist/esm/src/io/decoder.js.map b/dist/esm/test/src/io/decoder.js.map
+similarity index 100%
+rename from dist/esm/src/io/decoder.js.map
+rename to dist/esm/test/src/io/decoder.js.map
+diff --git a/dist/esm/src/io/encoder.d.ts b/dist/esm/test/src/io/encoder.d.ts
+similarity index 100%
+rename from dist/esm/src/io/encoder.d.ts
+rename to dist/esm/test/src/io/encoder.d.ts
+diff --git a/dist/esm/src/io/encoder.d.ts.map b/dist/esm/test/src/io/encoder.d.ts.map
+similarity index 100%
+rename from dist/esm/src/io/encoder.d.ts.map
+rename to dist/esm/test/src/io/encoder.d.ts.map
+diff --git a/dist/esm/src/io/encoder.js b/dist/esm/test/src/io/encoder.js
+similarity index 100%
+rename from dist/esm/src/io/encoder.js
+rename to dist/esm/test/src/io/encoder.js
+diff --git a/dist/esm/src/io/encoder.js.map b/dist/esm/test/src/io/encoder.js.map
+similarity index 100%
+rename from dist/esm/src/io/encoder.js.map
+rename to dist/esm/test/src/io/encoder.js.map
+diff --git a/dist/esm/src/journal.d.ts b/dist/esm/test/src/journal.d.ts
+similarity index 100%
+rename from dist/esm/src/journal.d.ts
+rename to dist/esm/test/src/journal.d.ts
+diff --git a/dist/esm/src/journal.d.ts.map b/dist/esm/test/src/journal.d.ts.map
+similarity index 100%
+rename from dist/esm/src/journal.d.ts.map
+rename to dist/esm/test/src/journal.d.ts.map
+diff --git a/dist/esm/src/journal.js b/dist/esm/test/src/journal.js
+similarity index 100%
+rename from dist/esm/src/journal.js
+rename to dist/esm/test/src/journal.js
+diff --git a/dist/esm/src/journal.js.map b/dist/esm/test/src/journal.js.map
+similarity index 100%
+rename from dist/esm/src/journal.js.map
+rename to dist/esm/test/src/journal.js.map
+diff --git a/dist/esm/src/lambda.d.ts b/dist/esm/test/src/lambda.d.ts
+similarity index 100%
+rename from dist/esm/src/lambda.d.ts
+rename to dist/esm/test/src/lambda.d.ts
+diff --git a/dist/esm/src/lambda.d.ts.map b/dist/esm/test/src/lambda.d.ts.map
+similarity index 100%
+rename from dist/esm/src/lambda.d.ts.map
+rename to dist/esm/test/src/lambda.d.ts.map
+diff --git a/dist/esm/src/lambda.js b/dist/esm/test/src/lambda.js
+similarity index 100%
+rename from dist/esm/src/lambda.js
+rename to dist/esm/test/src/lambda.js
+diff --git a/dist/esm/src/lambda.js.map b/dist/esm/test/src/lambda.js.map
+similarity index 100%
+rename from dist/esm/src/lambda.js.map
+rename to dist/esm/test/src/lambda.js.map
+diff --git a/dist/esm/src/local_state_store.d.ts b/dist/esm/test/src/local_state_store.d.ts
+similarity index 100%
+rename from dist/esm/src/local_state_store.d.ts
+rename to dist/esm/test/src/local_state_store.d.ts
+diff --git a/dist/esm/src/local_state_store.d.ts.map b/dist/esm/test/src/local_state_store.d.ts.map
+similarity index 100%
+rename from dist/esm/src/local_state_store.d.ts.map
+rename to dist/esm/test/src/local_state_store.d.ts.map
+diff --git a/dist/esm/src/local_state_store.js b/dist/esm/test/src/local_state_store.js
+similarity index 100%
+rename from dist/esm/src/local_state_store.js
+rename to dist/esm/test/src/local_state_store.js
+diff --git a/dist/esm/src/local_state_store.js.map b/dist/esm/test/src/local_state_store.js.map
+similarity index 100%
+rename from dist/esm/src/local_state_store.js.map
+rename to dist/esm/test/src/local_state_store.js.map
+diff --git a/dist/esm/src/logger.d.ts b/dist/esm/test/src/logger.d.ts
+similarity index 100%
+rename from dist/esm/src/logger.d.ts
+rename to dist/esm/test/src/logger.d.ts
+diff --git a/dist/esm/src/logger.d.ts.map b/dist/esm/test/src/logger.d.ts.map
+similarity index 100%
+rename from dist/esm/src/logger.d.ts.map
+rename to dist/esm/test/src/logger.d.ts.map
+diff --git a/dist/esm/src/logger.js b/dist/esm/test/src/logger.js
+similarity index 100%
+rename from dist/esm/src/logger.js
+rename to dist/esm/test/src/logger.js
+diff --git a/dist/esm/src/logger.js.map b/dist/esm/test/src/logger.js.map
+similarity index 100%
+rename from dist/esm/src/logger.js.map
+rename to dist/esm/test/src/logger.js.map
+diff --git a/dist/esm/src/promise_combinator_tracker.d.ts b/dist/esm/test/src/promise_combinator_tracker.d.ts
+similarity index 100%
+rename from dist/esm/src/promise_combinator_tracker.d.ts
+rename to dist/esm/test/src/promise_combinator_tracker.d.ts
+diff --git a/dist/esm/src/promise_combinator_tracker.d.ts.map b/dist/esm/test/src/promise_combinator_tracker.d.ts.map
+similarity index 100%
+rename from dist/esm/src/promise_combinator_tracker.d.ts.map
+rename to dist/esm/test/src/promise_combinator_tracker.d.ts.map
+diff --git a/dist/esm/src/promise_combinator_tracker.js b/dist/esm/test/src/promise_combinator_tracker.js
+similarity index 100%
+rename from dist/esm/src/promise_combinator_tracker.js
+rename to dist/esm/test/src/promise_combinator_tracker.js
+diff --git a/dist/esm/src/promise_combinator_tracker.js.map b/dist/esm/test/src/promise_combinator_tracker.js.map
+similarity index 100%
+rename from dist/esm/src/promise_combinator_tracker.js.map
+rename to dist/esm/test/src/promise_combinator_tracker.js.map
+diff --git a/dist/esm/src/public_api.d.ts b/dist/esm/test/src/public_api.d.ts
+similarity index 100%
+rename from dist/esm/src/public_api.d.ts
+rename to dist/esm/test/src/public_api.d.ts
+diff --git a/dist/esm/src/public_api.d.ts.map b/dist/esm/test/src/public_api.d.ts.map
+similarity index 100%
+rename from dist/esm/src/public_api.d.ts.map
+rename to dist/esm/test/src/public_api.d.ts.map
+diff --git a/dist/esm/src/public_api.js b/dist/esm/test/src/public_api.js
+similarity index 100%
+rename from dist/esm/src/public_api.js
+rename to dist/esm/test/src/public_api.js
+diff --git a/dist/esm/src/public_api.js.map b/dist/esm/test/src/public_api.js.map
+similarity index 100%
+rename from dist/esm/src/public_api.js.map
+rename to dist/esm/test/src/public_api.js.map
+diff --git a/dist/esm/src/state_machine.d.ts b/dist/esm/test/src/state_machine.d.ts
+similarity index 100%
+rename from dist/esm/src/state_machine.d.ts
+rename to dist/esm/test/src/state_machine.d.ts
+diff --git a/dist/esm/src/state_machine.d.ts.map b/dist/esm/test/src/state_machine.d.ts.map
+similarity index 100%
+rename from dist/esm/src/state_machine.d.ts.map
+rename to dist/esm/test/src/state_machine.d.ts.map
+diff --git a/dist/esm/src/state_machine.js b/dist/esm/test/src/state_machine.js
+similarity index 100%
+rename from dist/esm/src/state_machine.js
+rename to dist/esm/test/src/state_machine.js
+diff --git a/dist/esm/src/state_machine.js.map b/dist/esm/test/src/state_machine.js.map
+similarity index 100%
+rename from dist/esm/src/state_machine.js.map
+rename to dist/esm/test/src/state_machine.js.map
+diff --git a/dist/esm/src/types/components.d.ts b/dist/esm/test/src/types/components.d.ts
+similarity index 100%
+rename from dist/esm/src/types/components.d.ts
+rename to dist/esm/test/src/types/components.d.ts
+diff --git a/dist/esm/src/types/components.d.ts.map b/dist/esm/test/src/types/components.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/components.d.ts.map
+rename to dist/esm/test/src/types/components.d.ts.map
+diff --git a/dist/esm/src/types/components.js b/dist/esm/test/src/types/components.js
+similarity index 100%
+rename from dist/esm/src/types/components.js
+rename to dist/esm/test/src/types/components.js
+diff --git a/dist/esm/src/types/components.js.map b/dist/esm/test/src/types/components.js.map
+similarity index 100%
+rename from dist/esm/src/types/components.js.map
+rename to dist/esm/test/src/types/components.js.map
+diff --git a/dist/esm/src/types/discovery.d.ts b/dist/esm/test/src/types/discovery.d.ts
+similarity index 100%
+rename from dist/esm/src/types/discovery.d.ts
+rename to dist/esm/test/src/types/discovery.d.ts
+diff --git a/dist/esm/src/types/discovery.d.ts.map b/dist/esm/test/src/types/discovery.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/discovery.d.ts.map
+rename to dist/esm/test/src/types/discovery.d.ts.map
+diff --git a/dist/esm/src/types/discovery.js b/dist/esm/test/src/types/discovery.js
+similarity index 100%
+rename from dist/esm/src/types/discovery.js
+rename to dist/esm/test/src/types/discovery.js
+diff --git a/dist/esm/src/types/discovery.js.map b/dist/esm/test/src/types/discovery.js.map
+similarity index 100%
+rename from dist/esm/src/types/discovery.js.map
+rename to dist/esm/test/src/types/discovery.js.map
+diff --git a/dist/esm/src/types/errors.d.ts b/dist/esm/test/src/types/errors.d.ts
+similarity index 100%
+rename from dist/esm/src/types/errors.d.ts
+rename to dist/esm/test/src/types/errors.d.ts
+diff --git a/dist/esm/src/types/errors.d.ts.map b/dist/esm/test/src/types/errors.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/errors.d.ts.map
+rename to dist/esm/test/src/types/errors.d.ts.map
+diff --git a/dist/esm/src/types/errors.js b/dist/esm/test/src/types/errors.js
+similarity index 100%
+rename from dist/esm/src/types/errors.js
+rename to dist/esm/test/src/types/errors.js
+diff --git a/dist/esm/src/types/errors.js.map b/dist/esm/test/src/types/errors.js.map
+similarity index 100%
+rename from dist/esm/src/types/errors.js.map
+rename to dist/esm/test/src/types/errors.js.map
+diff --git a/dist/esm/src/types/protocol.d.ts b/dist/esm/test/src/types/protocol.d.ts
+similarity index 100%
+rename from dist/esm/src/types/protocol.d.ts
+rename to dist/esm/test/src/types/protocol.d.ts
+diff --git a/dist/esm/src/types/protocol.d.ts.map b/dist/esm/test/src/types/protocol.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/protocol.d.ts.map
+rename to dist/esm/test/src/types/protocol.d.ts.map
+diff --git a/dist/esm/src/types/protocol.js b/dist/esm/test/src/types/protocol.js
+similarity index 100%
+rename from dist/esm/src/types/protocol.js
+rename to dist/esm/test/src/types/protocol.js
+diff --git a/dist/esm/src/types/protocol.js.map b/dist/esm/test/src/types/protocol.js.map
+similarity index 100%
+rename from dist/esm/src/types/protocol.js.map
+rename to dist/esm/test/src/types/protocol.js.map
+diff --git a/dist/esm/src/types/rpc.d.ts b/dist/esm/test/src/types/rpc.d.ts
+similarity index 100%
+rename from dist/esm/src/types/rpc.d.ts
+rename to dist/esm/test/src/types/rpc.d.ts
+diff --git a/dist/esm/src/types/rpc.d.ts.map b/dist/esm/test/src/types/rpc.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/rpc.d.ts.map
+rename to dist/esm/test/src/types/rpc.d.ts.map
+diff --git a/dist/esm/src/types/rpc.js b/dist/esm/test/src/types/rpc.js
+similarity index 100%
+rename from dist/esm/src/types/rpc.js
+rename to dist/esm/test/src/types/rpc.js
+diff --git a/dist/esm/src/types/rpc.js.map b/dist/esm/test/src/types/rpc.js.map
+similarity index 100%
+rename from dist/esm/src/types/rpc.js.map
+rename to dist/esm/test/src/types/rpc.js.map
+diff --git a/dist/esm/src/types/types.d.ts b/dist/esm/test/src/types/types.d.ts
+similarity index 100%
+rename from dist/esm/src/types/types.d.ts
+rename to dist/esm/test/src/types/types.d.ts
+diff --git a/dist/esm/src/types/types.d.ts.map b/dist/esm/test/src/types/types.d.ts.map
+similarity index 100%
+rename from dist/esm/src/types/types.d.ts.map
+rename to dist/esm/test/src/types/types.d.ts.map
+diff --git a/dist/esm/src/types/types.js b/dist/esm/test/src/types/types.js
+similarity index 100%
+rename from dist/esm/src/types/types.js
+rename to dist/esm/test/src/types/types.js
+diff --git a/dist/esm/src/types/types.js.map b/dist/esm/test/src/types/types.js.map
+similarity index 100%
+rename from dist/esm/src/types/types.js.map
+rename to dist/esm/test/src/types/types.js.map
+diff --git a/dist/esm/src/user_agent.d.ts b/dist/esm/test/src/user_agent.d.ts
+similarity index 100%
+rename from dist/esm/src/user_agent.d.ts
+rename to dist/esm/test/src/user_agent.d.ts
+diff --git a/dist/esm/src/user_agent.d.ts.map b/dist/esm/test/src/user_agent.d.ts.map
+similarity index 100%
+rename from dist/esm/src/user_agent.d.ts.map
+rename to dist/esm/test/src/user_agent.d.ts.map
+diff --git a/dist/esm/src/user_agent.js b/dist/esm/test/src/user_agent.js
+similarity index 100%
+rename from dist/esm/src/user_agent.js
+rename to dist/esm/test/src/user_agent.js
+diff --git a/dist/esm/src/user_agent.js.map b/dist/esm/test/src/user_agent.js.map
+similarity index 100%
+rename from dist/esm/src/user_agent.js.map
+rename to dist/esm/test/src/user_agent.js.map
+diff --git a/dist/esm/src/utils/buffer.d.ts b/dist/esm/test/src/utils/buffer.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/buffer.d.ts
+rename to dist/esm/test/src/utils/buffer.d.ts
+diff --git a/dist/esm/src/utils/buffer.d.ts.map b/dist/esm/test/src/utils/buffer.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/buffer.d.ts.map
+rename to dist/esm/test/src/utils/buffer.d.ts.map
+diff --git a/dist/esm/src/utils/buffer.js b/dist/esm/test/src/utils/buffer.js
+similarity index 100%
+rename from dist/esm/src/utils/buffer.js
+rename to dist/esm/test/src/utils/buffer.js
+diff --git a/dist/esm/src/utils/buffer.js.map b/dist/esm/test/src/utils/buffer.js.map
+similarity index 100%
+rename from dist/esm/src/utils/buffer.js.map
+rename to dist/esm/test/src/utils/buffer.js.map
+diff --git a/dist/esm/src/utils/message_logger.d.ts b/dist/esm/test/src/utils/message_logger.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/message_logger.d.ts
+rename to dist/esm/test/src/utils/message_logger.d.ts
+diff --git a/dist/esm/src/utils/message_logger.d.ts.map b/dist/esm/test/src/utils/message_logger.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/message_logger.d.ts.map
+rename to dist/esm/test/src/utils/message_logger.d.ts.map
+diff --git a/dist/esm/src/utils/message_logger.js b/dist/esm/test/src/utils/message_logger.js
+similarity index 100%
+rename from dist/esm/src/utils/message_logger.js
+rename to dist/esm/test/src/utils/message_logger.js
+diff --git a/dist/esm/src/utils/message_logger.js.map b/dist/esm/test/src/utils/message_logger.js.map
+similarity index 100%
+rename from dist/esm/src/utils/message_logger.js.map
+rename to dist/esm/test/src/utils/message_logger.js.map
+diff --git a/dist/esm/src/utils/promises.d.ts b/dist/esm/test/src/utils/promises.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/promises.d.ts
+rename to dist/esm/test/src/utils/promises.d.ts
+diff --git a/dist/esm/src/utils/promises.d.ts.map b/dist/esm/test/src/utils/promises.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/promises.d.ts.map
+rename to dist/esm/test/src/utils/promises.d.ts.map
+diff --git a/dist/esm/src/utils/promises.js b/dist/esm/test/src/utils/promises.js
+similarity index 100%
+rename from dist/esm/src/utils/promises.js
+rename to dist/esm/test/src/utils/promises.js
+diff --git a/dist/esm/src/utils/promises.js.map b/dist/esm/test/src/utils/promises.js.map
+similarity index 100%
+rename from dist/esm/src/utils/promises.js.map
+rename to dist/esm/test/src/utils/promises.js.map
+diff --git a/dist/esm/src/utils/rand.d.ts b/dist/esm/test/src/utils/rand.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/rand.d.ts
+rename to dist/esm/test/src/utils/rand.d.ts
+diff --git a/dist/esm/src/utils/rand.d.ts.map b/dist/esm/test/src/utils/rand.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/rand.d.ts.map
+rename to dist/esm/test/src/utils/rand.d.ts.map
+diff --git a/dist/esm/src/utils/rand.js b/dist/esm/test/src/utils/rand.js
+similarity index 100%
+rename from dist/esm/src/utils/rand.js
+rename to dist/esm/test/src/utils/rand.js
+diff --git a/dist/esm/src/utils/rand.js.map b/dist/esm/test/src/utils/rand.js.map
+similarity index 100%
+rename from dist/esm/src/utils/rand.js.map
+rename to dist/esm/test/src/utils/rand.js.map
+diff --git a/dist/esm/src/utils/streams.d.ts b/dist/esm/test/src/utils/streams.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/streams.d.ts
+rename to dist/esm/test/src/utils/streams.d.ts
+diff --git a/dist/esm/src/utils/streams.d.ts.map b/dist/esm/test/src/utils/streams.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/streams.d.ts.map
+rename to dist/esm/test/src/utils/streams.d.ts.map
+diff --git a/dist/esm/src/utils/streams.js b/dist/esm/test/src/utils/streams.js
+similarity index 100%
+rename from dist/esm/src/utils/streams.js
+rename to dist/esm/test/src/utils/streams.js
+diff --git a/dist/esm/src/utils/streams.js.map b/dist/esm/test/src/utils/streams.js.map
+similarity index 100%
+rename from dist/esm/src/utils/streams.js.map
+rename to dist/esm/test/src/utils/streams.js.map
+diff --git a/dist/esm/src/utils/utils.d.ts b/dist/esm/test/src/utils/utils.d.ts
+similarity index 100%
+rename from dist/esm/src/utils/utils.d.ts
+rename to dist/esm/test/src/utils/utils.d.ts
+diff --git a/dist/esm/src/utils/utils.d.ts.map b/dist/esm/test/src/utils/utils.d.ts.map
+similarity index 100%
+rename from dist/esm/src/utils/utils.d.ts.map
+rename to dist/esm/test/src/utils/utils.d.ts.map
+diff --git a/dist/esm/src/utils/utils.js b/dist/esm/test/src/utils/utils.js
+similarity index 100%
+rename from dist/esm/src/utils/utils.js
+rename to dist/esm/test/src/utils/utils.js
+diff --git a/dist/esm/src/utils/utils.js.map b/dist/esm/test/src/utils/utils.js.map
+similarity index 100%
+rename from dist/esm/src/utils/utils.js.map
+rename to dist/esm/test/src/utils/utils.js.map

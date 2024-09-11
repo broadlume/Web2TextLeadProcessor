@@ -9,7 +9,8 @@
 			"recommended": true,
 			"style": {
 				"noParameterAssign": "off",
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"noInferrableTypes": "off"
 			},
 			"complexity": {
 				"useLiteralKeys": "off"

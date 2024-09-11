@@ -1,11 +1,11 @@
 import { RLMLeadsAPI } from ".";
-import type restate from "@restatedev/restate-sdk";
 import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI } from "../nexus";
 import { Twilio } from "twilio";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import type * as restate from "@restatedev/restate-sdk";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
     Data?: {

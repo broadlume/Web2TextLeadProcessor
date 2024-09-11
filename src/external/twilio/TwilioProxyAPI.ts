@@ -4,6 +4,7 @@ import type {
 	ConversationListInstanceCreateOptions,
 } from "twilio/lib/rest/conversations/v1/conversation";
 import { TWILIO_PROXY_AUTHORIZATION_HEADERS } from ".";
+import ky from "ky";
 
 export async function CreateSession(
 	phoneNumbers: E164Number[],
@@ -11,22 +12,18 @@ export async function CreateSession(
 ): Promise<ConversationInstance> {
 	const proxyAPIUrl = new URL(process.env.TWILIO_PROXY_URL);
 	proxyAPIUrl.pathname += "sessions";
-
-	const response = await fetch(proxyAPIUrl.toString(), {
-		method: "POST",
-		headers: TWILIO_PROXY_AUTHORIZATION_HEADERS(),
-		body: JSON.stringify({
-			addresses: phoneNumbers,
-			...conversationOptions,
-		}),
-	});
-
-	if (response.ok) {
-		return (await response.json()) as ConversationInstance;
+	try {
+		const response = await ky.post(proxyAPIUrl.toString(), {
+			headers: TWILIO_PROXY_AUTHORIZATION_HEADERS(),
+			json: {
+				addresses: phoneNumbers,
+				...conversationOptions,
+			},
+			retry: 0
+		}).json<ConversationInstance>();
+		return response;
+	} catch (e) {
+		Logger.warn(`[TwilioProxyAPI.CreateSession] Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`);
+		throw e;
 	}
-	const error = await response.text().catch(() => response.status);
-	throw new Error(
-		`Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`,
-		{ cause: error },
-	);
 }

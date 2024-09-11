@@ -1,3 +1,6 @@
+import type * as restate from '@restatedev/restate-sdk';
+import { LeadState } from './restate/common';
+import type { TypedState} from '@restatedev/restate-sdk/dist/cjs/src/context';
 declare global {
     namespace NodeJS {
       interface ProcessEnv {
@@ -22,6 +25,7 @@ declare global {
         NODE_ENV: string;
       }
     }
+    var Logger: Console;
   }
   
   // If this file has no import/export statements (i.e. is a script)

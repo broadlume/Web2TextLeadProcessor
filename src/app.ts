@@ -8,6 +8,7 @@ import {
 	DeregisterThisServiceWithRestate,
 	RegisterThisServiceWithRestate,
 } from "./ServiceRegistrationHelper";
+globalThis.Logger = console;
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_TOKEN ??= randomUUID();

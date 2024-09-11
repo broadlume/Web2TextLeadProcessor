@@ -1,5 +1,6 @@
 import type { UUID } from "node:crypto";
 import { NEXUS_AUTHORIZATION_HEADERS } from ".";
+import ky, { HTTPError } from "ky";
 
 export interface RetailerStore {
 	"birdeye_account_id": string,
@@ -31,26 +32,19 @@ export async function GetAllRetailerStores(
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
 	nexusURL.pathname += "nexus/retailerLocations";
 	nexusURL.search = `?retailer_id=${universalId}`
-
-	const response = await fetch(nexusURL.toString(), {
-		method: "GET",
-		headers: NEXUS_AUTHORIZATION_HEADERS(),
-	});
-	if (response.ok) {
-		const json = await response.json() as {data: RetailerStore[]};
-		if ("data" in json && json.data.length > 0) {
-			return json.data;
-		}
-		return null;
+	try {
+		const retailerStores = await ky.get(nexusURL.toString(), {
+			retry: 0,
+			headers: NEXUS_AUTHORIZATION_HEADERS(),
+		}).json<{data?: RetailerStore[]}>();
+		return retailerStores.data ?? [];
+	} catch (e) {
+		if (e instanceof HTTPError && e.response.status === 404) {
+            return null;
+        }
+        console.warn(`[GetAllRetailerStores]: Error fetching retailer stores from Nexus for UniversalId '${universalId}'`);
+        throw e;
 	}
-	if (response.status === 404) {
-		return null;
-	}
-	const error = await response.text().catch(() => response.status);
-	throw new Error(
-		`Failed to fetch retailer stores from Nexus for UniversalRetailerId: ${universalId}`,
-		{ cause: { status: response.status, error } },
-	);
 }
 export async function GetRetailerStoreByID(
 	locationId: string
@@ -58,24 +52,17 @@ export async function GetRetailerStoreByID(
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
 	nexusURL.pathname += "nexus/location";
 	nexusURL.search = `?location_id=${locationId}`;
-
-	const response = await fetch(nexusURL.toString(), {
-		method: "GET",
-		headers: NEXUS_AUTHORIZATION_HEADERS(),
-	});
-	if (response.ok) {
-		const json = await response.json() as {data: RetailerStore[]};
-		if ("data" in json && json.data.length > 0) {
-			return json.data[0];
-		}
-		return null;
+	try {
+		const retailerStore = await ky.get(nexusURL.toString(), {
+			retry: 0,
+			headers: NEXUS_AUTHORIZATION_HEADERS(),
+		}).json<{data?: RetailerStore[]}>();
+		return retailerStore.data?.[0] ?? null;
+	} catch (e) {
+		if (e instanceof HTTPError && (e.response.status === 404 || e.response.status === 400)) {
+            return null;
+        }
+        console.warn("[GetRetailerStoreByID]: Error fetching retailer store from Nexus for Location ID: ${locationId}");
+        throw e;
 	}
-	if (response.status === 404 || response.status === 400) {
-		return null;
-	}
-	const error = await response.text().catch(() => response.status);
-	throw new Error(
-		`Failed to fetch retailer store from Nexus for Location ID: ${locationId}`,
-		{ cause: { status: response.status, error } },
-	);
 }

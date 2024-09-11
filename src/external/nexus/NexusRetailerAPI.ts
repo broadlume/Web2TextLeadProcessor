@@ -1,7 +1,8 @@
 import type { UUID } from "node:crypto";
 import { NEXUS_AUTHORIZATION_HEADERS } from ".";
+import ky, { HTTPError } from "ky";
 
-interface NexusRetailer {
+export interface NexusRetailer {
     id: UUID,
     name: string,
     status: "Customer" | "Churned_Customer",
@@ -32,17 +33,17 @@ export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer 
     const nexusURL = new URL(process.env.NEXUS_API_URL!);
     nexusURL.pathname += `retailers/${universalId}`;
 
-    const response = await fetch(nexusURL.toString(),{
-        method: "GET",
-        headers: NEXUS_AUTHORIZATION_HEADERS()
-    });
-    if (response.ok) {
-        const json = await response.json() as NexusRetailer;
-        return json;
+    try {
+        const retailer = await ky.get(nexusURL.toString(), {
+            retry: 0,
+            headers: NEXUS_AUTHORIZATION_HEADERS()
+        }).json<NexusRetailer>();
+        return retailer;
+    } catch (e) {
+        if (e instanceof HTTPError && e.response.status === 404) {
+            return null;
+        }
+        console.warn("[GetRetailerById]: Error fetching retailer from Nexus");
+        throw e;
     }
-    if (response.status === 404) {
-        return null;
-    }
-    const error = await response.text().catch(() => response.status);
-    throw new Error(`Failed to fetch retailer from Nexus for UniversalRetailerId: ${universalId}`, {cause: {status: response.status, error}});
 }

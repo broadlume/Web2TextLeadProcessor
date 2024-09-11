@@ -18,6 +18,7 @@ async function setup(
 	ctx: restate.ObjectContext<LeadState>,
 	allowedStates: LeadState["Status"][],
 ) {
+	globalThis.Logger = ctx.console;
 	const uuidParser = z.string().uuid();
 	if (!uuidParser.safeParse(ctx.key).success) {
 		throw new restate.TerminalError("Lead ID is not a valid UUIDv4", {

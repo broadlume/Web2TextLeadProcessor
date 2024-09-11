@@ -7,7 +7,11 @@ import * as TwilioProxyAPI from "./TwilioProxyAPI";
 import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
-import { DealerGreetMessage, SystemCloseMessage, SystemGreetingMessage } from "./Web2TextMessagingStrings";
+import {
+	DealerGreetMessage,
+	SystemCloseMessage,
+	SystemGreetingMessage,
+} from "./Web2TextMessagingStrings";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -50,20 +54,20 @@ export class TwilioIntegration
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
 		const UniversalRetailerId = leadState.UniversalRetailerId;
-		const preExistingConversationID =
-			await this.checkForPreexistingConversation(
-				leadState.Lead.PhoneNumber,
-				DealerPhoneNumber,
-			);
-		let conversation: ConversationInstance;
-		if (preExistingConversationID) {
-			context.console.info(
-				`Found pre-existing Twilio Conversation: ${preExistingConversationID}`,
-			);
-			conversation = await context.run(
-				"Twilio Fetch Pre-Existing Conversation",
-				async () =>
-					await this.twilioClient.conversations.v1
+		const conversation: ConversationInstance = await context.run(
+			"Create Twilio conversation",
+			async () => {
+				const preExistingConversationID =
+					await this.checkForPreexistingConversation(
+						leadState.Lead.PhoneNumber,
+						DealerPhoneNumber,
+					);
+				let conversation: ConversationInstance;
+				if (preExistingConversationID) {
+					context.console.info(
+						`Found pre-existing Twilio Conversation: ${preExistingConversationID}`,
+					);
+					conversation = await this.twilioClient.conversations.v1
 						.conversations(preExistingConversationID)
 						.update((err, conv) => {
 							// Add this LeadID to the conversation meta data
@@ -73,13 +77,9 @@ export class TwilioIntegration
 							);
 							conv!.attributes = JSON.stringify(attributes);
 							return conv;
-						}),
-			);
-		} else {
-			conversation = await context.run(
-				"Twilio Proxy Conversation Create API Call",
-				async () =>
-					await TwilioProxyAPI.CreateSession(
+						});
+				} else {
+					conversation = await TwilioProxyAPI.CreateSession(
 						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
 							friendlyName: `Client: [${leadState.UniversalRetailerId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
@@ -93,14 +93,36 @@ export class TwilioIntegration
 									"Local Development",
 							}),
 						},
-					),
+					);
+					const systemParticipant = await this.twilioClient.conversations.v1
+								.conversations(conversation.sid)
+								.participants.create({ identity: "Broadlume" });
+				}
+				return conversation;
+			},
+		);
+		// Attach Twilio sync webhook only on production
+		if (process.env.COPILOT_ENVIRONMENT_NAME) {
+			const syncEndpoint = new URL(
+				`Lead/${leadState.LeadId}/sync`,
+				process.env.RESTATE_ADMIN_URL,
 			);
-			const systemParticipant = await context.run(
-				"Add Broadlume as Chat Participant",
+			syncEndpoint.port = "";
+			const webhook = await context.run(
+				"Add Twilio sync webhook",
 				async () =>
 					await this.twilioClient.conversations.v1
 						.conversations(conversation.sid)
-						.participants.create({ identity: "Broadlume" }),
+						.webhooks.create({
+							"configuration.url": encodeURI(syncEndpoint.toString()),
+							"configuration.method": "POST",
+							target: "webhook",
+							"configuration.filters": [
+								"onMessageAdded",
+								"onMessageRemoved",
+								"onMessageUpdated",
+							],
+						}),
 			);
 		}
 		const dealerMessaging = DealerGreetMessage(
@@ -187,7 +209,10 @@ export class TwilioIntegration
 				} catch (e) {
 					// ignore
 				}
-				const message = SystemCloseMessage(dealerInformation?.website_url, dealerInformation?.primary_account_phone);
+				const message = SystemCloseMessage(
+					dealerInformation?.website_url,
+					dealerInformation?.primary_account_phone,
+				);
 				await this.sendSystemMessage(conversation.sid, message);
 			});
 			conversation.state = "closed";

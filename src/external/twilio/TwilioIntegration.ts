@@ -1,14 +1,13 @@
 import { Twilio } from "twilio";
 import type * as restate from "@restatedev/restate-sdk";
-import AccessToken, { ChatGrant } from "twilio/lib/jwt/AccessToken";
-import { Client as ConversationClient } from "@twilio/conversations";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 import * as TwilioProxyAPI from "./TwilioProxyAPI";
 import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";
-import type { TypedState } from "@restatedev/restate-sdk/dist/cjs/src/context";
+import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
+import { DealerGreetMessage, SystemCloseMessage, SystemGreetingMessage } from "./Web2TextMessagingStrings";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -39,6 +38,15 @@ export class TwilioIntegration
 		context: restate.ObjectSharedContext<Web2TextLead>,
 	): Promise<TwilioIntegrationState> {
 		const leadState = await context.getAll();
+		const locationInformation = await context.run(
+			"Get retailer store from Nexus",
+			async () => NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
+		);
+		if (locationInformation === null) {
+			throw new Error(
+				`Location info is missing in Nexus for location ID '${leadState.LocationId}'`,
+			);
+		}
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
 		const UniversalRetailerId = leadState.UniversalRetailerId;
@@ -80,7 +88,9 @@ export class TwilioIntegration
 								LeadIDs: [leadState.LeadId],
 								UniversalRetailerId,
 								LocationID: leadState.LocationId,
-								Environment: process.env['COPILOT_ENVIRONMENT_NAME'] ?? "Local Development"
+								Environment:
+									process.env["COPILOT_ENVIRONMENT_NAME"] ??
+									"Local Development",
 							}),
 						},
 					),
@@ -93,9 +103,21 @@ export class TwilioIntegration
 						.participants.create({ identity: "Broadlume" }),
 			);
 		}
-
+		const dealerMessaging = DealerGreetMessage(
+			leadState,
+			locationInformation.location_name ?? locationInformation.street_address,
+		);
+		await context.run("Send dealer messaging", async () => {
+			await this.sendSystemMessage(
+				conversation.sid,
+				dealerMessaging,
+				leadState.Lead.PhoneNumber,
+				true,
+			);
+		});
 		await context.run("Send initial message", async () => {
-			await this.sendSystemMessage(state, conversation, context, "Hello from Broadlume! We've set up a chat session between you and the dealer.");
+			const systemMessaging = SystemGreetingMessage();
+			await this.sendSystemMessage(conversation.sid, systemMessaging);
 		});
 		return {
 			...state,
@@ -124,9 +146,7 @@ export class TwilioIntegration
 		);
 		// Signal to close this lead if the Twilio conversation is closed
 		if (conversation.state === "closed") {
-			const LeadId = (await context.get(
-				"LeadId",
-			))!;
+			const LeadId = (await context.get("LeadId"))!;
 			context
 				.objectSendClient(LeadVirtualObject, LeadId)
 				.close(process.env.INTERNAL_TOKEN);
@@ -158,13 +178,17 @@ export class TwilioIntegration
 		conversation.attributes = JSON.stringify(attributes);
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
+			const dealerUUID = (await context.get("UniversalRetailerId"))!;
 			await context.run("Send closing message", async () => {
-				await this.sendSystemMessage(
-					state,
-					conversation,
-					context,
-					"Hello from Broadlume! We've marked this conversation as closed due to inactivity. If you would like to re-open it, please reply 'CONTINUE' and we will open a new conversation.",
-				);
+				let dealerInformation: NexusRetailerAPI.NexusRetailer | null = null;
+				try {
+					dealerInformation =
+						await NexusRetailerAPI.GetRetailerByID(dealerUUID);
+				} catch (e) {
+					// ignore
+				}
+				const message = SystemCloseMessage(dealerInformation?.website_url, dealerInformation?.primary_account_phone);
+				await this.sendSystemMessage(conversation.sid, message);
 			});
 			conversation.state = "closed";
 		}
@@ -181,7 +205,7 @@ export class TwilioIntegration
 			SyncStatus: "SYNCED",
 			Data: {
 				...state.Data!,
-				ConversationStatus: conversation.state
+				ConversationStatus: conversation.state,
 			},
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
@@ -195,51 +219,70 @@ export class TwilioIntegration
 				.list({
 					address: customerPhone,
 				})
-				.then((convos) => convos.filter(c => c.conversationState !== "closed").map((c) => c.conversationSid));
+				.then((convos) =>
+					convos
+						.filter((c) => c.conversationState !== "closed")
+						.map((c) => c.conversationSid),
+				);
 		const conversationsDealerIsIn =
 			await this.twilioClient.conversations.v1.participantConversations
 				.list({
 					address: dealerPhone,
 				})
-				.then((convos) => convos.filter(c => c.conversationState !== "closed").map((c) => c.conversationSid));
-		const conversation = conversationsUserIsIn.filter(x => conversationsDealerIsIn.includes(x));
+				.then((convos) =>
+					convos
+						.filter((c) => c.conversationState !== "closed")
+						.map((c) => c.conversationSid),
+				);
+		const conversation = conversationsUserIsIn.filter((x) =>
+			conversationsDealerIsIn.includes(x),
+		);
 		return conversation?.[0];
 	}
-	private async sendSystemMessage<T extends TypedState>(
-		state: TwilioIntegrationState,
-		twilioConversation: ConversationInstance,
-		context: restate.ObjectSharedContext<T>,
+	private async sendSystemMessage(
+		conversationSid: string,
 		message: string,
+		author: string = "Broadlume",
+		waitForDelivery: boolean = false,
 	) {
-		const chatGrant = new ChatGrant({
-			serviceSid: twilioConversation.chatServiceSid,
+		const twilioMessage = await this.twilioClient.conversations.v1
+			.conversations(conversationSid)
+			.messages.create({
+				author: author,
+				body: message,
+			});
+		if (!waitForDelivery) {
+			return;
+		}
+		await new Promise((resolve, reject) => {
+			let attempts = 10;
+			const interval = setInterval(async () => {
+				const deliveryReceipts = await this.twilioClient.conversations.v1
+					.conversations(conversationSid)
+					.messages.get(twilioMessage.sid)
+					.deliveryReceipts.list();
+				if (deliveryReceipts.every((d) => d.status === "delivered")) {
+					clearInterval(interval);
+					resolve(undefined);
+				}
+				if (deliveryReceipts.find((d) => d.status === "failed")) {
+					clearInterval(interval);
+					reject(
+						new Error(
+							`Delivery status is 'failed' for Twilio message '${twilioMessage.sid}'`,
+						),
+					);
+				}
+				if (attempts <= 0) {
+					clearInterval(interval);
+					reject(
+						new Error(
+							`Max attempts exceeded for polling for Twilio message delivery status on message '${twilioMessage.sid}'`,
+						),
+					);
+				}
+				attempts -= 1;
+			}, 1000);
 		});
-		const apiKey = process.env.TWILIO_API_SID!;
-		const apiSecret = process.env.TWILIO_API_SECRET!;
-		const token = new AccessToken(
-			twilioConversation.accountSid,
-			apiKey,
-			apiSecret,
-			{
-				identity: "Broadlume",
-			},
-		);
-		token.addGrant(chatGrant);
-		const conversationClient: ConversationClient = await new Promise(
-			(resolve, reject) => {
-				const client = new ConversationClient(token.toJwt());
-				client.on("stateChanged", (state) => {
-					switch (state) {
-						case "failed":
-							return reject("Conversation client failed to create");
-						case "initialized":
-							return resolve(client);
-					}
-				});
-			},
-		);
-		(
-			await conversationClient.getConversationBySid(twilioConversation.sid)
-		).sendMessage(message);
 	}
 }

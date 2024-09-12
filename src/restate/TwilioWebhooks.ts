@@ -24,10 +24,11 @@ type TwilioConversationStateUpdatedWebhookBody = TwilioWebhookBody & {
     ConversationSid: string;
 }
 function ValidateTwilioRequest(twilioHeader: string | undefined, data: object, leadId: string, endpoint: "sync" | "close") {
+    
     if (twilioHeader == null) {
         throw new restate.TerminalError("Twilio auth header missing");
     }
-    const thisUrl = new URL(`${leadId}/${endpoint}`,process.env.RESTATE_ADMIN_URL);
+    const thisUrl = new URL(`${TwilioWebhooks.name}/${leadId}/${endpoint}`,process.env.RESTATE_ADMIN_URL);
     thisUrl.port = "";
     if (!validateRequest(process.env.TWILIO_AUTH_TOKEN,twilioHeader,thisUrl.toString(),data)) {
         throw new restate.TerminalError("Twilio request validation failed");

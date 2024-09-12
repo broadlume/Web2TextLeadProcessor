@@ -51,6 +51,10 @@ export class TwilioIntegration
 				`Location info is missing in Nexus for location ID '${leadState.LocationId}'`,
 			);
 		}
+		const dealerInformation = await context.run("Get retailer info from Nexus", async () => await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
+		if (dealerInformation === null) {
+			throw new Error(`Retailer info is missing in Nexus for Universal Retailer ID '${leadState.UniversalRetailerId}'`);
+		}
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
 		const UniversalRetailerId = leadState.UniversalRetailerId;
@@ -138,7 +142,7 @@ export class TwilioIntegration
 			);
 		});
 		await context.run("Send initial message", async () => {
-			const systemMessaging = SystemGreetingMessage();
+			const systemMessaging = SystemGreetingMessage(dealerInformation.name);
 			await this.sendSystemMessage(conversation.sid, systemMessaging);
 		});
 		return {

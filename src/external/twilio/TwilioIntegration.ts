@@ -204,21 +204,6 @@ export class TwilioIntegration
 		conversation.attributes = JSON.stringify(attributes);
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
-			const dealerUUID = (await context.get("UniversalRetailerId"))!;
-			await context.run("Send closing message", async () => {
-				let dealerInformation: NexusRetailerAPI.NexusRetailer | null = null;
-				try {
-					dealerInformation =
-						await NexusRetailerAPI.GetRetailerByID(dealerUUID);
-				} catch (e) {
-					// ignore
-				}
-				const message = SystemCloseMessage(
-					dealerInformation?.website_url,
-					dealerInformation?.primary_account_phone,
-				);
-				await this.sendSystemMessage(conversation.sid, message);
-			});
 			conversation.state = "closed";
 		}
 		await context.run("Remove Lead from Twilio Conversation", async () => {

@@ -25,11 +25,11 @@ ${lead.Lead.CustomerMessage}`;
     return message;
 }
 
-export function SystemCloseMessage(dealerWebsiteURL?: string, dealerPhoneNumber?: string): string {
-    let message ="Hello from Broadlume! We've marked this conversation as closed due to inactivity.";
+export function SystemCloseMessage(dealerName: string, dealerWebsiteURL?: string, dealerPhoneNumber?: string): string {
+    let message ="This message thread has expired.";
     if (dealerWebsiteURL == null && dealerPhoneNumber == null) {
         return message;
     }
-    message += ` If you would like to continue the conversation, please go to our website${dealerWebsiteURL ? ` at ${dealerWebsiteURL}` : ""}${dealerPhoneNumber ? ` or call us at ${dealerPhoneNumber}` : ""}`;
+    message += ` If you would like to speak to ${dealerName}, please go to our website${dealerWebsiteURL ? ` at ${dealerWebsiteURL}` : ""}${dealerPhoneNumber ? ` or call us at ${dealerPhoneNumber}` : ""}`;
     return message;
 }

@@ -157,20 +157,12 @@ export const LeadVirtualObject = restate.object({
 							"Integrations",
 						)) ?? {};
 					
-					// Set all integration's SyncStatus to "SYNCING"
-					for (const integration of integrations) {
-						if (integrationStates[integration.Name]?.SyncStatus) {
-							integrationStates[integration.Name].SyncStatus = "SYNCING";
-						}
-					}
-					ctx.set("Integrations", integrationStates);
-					await SyncWithDB(ctx, "SEND");
 					
 					// Run create/sync method on each integration
 					for (const integration of integrations) {
 						const state =
 							integrationStates[integration.Name] ?? integration.defaultState();
-						const shouldRunCreate = state.SyncStatus === "NOT SYNCED";
+						const shouldRunCreate = state.SyncStatus === "NOT SYNCED" || (state.SyncStatus === "ERROR" && state.LastSynced == null);
 						let newState: ExternalIntegrationState;
 						try {
 							if (shouldRunCreate) {

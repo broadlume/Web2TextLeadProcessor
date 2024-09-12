@@ -297,13 +297,17 @@ export async function AddCommentToInquiry(
 	web2TextLead: Web2TextLead,
 	twilioMessage: MessageInstance,
 ): Promise<AddCommentResponse> {
-	const senderName =
+	let senderName =
 		twilioMessage.author === web2TextLead.Lead.PhoneNumber
 			? web2TextLead.Lead.Name
 			: "Dealer";
+	const attributes = JSON.parse(twilioMessage.attributes ?? "{}");
+	if (attributes["SystemMessage"] === true) {
+		senderName = "System";
+	}
 	const dhqComment: AddCommentRequest = {
 		comment: {
-			body: `| **${senderName}**: ${twilioMessage.body}`,
+			body: `**| ${senderName}**: ${twilioMessage.body.replaceAll("\n","\n\n")}`,
 			author_id: 262,
 		},
 	};

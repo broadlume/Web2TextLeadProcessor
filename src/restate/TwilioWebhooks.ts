@@ -103,7 +103,7 @@ export const TwilioWebhooks = restate.object({
 					);
 			},
 		),
-		checkOptOut: restate.handlers.object.shared(
+		onIncomingMessage: restate.handlers.object.shared(
 			{
 				input: new FormUrlEncodedSerde(),
 			},
@@ -119,8 +119,9 @@ export const TwilioWebhooks = restate.object({
 
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, ctx.key, "checkOptOut");
-				if (data.OptOutType !== "STOP") return;
 
+                // Close any active leads on opt-out
+				if (data.OptOutType !== "STOP") return;
 				const participantConversations = await FindConversationFor(
 					twilioClient,
 					data.From,

@@ -8,12 +8,13 @@ import {
 	DeregisterThisServiceWithRestate,
 	RegisterThisServiceWithRestate,
 } from "./ServiceRegistrationHelper";
+import { TwilioWebhooks } from "./restate/TwilioWebhooks";
 globalThis.Logger = console;
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_TOKEN ??= randomUUID();
 // Create the Restate server to accept requests
-restate.endpoint().bind(LeadVirtualObject).listen(RESTATE_PORT);
+restate.endpoint().bind(LeadVirtualObject).bind(TwilioWebhooks).listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 
 if (process.env.NODE_ENV === "production") {

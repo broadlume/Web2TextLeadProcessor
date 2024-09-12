@@ -108,7 +108,7 @@ export class TwilioIntegration
 		// Attach Twilio sync webhook only on production
 		if (process.env.COPILOT_ENVIRONMENT_NAME) {
 			const syncEndpoint = new URL(
-				`Lead/${leadState.LeadId}/sync`,
+				`TwilioWebhooks/${leadState.LeadId}/sync`,
 				process.env.RESTATE_ADMIN_URL,
 			);
 			syncEndpoint.port = "";

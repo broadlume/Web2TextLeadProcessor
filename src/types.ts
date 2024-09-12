@@ -20,6 +20,7 @@ export const Web2TextLeadSchema = z.object({
     SchemaVersion: z.enum(["1.0.0"]).default("1.0.0"),
 	LeadId: UUID(),
 	Status: z.enum(["ACTIVE", "SYNCING", "CLOSED"]),
+	CloseReason: z.string().optional(),
 	UniversalRetailerId: UUID(),
 	LocationId: UUID(),
 	Lead: z.object({
@@ -41,7 +42,7 @@ export const Web2TextLeadSchema = z.object({
 	Integrations: z.record(z.string(), ExternalIntegrationStateSchema)
 });
 
-export const Web2TextLeadCreateRequestSchema = Web2TextLeadSchema.omit({Status: true, LeadId: true, DateSubmitted: true, Integrations: true});
+export const Web2TextLeadCreateRequestSchema = Web2TextLeadSchema.omit({Status: true, LeadId: true, DateSubmitted: true, Integrations: true, CloseReason: true});
 
 export type Web2TextLead = z.infer<typeof Web2TextLeadSchema>;
 export type Web2TextLeadCreateRequest = z.infer<

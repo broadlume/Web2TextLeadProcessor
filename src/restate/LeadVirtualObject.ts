@@ -110,16 +110,17 @@ export const LeadVirtualObject = restate.object({
 					ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 					await SyncWithDB(ctx, "SEND");
 				} catch (e) {
-					await ctx.update(_ => ({
+					await ctx.update((state) => ({
+						...state,
 						Status: "ERROR",
-						Error: (e as Error).message
+						Error: (e as Error).message,
 					}));
 					throw e;
 				}
 				// Schedule syncing the lead to external integrations
 				ctx
 					.objectSendClient(LeadVirtualObject, ctx.key)
-					.sync(process.env.INTERNAL_TOKEN);
+					.sync(null, process.env.INTERNAL_TOKEN);
 
 				// Return the status of the lead
 				return await ctx
@@ -133,6 +134,7 @@ export const LeadVirtualObject = restate.object({
 		sync: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
+				req?: unknown,
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
@@ -140,55 +142,45 @@ export const LeadVirtualObject = restate.object({
 					process.env.INTERNAL_TOKEN == null ||
 					_internalToken !== process.env.INTERNAL_TOKEN
 				) {
-					await ValidateAPIKey(ctx,ctx.request().headers.get("authorization"));
+					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
-				try {
-					assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
-					// Update the state of the lead to SYNCING
-					ctx.set("Status", "SYNCING");
-					await SyncWithDB(ctx, "SEND");
-					// Iterate through all integrations and call their create/sync handlers
-					const integrations = Web2TextIntegrations;
-					const integrationStates =
-						(await ctx.get(
-							"Integrations",
-						)) ?? {};
-					
-					
-					// Run create/sync method on each integration
-					for (const integration of integrations) {
-						const state =
-							integrationStates[integration.Name] ?? integration.defaultState();
-						const shouldRunCreate = state.SyncStatus === "NOT SYNCED" || (state.SyncStatus === "ERROR" && state.LastSynced == null);
-						let newState: ExternalIntegrationState;
-						try {
-							if (shouldRunCreate) {
-								newState = await integration.create(state, ctx);
-							} else {
-								newState = await integration.sync(state, ctx);
-							}
-						} catch (e) {
-							newState = {
-								...state,
-								SyncStatus: "ERROR",
-								Info: {
-									Message: "An error occurred during sync",
-									Details: `${e}`,
-								},
-							};
+				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
+				// Update the state of the lead to SYNCING
+				ctx.set("Status", "SYNCING");
+				await SyncWithDB(ctx, "SEND");
+				// Iterate through all integrations and call their create/sync handlers
+				const integrations = Web2TextIntegrations;
+				const integrationStates = (await ctx.get("Integrations")) ?? {};
+
+				// Run create/sync method on each integration
+				for (const integration of integrations) {
+					const state =
+						integrationStates[integration.Name] ?? integration.defaultState();
+					const shouldRunCreate =
+						state.SyncStatus === "NOT SYNCED" ||
+						(state.SyncStatus === "ERROR" && state.LastSynced == null);
+					let newState: ExternalIntegrationState;
+					try {
+						if (shouldRunCreate) {
+							newState = await integration.create(state, ctx);
+						} else {
+							newState = await integration.sync(state, ctx);
 						}
-						integrationStates[integration.Name] = newState;
-						ctx.set("Integrations", integrationStates);
-						await SyncWithDB(ctx, "SEND");
+					} catch (e) {
+						newState = {
+							...state,
+							SyncStatus: "ERROR",
+							Info: {
+								Message: "An error occurred during sync",
+								Details: `${e}`,
+							},
+						};
 					}
-				} catch (e) {
-					await ctx.update((_) => ({
-						Status: "ERROR",
-						Error: (e as Error).message
-					}));
-					throw e;
+					integrationStates[integration.Name] = newState;
+					ctx.set("Integrations", integrationStates);
+					await SyncWithDB(ctx, "SEND");
 				}
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
 				ctx.set<LeadState["Status"]>("Status", "ACTIVE");
@@ -206,6 +198,7 @@ export const LeadVirtualObject = restate.object({
 		close: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
+				req?: { reason?: string },
 				_internalToken?: string,
 			): Promise<LeadState> => {
 				// Validate the API key in the authorization header
@@ -217,52 +210,42 @@ export const LeadVirtualObject = restate.object({
 				}
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
-				try {
-					assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
-					// Iterate through all integrations and call their close handlers
-					const integrations = Web2TextIntegrations;
-					const integrationStates =
-						(await ctx.get(
-							"Integrations",
-						)) ?? {};
-					for (const integration of integrations) {
-						const state =
-							integrationStates[integration.Name] ?? integration.defaultState();
-						integrationStates[integration.Name] = state;
-						ctx.set("Integrations", integrationStates);
-						await SyncWithDB(ctx, "SEND");
-						let newState: ExternalIntegrationState;
-						try {
-							newState = await integration.close(state, ctx);
-						} catch (e) {
-							newState = {
-								...state,
-								SyncStatus: "ERROR",
-								Info: {
-									Message: "An error occurred during close",
-									Details: `${e}`,
-								},
-							};
-						}
-						integrationStates[integration.Name] = newState;
-						ctx.set("Integrations", integrationStates);
-						await SyncWithDB(ctx, "SEND");
-					}
-					// Mark the lead status as CLOSED and sync with the database
-					ctx.set<LeadState["Status"]>("Status", "CLOSED");
+				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
+				// Iterate through all integrations and call their close handlers
+				const integrations = Web2TextIntegrations;
+				const integrationStates = (await ctx.get("Integrations")) ?? {};
+				ctx.set("CloseReason", req?.reason ?? "Not specified");
+				for (const integration of integrations) {
+					const state =
+						integrationStates[integration.Name] ?? integration.defaultState();
+					integrationStates[integration.Name] = state;
+					ctx.set("Integrations", integrationStates);
 					await SyncWithDB(ctx, "SEND");
-				} catch (e) {
-					await ctx.update(_ => ({
-						Status: "ERROR",
-						Error: (e as Error).message
-					}));
-					throw e;
+					let newState: ExternalIntegrationState;
+					try {
+						newState = await integration.close(state, ctx);
+					} catch (e) {
+						newState = {
+							...state,
+							SyncStatus: "ERROR",
+							Info: {
+								Message: "An error occurred during close",
+								Details: `${e}`,
+							},
+						};
+					}
+					integrationStates[integration.Name] = newState;
+					ctx.set("Integrations", integrationStates);
+					await SyncWithDB(ctx, "SEND");
 				}
+				// Mark the lead status as CLOSED and sync with the database
+				ctx.set("Status", "CLOSED");
+				await SyncWithDB(ctx, "SEND");
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status(process.env.INTERNAL_TOKEN);
 			},
-		)
+		),
 	},
 });

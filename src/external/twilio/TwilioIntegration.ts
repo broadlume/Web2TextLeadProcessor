@@ -12,6 +12,7 @@ import {
 	SystemCloseMessage,
 	SystemGreetingMessage,
 } from "./Web2TextMessagingStrings";
+import { FindConversationFor } from "./TwilioConversationHelpers";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -51,9 +52,15 @@ export class TwilioIntegration
 				`Location info is missing in Nexus for location ID '${leadState.LocationId}'`,
 			);
 		}
-		const dealerInformation = await context.run("Get retailer info from Nexus", async () => await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId));
+		const dealerInformation = await context.run(
+			"Get retailer info from Nexus",
+			async () =>
+				await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId),
+		);
 		if (dealerInformation === null) {
-			throw new Error(`Retailer info is missing in Nexus for Universal Retailer ID '${leadState.UniversalRetailerId}'`);
+			throw new Error(
+				`Retailer info is missing in Nexus for Universal Retailer ID '${leadState.UniversalRetailerId}'`,
+			);
 		}
 		// TODO: Don't hardcode, fetch from Nexus API
 		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
@@ -99,8 +106,8 @@ export class TwilioIntegration
 						},
 					);
 					const systemParticipant = await this.twilioClient.conversations.v1
-								.conversations(conversation.sid)
-								.participants.create({ identity: "Broadlume" });
+						.conversations(conversation.sid)
+						.participants.create({ identity: "Broadlume" });
 				}
 				return conversation;
 			},
@@ -112,7 +119,7 @@ export class TwilioIntegration
 				process.env.RESTATE_ADMIN_URL,
 			);
 			syncEndpoint.port = "";
-			const webhook = await context.run(
+			const syncWebhook = await context.run(
 				"Add Twilio sync webhook",
 				async () =>
 					await this.twilioClient.conversations.v1
@@ -125,6 +132,26 @@ export class TwilioIntegration
 								"onMessageAdded",
 								"onMessageRemoved",
 								"onMessageUpdated",
+							],
+						}),
+			);
+			const closeEndpoint = new URL(
+				`TwilioWebhooks/${leadState.LeadId}/close`,
+				process.env.RESTATE_ADMIN_URL,
+			);
+			closeEndpoint.port = "";
+
+			const closeWebhook = await context.run(
+				"Add Twilio close webhook",
+				async () =>
+					await this.twilioClient.conversations.v1
+						.conversations(conversation.sid)
+						.webhooks.create({
+							"configuration.url": encodeURI(closeEndpoint.toString()),
+							"configuration.method": "POST",
+							target: "webhook",
+							"configuration.filters": [
+								"onConversationStateUpdated",
 							],
 						}),
 			);
@@ -175,7 +202,7 @@ export class TwilioIntegration
 			const LeadId = (await context.get("LeadId"))!;
 			context
 				.objectSendClient(LeadVirtualObject, LeadId)
-				.close(process.env.INTERNAL_TOKEN);
+				.close({reason: "TwilioIntegration Sync: conversation state was set to 'closed'"},process.env.INTERNAL_TOKEN);
 		}
 		return {
 			...state,
@@ -228,26 +255,8 @@ export class TwilioIntegration
 		customerPhone: E164Number,
 		dealerPhone: E164Number,
 	): Promise<string | null> {
-		const conversationsUserIsIn =
-			await this.twilioClient.conversations.v1.participantConversations
-				.list({
-					address: customerPhone,
-				})
-				.then((convos) =>
-					convos
-						.filter((c) => c.conversationState !== "closed")
-						.map((c) => c.conversationSid),
-				);
-		const conversationsDealerIsIn =
-			await this.twilioClient.conversations.v1.participantConversations
-				.list({
-					address: dealerPhone,
-				})
-				.then((convos) =>
-					convos
-						.filter((c) => c.conversationState !== "closed")
-						.map((c) => c.conversationSid),
-				);
+		const conversationsUserIsIn = await FindConversationFor(this.twilioClient,customerPhone).then(convos => convos.map(c => c.conversationSid));
+		const conversationsDealerIsIn = await FindConversationFor(this.twilioClient,dealerPhone).then(convos => convos.map(c => c.conversationSid));
 		const conversation = conversationsUserIsIn.filter((x) =>
 			conversationsDealerIsIn.includes(x),
 		);
@@ -264,6 +273,9 @@ export class TwilioIntegration
 			.messages.create({
 				author: author,
 				body: message,
+				attributes: JSON.stringify({
+					SystemMessage: true,
+				}),
 			});
 		if (!waitForDelivery) {
 			return;

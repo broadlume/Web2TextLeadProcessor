@@ -1,10 +1,10 @@
 import type { Web2TextLead } from "../../types";
 
 export function SystemGreetingMessage(dealerName: string): string {
-	return `This messaging conversation is being facilitated by Broadlume, a flooring software company. We have connected you with ${dealerName}. Please text STOP to opt out of communication`
+	return `This messaging conversation is being facilitated by Broadlume, a flooring software company. We have connected you with ${dealerName}. Please text STOP to opt out of communication.`
 }
 export function DealerGreetMessage(lead: Web2TextLead, locationName: string): string {
-	let message = `You have a new WebToText lead!
+	let message = `You have a new Web2Text lead!
 Name: ${lead.Lead.Name}
 Phone: ${lead.Lead.PhoneNumber}
 Location: ${locationName}

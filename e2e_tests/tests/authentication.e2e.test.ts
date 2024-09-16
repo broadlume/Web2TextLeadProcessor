@@ -33,7 +33,7 @@ describe("Authentication", () => {
 				.post(`/${SERVICE_NAME}/${leadID}/${endpoint}`)
 				.send({})
 				.auth(TEST_API_KEY, { type: "bearer" })
-				.expect((resp) => resp.status === 200);
+				.expect(200);
         })
 	}
 });

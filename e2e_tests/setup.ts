@@ -8,6 +8,7 @@ import { LeadVirtualObject } from "../src/restate/LeadVirtualObject";
 import * as restate from "@restatedev/restate-sdk";
 import "dotenv/config";
 import nock from "nock";
+import {RestateAdminDeploymentAPI} from "../src/external/restate";
 
 export const supertest = request(`http://${new URL(process.env.RESTATE_ADMIN_URL!).hostname}:8080/`);
 export const SERVICE_NAME = "Lead-test";
@@ -36,13 +37,8 @@ beforeAll(async () => {
 	// Setup restate handler
 	TEST_SERVER = restate.endpoint().bind(LeadVirtualObject);
 	await TEST_SERVER.listen(9080);
-	// Register the service with the restate server
-	await new Promise((resolve,reject) => shelljs.exec("bun run register-with-restate", { silent: true, async: true}, (code,stdout,stderr) => code === 0 ? resolve(stdout) : reject(stderr))).then((out) => {
-		console.info(
-			"[E2E Tests] Registered test service with Restate server",
-		);
-	}, (err) => {
-		console.error(err);
+	await RestateAdminDeploymentAPI.CreateDeployment("http://web2text-devcontainer:9080", {
+		force: true
 	});
 	globalThis.ranSetup = true;
 });

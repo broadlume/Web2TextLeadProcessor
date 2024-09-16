@@ -9,6 +9,7 @@ import { fromError } from 'zod-validation-error';
 import { NexusRetailerAPI } from "../external/nexus";
 import { NexusStoresAPI } from "../external/nexus";
 import type { LeadState } from "./common";
+import { z } from "zod";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -17,16 +18,14 @@ export async function ValidateAPIKey(context: restate.ObjectSharedContext<LeadSt
 	if (auth == null) {
 		throw new restate.TerminalError("Must pass authorization header with valid API key", {errorCode: 401});
 	}
-	if (!auth.startsWith("Bearer ")) {
-		throw new restate.TerminalError("Authorization header schema must be 'Bearer'", {errorCode: 401});
+	let key: string | null = auth;
+	if (auth.startsWith("Bearer ")) {
+		key = auth.split(" ")?.[1]?.trim();
 	}
-	let key: string | null = auth.split(" ")?.[1]?.trim();
-	if (key?.toLowerCase() === "undefined" || key?.toLowerCase() === "null")  {
-		key = null;
+	if (z.string().uuid().safeParse(key).success === false) {
+		throw new restate.TerminalError("API Key is not a valid UUIDv4", {errorCode: 401});
 	}
-	if (key == null || key === "") {
-		throw new restate.TerminalError("Authorization token is missing", {errorCode: 401});
-	}
+	if (process.env.INTERNAL_API_TOKEN != null && key === process.env.INTERNAL_API_TOKEN) return true;
 	const apiKey = await context.run("Fetch API Key", async () => await APIKeyModel.get(key));
 	const apiKeyValid = apiKey?.Active ?? false;
 	if (apiKeyValid === false) {

@@ -16,7 +16,7 @@ export let TEST_SERVER: restate.RestateEndpoint;
 
 beforeAll(async () => {
 	if (globalThis.ranSetup) return;
-	process.env.INTERNAL_TOKEN = randomUUID();
+	process.env.INTERNAL_API_TOKEN = randomUUID();
 	// Point dynamoose to our local DynamoDB for testing
 	dynamoose.aws.ddb.local(process.env.LOCAL_DYNAMODB_URL);
 	// Create a testing API key in the DynamoDB

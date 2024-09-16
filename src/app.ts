@@ -12,7 +12,7 @@ import { TwilioWebhooks } from "./restate/TwilioWebhooks";
 globalThis.Logger = console;
 const RESTATE_PORT = 9080;
 
-process.env.INTERNAL_TOKEN ??= randomUUID();
+process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Create the Restate server to accept requests
 restate.endpoint().bind(LeadVirtualObject).bind(TwilioWebhooks).listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;

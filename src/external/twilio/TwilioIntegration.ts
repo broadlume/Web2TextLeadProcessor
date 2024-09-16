@@ -93,7 +93,7 @@ export class TwilioIntegration
 					conversation = await TwilioProxyAPI.CreateSession(
 						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
-							friendlyName: `Client: [${leadState.UniversalRetailerId}]\nLocation: [${leadState.LocationId}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
+							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
 							"timers.inactive": "P30D",
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
@@ -202,7 +202,7 @@ export class TwilioIntegration
 			const LeadId = (await context.get("LeadId"))!;
 			context
 				.objectSendClient(LeadVirtualObject, LeadId)
-				.close({reason: "TwilioIntegration Sync: conversation state was set to 'closed'"},process.env.INTERNAL_TOKEN);
+				.close({reason: "TwilioIntegration Sync: conversation state was set to 'closed'"});
 		}
 		return {
 			...state,

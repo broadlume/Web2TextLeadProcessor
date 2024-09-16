@@ -76,7 +76,7 @@ export const TwilioWebhooks = restate.object({
 				ValidateTwilioRequest(twilioHeader, data, ctx.key, "sync");
 				ctx
 					.objectSendClient(LeadVirtualObject, ctx.key)
-					.sync(null, process.env.INTERNAL_TOKEN);
+					.sync({API_KEY: process.env.INTERNAL_API_TOKEN});
 			},
 		),
 		close: restate.handlers.object.exclusive(
@@ -98,8 +98,8 @@ export const TwilioWebhooks = restate.object({
 						{
 							reason:
 								"Twilio Close Webhook - conversation state was set to 'closed'",
-						},
-						process.env.INTERNAL_TOKEN,
+							API_KEY: process.env.INTERNAL_API_TOKEN
+						}
 					);
 			},
 		),
@@ -138,8 +138,8 @@ export const TwilioWebhooks = restate.object({
 								{
 									reason:
 										"Twilio OptOut Webhook - customer opted out of text messaging",
-								},
-								process.env.INTERNAL_TOKEN,
+									API_KEY: process.env.INTERNAL_API_TOKEN
+								}
 							);
 					}
 				}

@@ -56,14 +56,11 @@ export const LeadVirtualObject = restate.object({
 		status: restate.handlers.object.shared(
 			async (
 				ctx: restate.ObjectSharedContext<LeadState>,
-				_internalToken?: string,
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				req?: Record<string,any>,
 			): Promise<LeadState> => {
-				if (
-					process.env.INTERNAL_TOKEN == null ||
-					_internalToken !== process.env.INTERNAL_TOKEN
-				) {
-					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
-				}
+				// Validate the API key
+				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				const state = await ctx.getAll();
 				if (state.Status == null) {
 					return { Status: "NONEXISTANT" };
@@ -76,17 +73,11 @@ export const LeadVirtualObject = restate.object({
 		 */
 		create: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext<LeadState>,
-				req: unknown,
-				_internalToken?: string,
+				ctx: restate.ObjectContext<LeadState>,			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				req: Record<string,any>,
 			): Promise<LeadState> => {
-				// Validate the API key in the authorization header
-				if (
-					process.env.INTERNAL_TOKEN == null ||
-					_internalToken !== process.env.INTERNAL_TOKEN
-				) {
-					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
-				}
+				// Validate the API key
+				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
@@ -120,12 +111,12 @@ export const LeadVirtualObject = restate.object({
 				// Schedule syncing the lead to external integrations
 				ctx
 					.objectSendClient(LeadVirtualObject, ctx.key)
-					.sync(null, process.env.INTERNAL_TOKEN);
+					.sync({API_KEY: process.env.INTERNAL_API_TOKEN});
 
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status(process.env.INTERNAL_TOKEN);
+					.status({API_KEY: process.env.INTERNAL_API_TOKEN});
 			},
 		),
 		/**
@@ -134,16 +125,11 @@ export const LeadVirtualObject = restate.object({
 		sync: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
-				req?: unknown,
-				_internalToken?: string,
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				req?: Record<string,any>,
 			): Promise<LeadState> => {
-				// Validate the API key in the authorization header
-				if (
-					process.env.INTERNAL_TOKEN == null ||
-					_internalToken !== process.env.INTERNAL_TOKEN
-				) {
-					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
-				}
+				// Validate the API key
+				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
@@ -189,7 +175,7 @@ export const LeadVirtualObject = restate.object({
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status(process.env.INTERNAL_TOKEN);
+					.status({API_KEY: process.env.INTERNAL_API_TOKEN});
 			},
 		),
 		/**
@@ -198,16 +184,10 @@ export const LeadVirtualObject = restate.object({
 		close: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
-				req?: { reason?: string },
-				_internalToken?: string,
+				req?: { reason?: string, API_KEY?: string },
 			): Promise<LeadState> => {
-				// Validate the API key in the authorization header
-				if (
-					process.env.INTERNAL_TOKEN == null ||
-					_internalToken !== process.env.INTERNAL_TOKEN
-				) {
-					await ValidateAPIKey(ctx, ctx.request().headers.get("authorization"));
-				}
+				// Validate the API key
+				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
@@ -244,7 +224,7 @@ export const LeadVirtualObject = restate.object({
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status(process.env.INTERNAL_TOKEN);
+					.status({API_KEY: process.env.INTERNAL_API_TOKEN});
 			},
 		),
 	},

@@ -97,7 +97,7 @@ export const TwilioWebhooks = restate.object({
 					.close(
 						{
 							reason:
-								"Twilio Close Webhook - conversation state was set to 'closed'",
+								"Inactivity",
 							API_KEY: process.env.INTERNAL_API_TOKEN
 						}
 					);
@@ -119,7 +119,7 @@ export const TwilioWebhooks = restate.object({
 
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, ctx.key, "onIncomingMessage");
-
+				ctx.console.log("Twilio Webhook Request", data);
                 // Close any active leads on opt-out
 				if (data.OptOutType !== "STOP") return;
 				const participantConversations = await ctx.run("Find twilio conversation", async () => FindConversationFor(
@@ -130,14 +130,16 @@ export const TwilioWebhooks = restate.object({
 					const attributes = JSON.parse(
 						participantConversation.conversationAttributes ?? "{}",
 					);
-					const leadIds: string[] = attributes["LeadIds"] ?? [];
+					// Don't close lead if dealer opts out for some reason
+					if (attributes["DealerNumber"] === data.From) continue;
+					const leadIds: string[] = attributes["LeadIDs"] ?? [];
+					ctx.console.log("Attributes", participantConversation.conversationAttributes);
 					for (const leadId of leadIds) {
 						ctx
 							.objectSendClient(LeadVirtualObject, leadId)
 							.close(
 								{
-									reason:
-										"Twilio OptOut Webhook - customer opted out of text messaging",
+									reason: "Customer opted out of text messaging",
 									API_KEY: process.env.INTERNAL_API_TOKEN
 								}
 							);

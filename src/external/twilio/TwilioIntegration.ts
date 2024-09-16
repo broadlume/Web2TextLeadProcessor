@@ -9,8 +9,8 @@ import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
 import {
 	DealerGreetMessage,
-	SystemCloseMessage,
 	SystemGreetingMessage,
+	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
 import { FindConversationFor } from "./TwilioConversationHelpers";
 
@@ -94,9 +94,10 @@ export class TwilioIntegration
 						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
 						{
 							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
-							"timers.inactive": "P30D",
+							"timers.inactive": "P7D",
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
+								DealerNumber: DealerPhoneNumber,
 								UniversalRetailerId,
 								LocationID: leadState.LocationId,
 								Environment:
@@ -150,9 +151,7 @@ export class TwilioIntegration
 							"configuration.url": encodeURI(closeEndpoint.toString()),
 							"configuration.method": "POST",
 							target: "webhook",
-							"configuration.filters": [
-								"onConversationStateUpdated",
-							],
+							"configuration.filters": ["onConversationStateUpdated"],
 						}),
 			);
 		}
@@ -202,7 +201,7 @@ export class TwilioIntegration
 			const LeadId = (await context.get("LeadId"))!;
 			context
 				.objectSendClient(LeadVirtualObject, LeadId)
-				.close({reason: "TwilioIntegration Sync: conversation state was set to 'closed'"});
+				.close({ reason: "Inactivity" });
 		}
 		return {
 			...state,
@@ -218,7 +217,7 @@ export class TwilioIntegration
 		state: TwilioIntegrationState,
 		context: restate.ObjectSharedContext<Web2TextLead>,
 	): Promise<TwilioIntegrationState> {
-		const LeadID = (await context.get("LeadId"))!;
+		const lead = await context.getAll();
 		const conversationID = state.Data?.ConversationSID;
 		if (conversationID == null) return state;
 		const conversation = await this.twilioClient.conversations.v1
@@ -226,12 +225,21 @@ export class TwilioIntegration
 			.fetch();
 		const attributes = JSON.parse(conversation?.attributes ?? "{}");
 		attributes["LeadIds"] = ((attributes["LeadIds"] as string[]) ?? []).filter(
-			(id) => id !== LeadID,
+			(id) => id !== lead.LeadId,
 		);
 		conversation.attributes = JSON.stringify(attributes);
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
 			conversation.state = "closed";
+			await context.run(
+				"Send dealer closing message",
+				async () =>
+					await this.sendSystemMessage(
+						conversation.sid,
+						DealerCloseMessage(lead.Lead.Name, lead.CloseReason),
+						lead.Lead.PhoneNumber,
+					),
+			);
 		}
 		await context.run("Remove Lead from Twilio Conversation", async () => {
 			await this.twilioClient.conversations.v1
@@ -255,8 +263,14 @@ export class TwilioIntegration
 		customerPhone: E164Number,
 		dealerPhone: E164Number,
 	): Promise<string | null> {
-		const conversationsUserIsIn = await FindConversationFor(this.twilioClient,customerPhone).then(convos => convos.map(c => c.conversationSid));
-		const conversationsDealerIsIn = await FindConversationFor(this.twilioClient,dealerPhone).then(convos => convos.map(c => c.conversationSid));
+		const conversationsUserIsIn = await FindConversationFor(
+			this.twilioClient,
+			customerPhone,
+		).then((convos) => convos.map((c) => c.conversationSid));
+		const conversationsDealerIsIn = await FindConversationFor(
+			this.twilioClient,
+			dealerPhone,
+		).then((convos) => convos.map((c) => c.conversationSid));
 		const conversation = conversationsUserIsIn.filter((x) =>
 			conversationsDealerIsIn.includes(x),
 		);

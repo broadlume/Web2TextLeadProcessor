@@ -1,10 +1,10 @@
 import { Twilio } from "twilio";
-import type * as restate from "@restatedev/restate-sdk";
+import * as restate from "@restatedev/restate-sdk";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 import * as TwilioProxyAPI from "./TwilioProxyAPI";
-import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
+import { type E164Number, isPossiblePhoneNumber, parsePhoneNumber } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
 import {
@@ -13,6 +13,7 @@ import {
 	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
 import { FindConversationFor } from "./TwilioConversationHelpers";
+import { OptedOutNumberModel } from "../../dynamodb/OptedOutNumberModel";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -169,8 +170,14 @@ export class TwilioIntegration
 		});
 		await context.run("Send initial message", async () => {
 			const systemMessaging = SystemGreetingMessage(dealerInformation.name);
-			await this.sendSystemMessage(conversation.sid, systemMessaging);
+			await this.sendSystemMessage(
+				conversation.sid,
+				systemMessaging,
+				"Broadlume",
+				true,
+			);
 		});
+
 		return {
 			...state,
 			SyncStatus: "SYNCED",
@@ -189,6 +196,7 @@ export class TwilioIntegration
 		if (conversationSID == null) {
 			throw new Error("Conversation SID is null!");
 		}
+		const LeadId = (await context.get("LeadId"))!;
 		const conversation = await context.run(
 			"Fetching Twilio conversation",
 			async () =>
@@ -196,22 +204,47 @@ export class TwilioIntegration
 					.conversations(conversationSID)
 					.fetch(),
 		);
-		// Signal to close this lead if the Twilio conversation is closed
-		if (conversation.state === "closed") {
-			const LeadId = (await context.get("LeadId"))!;
-			context
-				.objectSendClient(LeadVirtualObject, LeadId)
-				.close({ reason: "Inactivity" });
-		}
-		return {
+		const newState: TwilioIntegrationState = {
 			...state,
 			SyncStatus: "SYNCED",
 			Data: {
 				ConversationSID: conversationSID,
 				ConversationStatus: conversation.state,
 			},
-			LastSynced: new Date(await context.date.now()).toISOString(),
+			LastSynced: new Date(await context.date.now()).toISOString()
 		};
+		// Signal to close this lead if the Twilio conversation is closed
+		if (conversation.state === "closed") {
+			context
+				.objectSendClient(LeadVirtualObject, LeadId)
+				.close({ reason: "Inactivity" });
+			return newState;
+		}
+		const participants = await context.run(
+			"Get conversation participants",
+			async () => await conversation.participants().list(),
+		);
+		const phoneNumbers = participants.map((p) => p.identity).filter(p => isPossiblePhoneNumber(p)) as E164Number[];
+		if (phoneNumbers.length <= 1) {
+			// Close the lead if no phone numbers left in conversation
+			context
+			.objectSendClient(LeadVirtualObject, LeadId)
+			.close({ reason: "One or fewer participants left in conversation" });
+			return newState;
+		}
+		const hasAParticipantOptedOut = await context.run(
+			"Check for opted out numbers",
+			async () =>
+				await this.checkForOptedOutNumbers(...phoneNumbers),
+		);
+		if (hasAParticipantOptedOut) {
+			// Close the lead if one of the numbers has opted out of text messaging
+			context
+			.objectSendClient(LeadVirtualObject, LeadId)
+			.close({ reason: "Participant opted out of text messaging" });
+			return newState;
+		}
+		return newState;
 	}
 	async close(
 		state: TwilioIntegrationState,
@@ -233,12 +266,13 @@ export class TwilioIntegration
 			conversation.state = "closed";
 			await context.run(
 				"Send dealer closing message",
-				async () =>
+				async () => {
 					await this.sendSystemMessage(
 						conversation.sid,
 						DealerCloseMessage(lead.Lead.Name, lead.CloseReason),
 						lead.Lead.PhoneNumber,
-					),
+					).catch(e => null); // ignore error
+				}
 			);
 		}
 		await context.run("Remove Lead from Twilio Conversation", async () => {
@@ -305,13 +339,28 @@ export class TwilioIntegration
 					clearInterval(interval);
 					resolve(undefined);
 				}
-				if (deliveryReceipts.find((d) => d.status === "failed")) {
+				const failedDelivery = deliveryReceipts.find(
+					(d) => d.status === "failed",
+				);
+				if (failedDelivery) {
 					clearInterval(interval);
-					reject(
-						new Error(
-							`Delivery status is 'failed' for Twilio message '${twilioMessage.sid}'`,
-						),
-					);
+					if (failedDelivery.errorCode === 21610) {
+						reject(
+							new restate.TerminalError(
+								`Participant has opted out of communication from this number for Twilio message '${twilioMessage.sid}`,
+								{
+									errorCode: 500,
+									cause: "OPT_OUT",
+								},
+							),
+						);
+					} else {
+						reject(
+							new Error(
+								`Delivery status is 'failed' for Twilio message '${twilioMessage.sid}'`,
+							),
+						);
+					}
 				}
 				if (attempts <= 0) {
 					clearInterval(interval);
@@ -324,5 +373,16 @@ export class TwilioIntegration
 				attempts -= 1;
 			}, 1000);
 		});
+	}
+	private async checkForOptedOutNumbers(
+		...phoneNumbers: E164Number[]
+	): Promise<boolean> {
+		for (const number of phoneNumbers) {
+			const optedOut = await OptedOutNumberModel.get(number);
+			if (optedOut != null) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

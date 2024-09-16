@@ -10,6 +10,7 @@ import { NexusRetailerAPI } from "../external/nexus";
 import { NexusStoresAPI } from "../external/nexus";
 import type { LeadState } from "./common";
 import { z } from "zod";
+import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -117,6 +118,11 @@ export async function ParseAndVerifyLeadCreation(
 		);
 	}
 
+	const phoneValid = await ctx.run<boolean>("Phone number validation", async () => await CheckPhoneNumber(leadState));
+	if (!phoneValid) {
+		throw new restate.TerminalError("Customer phone number cannot be used or is invalid", {errorCode: 400});
+	}
+
 	const locationValid = await ctx.run<boolean>(
 		"Location validation",
 		async () => await ValidateLocation(leadState.LocationId),
@@ -129,3 +135,18 @@ export async function ParseAndVerifyLeadCreation(
 	}
 	return parseRequest.data;
 }
+async function CheckPhoneNumber(lead: Web2TextLeadCreateRequest): Promise<boolean> {
+	const customerPhoneNumber = lead.Lead.PhoneNumber;
+	// Check if phone number is opted out
+	const optedOut = await OptedOutNumberModel.get(lead.Lead.PhoneNumber);
+	if (optedOut != null) {
+		return false;
+	}
+	// Ensure dealer's phone number and customer's phone number aren't the same
+	const dealerInfo = await NexusRetailerAPI.GetRetailerByID(lead.UniversalRetailerId);
+	if (dealerInfo?.primary_account_phone === customerPhoneNumber) {
+		return false;
+	}
+	return true;
+}
+

@@ -1,6 +1,7 @@
 import dynamoose from "dynamoose";
 import { APIKeyModel } from "./APIKeyModel";
 import { LeadStateModel } from "./LeadStateModel";
+import { OptedOutNumberModel } from "./OptedOutNumberModel";
 if (process.env.LOCAL_DYNAMODB_URL) {
 	// Use local DynamoDB instance
 	console.log(
@@ -15,4 +16,5 @@ if (process.env.LOCAL_DYNAMODB_URL) {
 		Description: "Internal development API key",
 	}).save();
 	LeadStateModel.table();
+	OptedOutNumberModel.table();
 }

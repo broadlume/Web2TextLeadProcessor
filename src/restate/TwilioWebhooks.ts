@@ -5,6 +5,7 @@ import { LeadVirtualObject } from "./LeadVirtualObject";
 import { assert, is } from "tsafe";
 import { FindConversationFor } from "../external/twilio/TwilioConversationHelpers";
 import type { E164Number } from "libphonenumber-js";
+import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 
 interface TwilioWebhookBody {
 	AccountSid: string;
@@ -76,7 +77,7 @@ export const TwilioWebhooks = restate.object({
 				ValidateTwilioRequest(twilioHeader, data, ctx.key, "sync");
 				ctx
 					.objectSendClient(LeadVirtualObject, ctx.key)
-					.sync({API_KEY: process.env.INTERNAL_API_TOKEN});
+					.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
 			},
 		),
 		close: restate.handlers.object.exclusive(
@@ -92,15 +93,10 @@ export const TwilioWebhooks = restate.object({
 				if (data.StateTo !== "closed") {
 					return;
 				}
-				ctx
-					.objectSendClient(LeadVirtualObject, ctx.key)
-					.close(
-						{
-							reason:
-								"Inactivity",
-							API_KEY: process.env.INTERNAL_API_TOKEN
-						}
-					);
+				ctx.objectSendClient(LeadVirtualObject, ctx.key).close({
+					reason: "Inactivity",
+					API_KEY: process.env.INTERNAL_API_TOKEN,
+				});
 			},
 		),
 		onIncomingMessage: restate.handlers.object.shared(
@@ -119,30 +115,37 @@ export const TwilioWebhooks = restate.object({
 
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, ctx.key, "onIncomingMessage");
-				ctx.console.log("Twilio Webhook Request", data);
-                // Close any active leads on opt-out
-				if (data.OptOutType !== "STOP") return;
-				const participantConversations = await ctx.run("Find twilio conversation", async () => FindConversationFor(
-					twilioClient,
-					data.From,
-				));
-				for (const participantConversation of participantConversations) {
-					const attributes = JSON.parse(
-						participantConversation.conversationAttributes ?? "{}",
-					);
-					// Don't close lead if dealer opts out for some reason
-					if (attributes["DealerNumber"] === data.From) continue;
-					const leadIds: string[] = attributes["LeadIDs"] ?? [];
-					ctx.console.log("Attributes", participantConversation.conversationAttributes);
-					for (const leadId of leadIds) {
-						ctx
-							.objectSendClient(LeadVirtualObject, leadId)
-							.close(
-								{
-									reason: "Customer opted out of text messaging",
-									API_KEY: process.env.INTERNAL_API_TOKEN
-								}
+				switch (data.OptOutType) {
+					case "START": {
+						await ctx.run(
+							"Remove opted-out number",
+							async () => await OptedOutNumberModel.delete(data.From),
+						);
+						break;
+					}
+					// Close any active leads on opt-out
+					case "STOP": {
+						const now = await ctx.date.now();
+						await ctx.run("Add opted-out number", async () => await OptedOutNumberModel.create({PhoneNumber: data.From, DateOptedOut: new Date(now).toISOString()}, {"overwrite": true}));
+						const participantConversations = await ctx.run(
+							"Find twilio conversation",
+							async () => FindConversationFor(twilioClient, data.From),
+						);
+						for (const participantConversation of participantConversations) {
+							const attributes = JSON.parse(
+								participantConversation.conversationAttributes ?? "{}",
 							);
+							// Don't close lead if dealer opts out for some reason
+							if (attributes["DealerNumber"] === data.From) continue;
+							const leadIds: string[] = attributes["LeadIDs"] ?? [];
+							for (const leadId of leadIds) {
+								ctx.objectSendClient(LeadVirtualObject, leadId).close({
+									reason: "Participant opted out of text messaging",
+									API_KEY: process.env.INTERNAL_API_TOKEN,
+								});
+							}
+						}
+						break;
 					}
 				}
 			},

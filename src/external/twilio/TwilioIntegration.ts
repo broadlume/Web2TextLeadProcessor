@@ -12,7 +12,7 @@ import {
 	SystemGreetingMessage,
 	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
-import { FindConversationFor } from "./TwilioConversationHelpers";
+import { FindConversationsFor } from "./TwilioConversationHelpers";
 import { OptedOutNumberModel } from "../../dynamodb/OptedOutNumberModel";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
@@ -99,6 +99,8 @@ export class TwilioIntegration
 							"timers.closed": "P14D",
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
+								DealerName: dealerInformation.name,
+								DealerURL: dealerInformation.website_url,
 								DealerNumber: DealerPhoneNumber,
 								UniversalRetailerId,
 								LocationID: leadState.LocationId,
@@ -298,11 +300,11 @@ export class TwilioIntegration
 		customerPhone: E164Number,
 		dealerPhone: E164Number,
 	): Promise<string | null> {
-		const conversationsUserIsIn = await FindConversationFor(
+		const conversationsUserIsIn = await FindConversationsFor(
 			this.twilioClient,
 			customerPhone,
 		).then((convos) => convos.map((c) => c.conversationSid));
-		const conversationsDealerIsIn = await FindConversationFor(
+		const conversationsDealerIsIn = await FindConversationsFor(
 			this.twilioClient,
 			dealerPhone,
 		).then((convos) => convos.map((c) => c.conversationSid));

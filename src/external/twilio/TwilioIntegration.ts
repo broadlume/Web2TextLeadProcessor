@@ -173,7 +173,7 @@ export class TwilioIntegration
 			await this.sendSystemMessage(
 				conversation.sid,
 				systemMessaging,
-				"Broadlume",
+				DealerPhoneNumber,
 				true,
 			);
 		});

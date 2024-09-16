@@ -13,6 +13,7 @@ class LeadStateItem extends Item {
     DateSubmitted!: Date;
     Integrations!: Record<string, ExternalIntegrationState>;
 }
+const LeadStateModelTableName = process.env["COPILOT_ENVIRONMENT_NAME"] === "production" ? "PROD_Web2Text_LeadStates" : "DEV_Web2Text_LeadStates";
 const DynamoDBLeadStateSchema = new dynamoose.Schema({
     SchemaVersion: {
         type: String,
@@ -49,4 +50,4 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema({
         required: true
     },
 }, {saveUnknown: true});
-export const LeadStateModel = dynamoose.model<LeadStateItem>("Web2Text_LeadStates", DynamoDBLeadStateSchema);
+export const LeadStateModel = dynamoose.model<LeadStateItem>(LeadStateModelTableName, DynamoDBLeadStateSchema);

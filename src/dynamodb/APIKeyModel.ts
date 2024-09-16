@@ -7,8 +7,8 @@ class APIKeyItem extends Item {
     Active!: boolean;
     Description?: string;
 }
-
-export const APIKeyModel = dynamoose.model<APIKeyItem>("Web2Text_APIKeys",{
+const APIKeyModelTableName = process.env["COPILOT_ENVIRONMENT_NAME"] === "production" ? "PROD_Web2Text_APIKeys" : "DEV_Web2Text_APIKeys";
+export const APIKeyModel = dynamoose.model<APIKeyItem>(APIKeyModelTableName,{
     API_Key: {
         type: String,
         required: true,

@@ -168,7 +168,7 @@ export class TwilioIntegration
 				true,
 			);
 		});
-		await context.run("Send initial message", async () => {
+		await context.run("Send customer message", async () => {
 			const systemMessaging = SystemGreetingMessage(dealerInformation.name);
 			await this.sendSystemMessage(
 				conversation.sid,

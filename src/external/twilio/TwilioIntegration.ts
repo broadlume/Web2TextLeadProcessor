@@ -96,6 +96,7 @@ export class TwilioIntegration
 						{
 							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
 							"timers.inactive": "P7D",
+							"timers.closed": "P14D",
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
 								DealerNumber: DealerPhoneNumber,

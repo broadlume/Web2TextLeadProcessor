@@ -35,5 +35,5 @@ export function CustomerCloseMessage(dealerName: string, dealerWebsiteURL?: stri
 }
 
 export function DealerCloseMessage(customerName: string, reason?: string) {
-    return `This message thread with ${customerName} has expired\n\nReason: ${reason}`;
+    return `This message thread with ${customerName} has expired, please reach out to the customer directly.\n\nReason: ${reason}`;
 }

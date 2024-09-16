@@ -39,13 +39,34 @@ export type RestateService = {
  * @returns an array of registered services
  */
 export async function ListServices(): Promise<RestateService[]> {
-    const restateURL = new URL(
-		process.env.RESTATE_ADMIN_URL,
-	);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
 	restateURL.pathname += "services";
 
 	const json = await ky
 		.get(restateURL.toString(), { retry: 0 })
 		.json<{ services: RestateService[] }>();
 	return json.services;
+}
+
+/**
+ * Modify service state
+ * @param service fully qualified service name.
+ * @param objectKey to what virtual object key to apply this change
+ * @param state the new state to replace the previous state with
+ */
+export async function ModifyServiceState(
+	service: string,
+	objectKey: string,
+	state: any,
+): Promise<void> {
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
+	restateURL.pathname += `services/${service}/state`;
+
+	await ky.post(restateURL.toString(), {
+		retry: 0,
+		json: {
+			object_key: objectKey,
+			new_state: state,
+		},
+	});
 }

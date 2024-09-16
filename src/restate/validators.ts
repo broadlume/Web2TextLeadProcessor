@@ -11,6 +11,8 @@ import { NexusStoresAPI } from "../external/nexus";
 import type { LeadState } from "./common";
 import { z } from "zod";
 import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
+import type { E164Number } from "libphonenumber-js";
+import parsePhoneNumber from 'libphonenumber-js';
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -118,9 +120,14 @@ export async function ParseAndVerifyLeadCreation(
 		);
 	}
 
-	const phoneValid = await ctx.run<boolean>("Phone number validation", async () => await CheckPhoneNumber(leadState));
+	const phoneValid = await ctx.run<boolean>("Client phone number validation", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
 	if (!phoneValid) {
 		throw new restate.TerminalError("Customer phone number cannot be used or is invalid", {errorCode: 400});
+	}
+
+	const dealerPhoneNumber = (await ctx.run("Get dealer info", async () => await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId)))?.primary_account_phone;
+	if (parsePhoneNumber(dealerPhoneNumber ?? "")?.number === leadState.Lead.PhoneNumber) {
+		throw new restate.TerminalError("Customer phone number is the same as the dealer's phone number");
 	}
 
 	const locationValid = await ctx.run<boolean>(
@@ -135,18 +142,13 @@ export async function ParseAndVerifyLeadCreation(
 	}
 	return parseRequest.data;
 }
-async function CheckPhoneNumber(lead: Web2TextLeadCreateRequest): Promise<boolean> {
-	const customerPhoneNumber = lead.Lead.PhoneNumber;
-	// Check if phone number is opted out
-	const optedOut = await OptedOutNumberModel.get(lead.Lead.PhoneNumber);
-	if (optedOut != null) {
-		return false;
-	}
-	// Ensure dealer's phone number and customer's phone number aren't the same
-	const dealerInfo = await NexusRetailerAPI.GetRetailerByID(lead.UniversalRetailerId);
-	if (dealerInfo?.primary_account_phone === customerPhoneNumber) {
-		return false;
-	}
-	return true;
+/**
+ * Check if phone number is opted out of text messaging
+ * @param phoneNumber the number to check, in E164 format
+ * @returns true if the number is opted out of text messaging, false if not
+ */
+async function isPhoneNumberOptedOut(phoneNumber: E164Number): Promise<boolean> {
+	const optedOut = await OptedOutNumberModel.get(phoneNumber);
+	return optedOut != null;
 }
 

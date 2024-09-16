@@ -25,9 +25,9 @@ ${lead.Lead.CustomerMessage}`;
     return message;
 }
 
-export function CustomerCloseMessage(dealerName: string, dealerWebsiteURL?: string, dealerPhoneNumber?: string): string {
+export function CustomerCloseMessage(dealerName?: string, dealerWebsiteURL?: string, dealerPhoneNumber?: string): string {
     let message ="This message thread has expired.";
-    if (dealerWebsiteURL == null && dealerPhoneNumber == null) {
+    if (dealerName === null || (dealerWebsiteURL == null && dealerPhoneNumber == null)) {
         return message;
     }
     message += ` If you would like to speak to ${dealerName}, please go to our website${dealerWebsiteURL ? ` at ${dealerWebsiteURL}` : ""}${dealerPhoneNumber ? ` or call us at ${dealerPhoneNumber}` : ""}`;

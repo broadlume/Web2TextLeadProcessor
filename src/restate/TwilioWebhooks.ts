@@ -118,14 +118,14 @@ export const TwilioWebhooks = restate.object({
 					ctx.request().headers.get("X-Twilio-Signature");
 
 				assert(is<TwilioMessagingServiceBody>(data));
-				ValidateTwilioRequest(twilioHeader, data, ctx.key, "checkOptOut");
+				ValidateTwilioRequest(twilioHeader, data, ctx.key, "onIncomingMessage");
 
                 // Close any active leads on opt-out
 				if (data.OptOutType !== "STOP") return;
-				const participantConversations = await FindConversationFor(
+				const participantConversations = await ctx.run("Find twilio conversation", async () => FindConversationFor(
 					twilioClient,
 					data.From,
-				);
+				));
 				for (const participantConversation of participantConversations) {
 					const attributes = JSON.parse(
 						participantConversation.conversationAttributes ?? "{}",

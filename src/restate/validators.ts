@@ -140,7 +140,7 @@ export async function ParseAndVerifyLeadCreation(
 	);
 	if (clientStatus.Status !== "ELIGIBLE") {
 		throw new restate.TerminalError(
-			`UniversalRetailerId '${leadState.UniversalRetailerId}' has status '${clientStatus}'. ${clientStatus.Reason}`.trim(),
+			`UniversalRetailerId '${leadState.UniversalRetailerId}' has status '${clientStatus.Status}' - ${clientStatus.Reason}`.trim(),
 			{ errorCode: 400 },
 		);
 	}
@@ -166,7 +166,7 @@ export async function ParseAndVerifyLeadCreation(
 	);
 	if (locationStatus.Status !== "ELIGIBLE") {
 		throw new restate.TerminalError(
-			`Location ID '${leadState.LocationId}' has status '${locationStatus.Status}'. ${locationStatus.Reason}`.trim(),
+			`Location ID '${leadState.LocationId}' has status '${locationStatus.Status}' - ${locationStatus.Reason}`.trim(),
 			{ errorCode: 400 },
 		);
 	}

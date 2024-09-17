@@ -60,7 +60,7 @@ export const LeadVirtualObject = restate.object({
 				req?: Record<string,any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
+				await ValidateAPIKey(ctx as unknown as restate.ObjectSharedContext, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				const state = await ctx.getAll();
 				if (state.Status == null) {
 					return { Status: "NONEXISTANT" };
@@ -77,7 +77,7 @@ export const LeadVirtualObject = restate.object({
 				req: Record<string,any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
+				await ValidateAPIKey(ctx as unknown as restate.ObjectSharedContext, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
@@ -129,7 +129,7 @@ export const LeadVirtualObject = restate.object({
 				req?: Record<string,any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
+				await ValidateAPIKey(ctx as unknown as restate.ObjectSharedContext, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
@@ -190,7 +190,7 @@ export const LeadVirtualObject = restate.object({
 				req?: { reason?: string, API_KEY?: string },
 			): Promise<LeadState> => {
 				// Validate the API key
-				await ValidateAPIKey(ctx, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
+				await ValidateAPIKey(ctx as unknown as restate.ObjectSharedContext, ctx.request().headers.get("authorization") ?? req?.["API_KEY"]);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));

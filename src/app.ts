@@ -10,10 +10,12 @@ import {
 } from "./ServiceRegistrationHelper";
 import { TwilioWebhooks } from "./restate/TwilioWebhooks";
 import { DealerVirtualObject } from "./restate/DealerVirtualObject";
+import { Twilio } from "twilio";
 globalThis.Logger = console;
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
+globalThis.TWILIO_CLIENT = new Twilio(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
 // Create the Restate server to accept requests
 restate
 	.endpoint()

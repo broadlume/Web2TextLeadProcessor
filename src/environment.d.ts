@@ -1,6 +1,7 @@
 import type * as restate from '@restatedev/restate-sdk';
 import { LeadState } from './restate/common';
 import type { TypedState} from '@restatedev/restate-sdk/dist/cjs/src/context';
+import type { Twilio } from 'twilio';
 declare global {
     namespace NodeJS {
       interface ProcessEnv {
@@ -26,4 +27,5 @@ declare global {
       }
     }
     var Logger: Console;
+    var TWILIO_CLIENT: Twilio;
   }

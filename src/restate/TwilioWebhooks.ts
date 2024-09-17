@@ -62,10 +62,6 @@ function ValidateTwilioRequest(
 		throw new restate.TerminalError("Twilio request validation failed");
 	}
 }
-const twilioClient = new Twilio(
-	process.env.TWILIO_ACCOUNT_SID,
-	process.env.TWILIO_AUTH_TOKEN,
-);
 export const TwilioWebhooks = restate.object({
 	name: "TwilioWebhooks",
 	handlers: {
@@ -148,7 +144,7 @@ async function HandleOptOutMessage(
 	const participantConversations = await ctx.run(
 		"Find twilio conversation",
 		async () =>
-			FindConversationsFor(twilioClient, data.From, [
+			FindConversationsFor(TWILIO_CLIENT, data.From, [
 				"active",
 				"closed",
 				"inactive",
@@ -196,7 +192,7 @@ async function HandleClosedMessagingThread(
 	const participantConversations = await ctx.run(
 		"Find twilio conversation",
 		async () =>
-			FindConversationsFor(twilioClient, data.From, [
+			FindConversationsFor(TWILIO_CLIENT, data.From, [
 				"active",
 				"closed",
 				"inactive",

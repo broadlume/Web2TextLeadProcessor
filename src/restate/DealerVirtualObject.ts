@@ -1,6 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
 import { z } from "zod";
-import { CheckClientStatus, CheckLocationStatus, ValidateAPIKey } from "./validators";
+import { CheckClientStatus, CheckLocationStatus, CheckAPIKeyStatus, CheckAuthorization } from "./validators";
 import { NexusStoresAPI } from "../external/nexus";
 import { assert, is } from "tsafe";
 import type { UUID } from "node:crypto";
@@ -10,16 +10,16 @@ type LocationStatus = {
     Name?: string,
     Address: string,
     PhoneNumber: string,
-    Status: "ELIGIBLE" | "INELIGIBLE" | "NONEXISTANT";
+    Status: "VALID" | "INVALID" | "NONEXISTANT";
     Reason?: string;
 };
 type DealerStatusResponse =
 	| {
-			Status: "INELIGIBLE" | "NONEXISTANT";
+			Status: "INVALID" | "NONEXISTANT";
             Reason?: string;
 	  }
 	| {
-			Status: "ELIGIBLE";
+			Status: "VALID";
 			Locations: LocationStatus[];
 	  };
 export const DealerVirtualObject = restate.object({
@@ -35,7 +35,7 @@ export const DealerVirtualObject = restate.object({
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			async (ctx: restate.ObjectSharedContext, req?: Record<string, any>): Promise<DealerStatusResponse> => {
 				// Validate the API key
-				await ValidateAPIKey(
+				await CheckAuthorization(
 					ctx,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
@@ -48,7 +48,7 @@ export const DealerVirtualObject = restate.object({
 				assert(is<UUID>(universalRetailerId));
 
                 const dealerStatus = await ctx.run("Check retailer eligiblity for Web2Text", async () => await CheckClientStatus(universalRetailerId));
-                if (dealerStatus.Status !== "ELIGIBLE") {
+                if (dealerStatus.Status !== "VALID") {
                     return {Status: dealerStatus.Status, Reason: dealerStatus.Reason};
                 }
                 const locations = await ctx.run("Fetch location info", async () => await NexusStoresAPI.GetAllRetailerStores(universalRetailerId)) ?? [];
@@ -67,7 +67,7 @@ export const DealerVirtualObject = restate.object({
                     locationStatuses.push(status);
                 }
                 return {
-                    Status: "ELIGIBLE",
+                    Status: "VALID",
                     Locations: locationStatuses
                 };
 			},

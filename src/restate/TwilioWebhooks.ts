@@ -144,7 +144,7 @@ async function HandleOptOutMessage(
 	const participantConversations = await ctx.run(
 		"Find twilio conversation",
 		async () =>
-			FindConversationsFor(TWILIO_CLIENT, data.From, [
+			FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
 				"active",
 				"closed",
 				"inactive",
@@ -169,7 +169,7 @@ async function HandleOptOutMessage(
 			participantConversation.conversationAttributes ?? "{}",
 		);
 		// Don't close lead if dealer opts out for some reason
-		if (attributes["DealerNumber"] === data.From) {
+		if (attributes["StorePhoneNumber"] === data.From) {
 			isDealer = true;
 			continue;
 		}
@@ -192,7 +192,7 @@ async function HandleClosedMessagingThread(
 	const participantConversations = await ctx.run(
 		"Find twilio conversation",
 		async () =>
-			FindConversationsFor(TWILIO_CLIENT, data.From, [
+			FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
 				"active",
 				"closed",
 				"inactive",
@@ -208,7 +208,7 @@ async function HandleClosedMessagingThread(
 	const attributes = JSON.parse(
 		lastActiveConversation.conversationAttributes ?? "{}",
 	);
-	const dealerPhoneNumber = attributes?.["DealerPhoneNumber"];
+	const dealerPhoneNumber = attributes?.["StorePhoneNumber"];
 	let closingMessage: string;
 	if (data.From === dealerPhoneNumber) {
 		const customerName = attributes?.["CustomerName"];

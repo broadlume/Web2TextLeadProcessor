@@ -68,15 +68,15 @@ export class TwilioIntegration
 			);
 		}
 		// TODO: Don't hardcode, fetch from Nexus API
-		const DealerPhoneNumber = parsePhoneNumber("+12246591931", "US").number;
-		const UniversalRetailerId = leadState.UniversalRetailerId;
+		const storePhoneNumber = parsePhoneNumber("+12246591931", "US").number;
+		const universalRetailerId = leadState.UniversalRetailerId;
 		const conversation: ConversationInstance = await context.run(
 			"Create Twilio conversation",
 			async () => {
 				const preExistingConversationID =
 					await this.checkForPreexistingConversation(
 						leadState.Lead.PhoneNumber,
-						DealerPhoneNumber,
+						storePhoneNumber,
 					);
 				let conversation: ConversationInstance;
 				if (preExistingConversationID) {
@@ -96,7 +96,7 @@ export class TwilioIntegration
 						});
 				} else {
 					conversation = await TwilioProxyAPI.CreateSession(
-						[leadState.Lead.PhoneNumber, DealerPhoneNumber],
+						[leadState.Lead.PhoneNumber, storePhoneNumber],
 						{
 							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
 							"timers.inactive": "P7D",
@@ -105,9 +105,9 @@ export class TwilioIntegration
 								LeadIDs: [leadState.LeadId],
 								DealerName: dealerInformation.name,
 								DealerURL: dealerInformation.website_url,
-								DealerNumber: DealerPhoneNumber,
+								StorePhoneNumber: storePhoneNumber,
 								CustomerName: leadState.Lead.Name,
-								UniversalRetailerId,
+								UniversalRetailerId: universalRetailerId,
 								LocationID: leadState.LocationId,
 								Environment:
 									process.env["COPILOT_ENVIRONMENT_NAME"] ??
@@ -181,7 +181,7 @@ export class TwilioIntegration
 			await this.sendSystemMessage(
 				conversation.sid,
 				systemMessaging,
-				DealerPhoneNumber,
+				storePhoneNumber,
 				true,
 			);
 		});

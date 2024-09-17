@@ -9,27 +9,39 @@ import {
 	RegisterThisServiceWithRestate,
 } from "./ServiceRegistrationHelper";
 import { TwilioWebhooks } from "./restate/TwilioWebhooks";
+import { DealerVirtualObject } from "./restate/DealerVirtualObject";
 globalThis.Logger = console;
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Create the Restate server to accept requests
-restate.endpoint().bind(LeadVirtualObject).bind(TwilioWebhooks).listen(RESTATE_PORT);
+restate
+	.endpoint()
+	.bind(LeadVirtualObject)
+	.bind(DealerVirtualObject)
+	.bind(TwilioWebhooks)
+	.listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 
 if (process.env.NODE_ENV === "production") {
 	console.info(`[STARTUP] Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);
-	RegisterThisServiceWithRestate(RESTATE_PORT).then((ipAddr) => {
-		if (ipAddr == null) {
-			console.warn("[STARTUP] Failed to register this service with Restate admin panel - shutting down...");
+	RegisterThisServiceWithRestate(RESTATE_PORT)
+		.then((ipAddr) => {
+			if (ipAddr == null) {
+				console.warn(
+					"[STARTUP] Failed to register this service with Restate admin panel - shutting down...",
+				);
+				process.exit(1);
+			}
+			registeredRestateAddress = ipAddr;
+		})
+		.catch((e) => {
+			console.error(e);
+			console.warn(
+				"[STARTUP] Failed to register this service with Restate admin panel - shutting down...",
+			);
 			process.exit(1);
-		}
-		registeredRestateAddress = ipAddr;
-	}).catch(e => {
-		console.error(e);
-		console.warn("[STARTUP] Failed to register this service with Restate admin panel - shutting down...");
-		process.exit(1);
-	});
+		});
 
 	process.once("SIGTERM", async () => {
 		if (registeredRestateAddress) {

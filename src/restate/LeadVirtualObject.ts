@@ -155,12 +155,15 @@ export const LeadVirtualObject = restate.object({
 							newState = await integration.sync(state, ctx);
 						}
 					} catch (e) {
+						assert(is<Error>(e));
 						newState = {
 							...state,
 							SyncStatus: "ERROR",
 							Info: {
 								Message: "An error occurred during sync",
-								Details: `${e}`,
+								Details: {
+									...e
+								},
 							},
 						};
 					}
@@ -205,12 +208,15 @@ export const LeadVirtualObject = restate.object({
 					try {
 						newState = await integration.close(state, ctx);
 					} catch (e) {
+						assert(is<Error>(e));
 						newState = {
 							...state,
 							SyncStatus: "ERROR",
 							Info: {
 								Message: "An error occurred during close",
-								Details: `${e}`,
+								Details: {
+									...e
+								},
 							},
 						};
 					}

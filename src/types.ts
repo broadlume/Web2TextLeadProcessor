@@ -11,10 +11,14 @@ const UUID = () =>
 		.refine<UUIDType>((x): x is UUIDType => true);
 const PhoneNumber = () =>
 	NonEmptyString()
-		.transform((x) => parsePhoneNumber(x, "US")?.number)
-		.refine<E164Number>((num): num is E164Number => num != null, {
-			message: "Invalid phone number format",
-		});
+		.transform((x) => parsePhoneNumber(x, "US"))
+		.refine((num) => num?.number != null, {
+			message: "Invalid phone number"
+		})
+		.refine(num => num?.isPossible(), {
+			message: "Invalid phone number"
+		})
+		.transform<E164Number>(num => num!.number as E164Number);
 
 export const Web2TextLeadSchema = z.object({
     SchemaVersion: z.enum(["1.0.0"]).default("1.0.0"),

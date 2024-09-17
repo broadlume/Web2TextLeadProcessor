@@ -120,15 +120,21 @@ export async function ParseAndVerifyLeadCreation(
 		);
 	}
 
-	const optedOut = await ctx.run<boolean>("Client phone number validation", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
-	if (optedOut) {
-		throw new restate.TerminalError("Customer phone number cannot be used or is invalid", {errorCode: 400});
-	}
-
 	const dealerPhoneNumber = (await ctx.run("Get dealer info", async () => await NexusRetailerAPI.GetRetailerByID(leadState.UniversalRetailerId)))?.primary_account_phone;
 	if (parsePhoneNumber(dealerPhoneNumber ?? "")?.number === leadState.Lead.PhoneNumber) {
 		throw new restate.TerminalError("Customer phone number is the same as the dealer's phone number");
 	}
+
+	const customerOptedOut = await ctx.run<boolean>("Customer phone number opt-out check", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
+	if (customerOptedOut) {
+		throw new restate.TerminalError("Customer phone number cannot be used or is invalid", {errorCode: 400});
+	}
+
+	const dealerOptedOut = await ctx.run<boolean>("Dealer phone number opt-out check", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
+	if (dealerOptedOut) {
+		throw new restate.TerminalError("Dealer phone number cannot be used or is invalid", {errorCode: 400});
+	}
+
 
 	const locationValid = await ctx.run<boolean>(
 		"Location validation",

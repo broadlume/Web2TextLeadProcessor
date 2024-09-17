@@ -41,6 +41,8 @@ services:
     build: 
       context: ./twilio_proxy/
       dockerfile: Dockerfile
+      args:
+        - NUMBER_POOL=development
     networks:
       - restate-network
     ports:

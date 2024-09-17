@@ -12,6 +12,8 @@ type: Backend Service
 image:
   # Docker build arguments. For additional overrides: https://aws.github.io/copilot-cli/docs/manifest/backend-service/#image-build
   build: twilio_proxy/Dockerfile
+  args:
+    NUMBER_POOL: "production"
   port: 3000
 
 cpu: 1024       # Number of CPU units for the task.

@@ -208,9 +208,9 @@ async function HandleClosedMessagingThread(
 	const attributes = JSON.parse(
 		lastActiveConversation.conversationAttributes ?? "{}",
 	);
-	const dealerPhoneNumber = attributes?.["StorePhoneNumber"];
+	const storePhoneNumber = attributes?.["StorePhoneNumber"];
 	let closingMessage: string;
-	if (data.From === dealerPhoneNumber) {
+	if (data.From === storePhoneNumber) {
 		const customerName = attributes?.["CustomerName"];
 		closingMessage = DealerCloseMessage(customerName);
 	}	
@@ -220,7 +220,7 @@ async function HandleClosedMessagingThread(
 		closingMessage = CustomerCloseMessage(
 			dealerName,
 			dealerWebsite,
-			dealerPhoneNumber,
+			storePhoneNumber,
 		);
 	}
 	return new MessagingResponse().message(closingMessage).toString();

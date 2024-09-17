@@ -31,16 +31,16 @@ ${lead.Lead.CustomerMessage}`;
 export function CustomerCloseMessage(
 	dealerName?: string,
 	dealerWebsiteURL?: string,
-	dealerPhoneNumber?: string,
+	storePhoneNumber?: string,
 ): string {
 	let message = "This message thread has expired.";
 	if (
 		dealerName === null ||
-		(dealerWebsiteURL == null && dealerPhoneNumber == null)
+		(dealerWebsiteURL == null && storePhoneNumber == null)
 	) {
 		return message;
 	}
-	message += ` If you would like to speak to ${dealerName}, please go to our website${dealerWebsiteURL ? ` at ${dealerWebsiteURL}` : ""}${dealerPhoneNumber ? ` or call us at ${dealerPhoneNumber}` : ""}`;
+	message += ` If you would like to speak to ${dealerName}, please go to our website${dealerWebsiteURL ? ` at ${dealerWebsiteURL}` : ""}${storePhoneNumber ? ` or call us at ${storePhoneNumber}` : ""}`;
 	return message;
 }
 

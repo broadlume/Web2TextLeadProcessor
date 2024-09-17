@@ -305,7 +305,7 @@ export class TwilioIntegration
 	}
 	private async checkForPreexistingConversation(
 		customerPhone: E164Number,
-		dealerPhone: E164Number,
+		storePhone: E164Number,
 	): Promise<string | null> {
 		const conversationsUserIsIn = await FindConversationsFor(
 			this.twilioClient,
@@ -313,7 +313,7 @@ export class TwilioIntegration
 		).then((convos) => convos.map((c) => c.conversationSid));
 		const conversationsDealerIsIn = await FindConversationsFor(
 			this.twilioClient,
-			dealerPhone,
+			storePhone,
 		).then((convos) => convos.map((c) => c.conversationSid));
 		const conversation = conversationsUserIsIn.filter((x) =>
 			conversationsDealerIsIn.includes(x),

@@ -120,8 +120,8 @@ export async function ParseAndVerifyLeadCreation(
 		);
 	}
 
-	const phoneValid = await ctx.run<boolean>("Client phone number validation", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
-	if (!phoneValid) {
+	const optedOut = await ctx.run<boolean>("Client phone number validation", async () => await isPhoneNumberOptedOut(leadState.Lead.PhoneNumber));
+	if (optedOut) {
 		throw new restate.TerminalError("Customer phone number cannot be used or is invalid", {errorCode: 400});
 	}
 

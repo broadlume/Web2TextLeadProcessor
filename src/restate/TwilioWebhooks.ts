@@ -7,7 +7,7 @@ import { FindConversationsFor } from "../external/twilio/TwilioConversationHelpe
 import type { E164Number } from "libphonenumber-js";
 import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
-import { CustomerCloseMessage } from "../external/twilio/Web2TextMessagingStrings";
+import { CustomerCloseMessage, DealerCloseMessage } from "../external/twilio/Web2TextMessagingStrings";
 import { XMLSerde } from "./XMLSerde";
 
 interface TwilioWebhookBody {
@@ -205,13 +205,21 @@ async function HandleClosedMessagingThread(
 	const attributes = JSON.parse(
 		lastActiveConversation.conversationAttributes ?? "{}",
 	);
-	const dealerName = attributes?.["DealerName"];
 	const dealerPhoneNumber = attributes?.["DealerPhoneNumber"];
-	const dealerWebsite = attributes?.["DealerURL"];
-	const closingMessage = CustomerCloseMessage(
-		dealerName,
-		dealerWebsite,
-		dealerPhoneNumber,
-	);
+	let closingMessage: string;
+	if (data.From === dealerPhoneNumber) {
+		const customerName = attributes?.["CustomerName"];
+		closingMessage = DealerCloseMessage(customerName);
+	}	
+	else {
+		const dealerName = attributes?.["DealerName"];
+		const dealerWebsite = attributes?.["DealerURL"];
+		closingMessage = CustomerCloseMessage(
+			dealerName,
+			dealerWebsite,
+			dealerPhoneNumber,
+		);
+	}
 	return new MessagingResponse().message(closingMessage).toString();
+
 }

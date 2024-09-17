@@ -102,6 +102,7 @@ export class TwilioIntegration
 								DealerName: dealerInformation.name,
 								DealerURL: dealerInformation.website_url,
 								DealerNumber: DealerPhoneNumber,
+								CustomerName: leadState.Lead.Name,
 								UniversalRetailerId,
 								LocationID: leadState.LocationId,
 								Environment:

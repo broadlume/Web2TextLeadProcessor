@@ -166,13 +166,17 @@ async function HandleOptOutMessage(
 				{ overwrite: true },
 			),
 	);
+	let isDealer = false;
 	for (const participantConversation of participantConversations) {
 		if (participantConversation.conversationState === "closed") continue;
 		const attributes = JSON.parse(
 			participantConversation.conversationAttributes ?? "{}",
 		);
 		// Don't close lead if dealer opts out for some reason
-		if (attributes["DealerNumber"] === data.From) continue;
+		if (attributes["DealerNumber"] === data.From) {
+			isDealer = true;
+			continue;
+		}
 		const leadIds: string[] = attributes["LeadIDs"] ?? [];
 		for (const leadId of leadIds) {
 			ctx.objectSendClient(LeadVirtualObject, leadId).close({
@@ -180,6 +184,9 @@ async function HandleOptOutMessage(
 				API_KEY: process.env.INTERNAL_API_TOKEN,
 			});
 		}
+	}
+	if (isDealer) {
+		return new MessagingResponse().message("WARNING: You have opted out of Web2Text messages. If this was an error, text START to opt back in. If you intended to opt out, please contact your account manager immediately, as this may negatively impact your business.");
 	}
 }
 async function HandleClosedMessagingThread(

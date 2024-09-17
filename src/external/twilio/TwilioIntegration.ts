@@ -17,7 +17,7 @@ import {
 	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
 import { FindConversationsFor } from "./TwilioConversationHelpers";
-import { OptedOutNumberModel } from "../../dynamodb/OptedOutNumberModel";
+import { IsPhoneNumberOptedOut } from "../../restate/validators";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -244,7 +244,7 @@ export class TwilioIntegration
 		}
 		const hasCustomerOptedOut = await context.run(
 			"Check for opted out numbers",
-			async () => await this.hasAnyNumberOptedOut(lead.Lead.PhoneNumber),
+			async () => await IsPhoneNumberOptedOut(lead.Lead.PhoneNumber),
 		);
 		if (hasCustomerOptedOut) {
 			// Close the lead if the customer has opted out of text messaging
@@ -379,16 +379,5 @@ export class TwilioIntegration
 				attempts -= 1;
 			}, 1000);
 		});
-	}
-	private async hasAnyNumberOptedOut(
-		...phoneNumbers: E164Number[]
-	): Promise<boolean> {
-		for (const number of phoneNumbers) {
-			const optedOut = await OptedOutNumberModel.get(number);
-			if (optedOut != null) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

@@ -29,6 +29,34 @@ export interface NexusRetailer {
     youtube_url?: string
 }
 
+export interface NexusSubscription {
+    id: UUID,
+    name: string,
+    status: string,
+    price: number,
+    retailer_id: UUID,
+    broadlume_product: {
+        id: UUID,
+        name: string,
+        type: string,
+        brand: string,
+        family: string,
+        recurring: boolean,
+        revenue_bucket: string
+    },
+    live_date: string,
+    extra_data: {
+        premium_locations: string,
+        included_premium_locations: string
+    },
+    web2text_opt_out: boolean,
+    broadlume_product_name: string,
+    broadlume_product_type: string,
+    broadlume_product_id: UUID,
+    subscription_status: string,
+    subscription_name: string,
+    subscription_id: UUID
+}
 export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer | null> {
     const nexusURL = new URL(process.env.NEXUS_API_URL!);
     nexusURL.pathname += `retailers/${universalId}`;
@@ -44,6 +72,25 @@ export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer 
             return null;
         }
         console.warn("[GetRetailerById]: Error fetching retailer from Nexus");
+        throw e;
+    }
+}
+
+export async function GetRetailerSubscriptions(universalId: UUID): Promise<NexusSubscription[] | null> {
+    const nexusURL = new URL(process.env.NEXUS_API_URL!);
+    nexusURL.pathname += `retailers/${universalId}/subscriptions`;
+
+    try {
+        const retailer = await ky.get(nexusURL.toString(), {
+            retry: 0,
+            headers: NEXUS_AUTHORIZATION_HEADERS()
+        }).json<NexusSubscription[]>();
+        return retailer;
+    } catch (e) {
+        if (e instanceof HTTPError && e.response.status === 404) {
+            return null;
+        }
+        console.warn("[GetRetailerSubscriptions]: Error fetching retailer subscriptions from Nexus");
         throw e;
     }
 }

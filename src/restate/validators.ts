@@ -60,6 +60,11 @@ export async function CheckClientStatus(
 	const nexusRetailer = await NexusRetailerAPI.GetRetailerByID(universalId);
 	if (nexusRetailer == null) return "NONEXISTANT";
 	if (nexusRetailer.status === "Churned_Customer") return "INELIGIBLE";
+
+	const nexusSubscriptions = await NexusRetailerAPI.GetRetailerSubscriptions(universalId) ?? [];
+	if (nexusSubscriptions.find(s => s.status !== "Cancelled" && s.web2text_opt_out === true)) {
+		return "INELIGIBLE";
+	}
 	return "ELIGIBLE";
 }
 

@@ -265,14 +265,16 @@ export class TwilioIntegration
 		const conversation = await this.twilioClient.conversations.v1
 			.conversations(conversationID)
 			.fetch();
+
 		const attributes = JSON.parse(conversation?.attributes ?? "{}");
 		attributes["LeadIds"] = ((attributes["LeadIds"] as string[]) ?? []).filter(
 			(id) => id !== lead.LeadId,
 		);
 		conversation.attributes = JSON.stringify(attributes);
+		let newConversationState = conversation.state;
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
-			conversation.state = "closed";
+			newConversationState = "closed";
 			await context.run("Send dealer closing message", async () => {
 				await this.sendSystemMessage(
 					conversation.sid,
@@ -281,14 +283,16 @@ export class TwilioIntegration
 				).catch((e) => null); // ignore error
 			});
 		}
-		await context.run("Remove Lead from Twilio Conversation", async () => {
-			await this.twilioClient.conversations.v1
-				.conversations(conversationID)
-				.update({
-					attributes: conversation.attributes,
-					state: conversation.state,
-				});
-		});
+		if (conversation.state !== "closed") {
+			await context.run("Update twilio conversation", async () => {
+				await this.twilioClient.conversations.v1
+					.conversations(conversationID)
+					.update({
+						attributes: conversation.attributes,
+						state: newConversationState,
+					});
+			});
+		}
 		return {
 			...state,
 			SyncStatus: "SYNCED",

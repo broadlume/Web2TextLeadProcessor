@@ -204,7 +204,7 @@ export const LeadVirtualObject = restate.object({
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				// Run pre-handler setup
-				await setup(ctx, ["ACTIVE", "CLOSED", "SYNCING"]);
+				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
 				// Iterate through all integrations and call their close handlers
 				const integrations = Web2TextIntegrations;

@@ -345,12 +345,13 @@ export class TwilioIntegration
 					.conversations(conversationSid)
 					.messages.get(twilioMessage.sid)
 					.deliveryReceipts.list();
-				if (deliveryReceipts.every((d) => d.status === "delivered")) {
+				if (deliveryReceipts.every((d) => d.status === "delivered" || d.status === "read")) {
 					clearInterval(interval);
 					resolve(undefined);
 				}
+				
 				const failedDelivery = deliveryReceipts.find(
-					(d) => d.status === "failed",
+					(d) => d.status === "failed" || d.status === "undelivered",
 				);
 				if (failedDelivery) {
 					clearInterval(interval);
@@ -364,9 +365,16 @@ export class TwilioIntegration
 								},
 							),
 						);
+					}
+					if (failedDelivery.errorCode === 30034) {
+						reject(
+							new restate.TerminalError(
+								"One of the numbers is not registered with A2P 10DLC and cannot send text messages",
+							),
+						);
 					} else {
 						reject(
-							new Error(
+							new restate.TerminalError(
 								`Delivery status is 'failed' for Twilio message '${twilioMessage.sid}'`,
 							),
 						);
@@ -375,7 +383,7 @@ export class TwilioIntegration
 				if (attempts <= 0) {
 					clearInterval(interval);
 					reject(
-						new Error(
+						new restate.TerminalError(
 							`Max attempts exceeded for polling for Twilio message delivery status on message '${twilioMessage.sid}'`,
 						),
 					);

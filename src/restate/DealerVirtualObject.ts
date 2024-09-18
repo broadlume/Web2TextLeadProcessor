@@ -6,7 +6,7 @@ import { assert, is } from "tsafe";
 import type { UUID } from "node:crypto";
 
 type LocationStatus = {
-    LocationId: string,
+    NexusLocationId: string;
     Name?: string,
     Address: string,
     PhoneNumber: string,
@@ -57,7 +57,7 @@ export const DealerVirtualObject = restate.object({
                 for (const location of locations) {
                     const locationStatus = await ctx.run("Check location status", async () => await CheckLocationStatus(location.id as UUID));
                     const status: LocationStatus = {
-                        LocationId: location.universal_id,
+                        NexusLocationId: location.id,
                         // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
                         Name: location.store_name == "" ? undefined : location.store_name,
                         Address: location.street_address,

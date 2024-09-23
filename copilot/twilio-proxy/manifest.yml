@@ -13,6 +13,7 @@ image:
   # Docker build arguments. For additional overrides: https://aws.github.io/copilot-cli/docs/manifest/backend-service/#image-build
   build: twilio_proxy/Dockerfile
   args:
+    # NUMBER_POOL: "${COPILOT_ENVIRONMENT_NAME}"
     NUMBER_POOL: "production"
   port: 3000
 

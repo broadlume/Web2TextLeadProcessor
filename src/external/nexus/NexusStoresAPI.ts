@@ -20,6 +20,7 @@ export interface RetailerStore {
 	"state_province":string,
 	"store_name": string,
 	"store_phone_number": string,
+	"Web2Text_Phone_Number"?: string,
 	"store_type": string,
 	"street_address": string,
 	"universal_id": string,

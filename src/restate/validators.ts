@@ -64,7 +64,7 @@ export async function CheckAuthorization(
 	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(auth));
 	if (result.Status !== "VALID") {
 		throw new restate.TerminalError(result.Reason ?? "", {
-			errorCode: result.Status === "NONEXISTANT" ? 401 : 400,
+			errorCode: result.Status === "NONEXISTANT" ? 400 : 401,
 		});
 	}
 }
@@ -128,7 +128,7 @@ export async function CheckLocationStatus(
 			Status: "NONEXISTANT",
 			Reason: "Could not find location with this Id in Nexus",
 		};
-	const locationPhone = parsePhoneNumber(location.store_phone_number);
+	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number ?? "");
 	if (locationPhone == null) {
 		return {
 			Status: "INVALID",
@@ -251,14 +251,13 @@ export async function ParseAndVerifyLeadCreation(
 			{ errorCode: 400 }
 		);
 	}
-
 	const storePhoneNumber = parsePhoneNumber((
 		await ctx.run(
 			"Get store phone number",
 			async () =>
 				await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
 		)
-	)!.store_phone_number);
+	)?.Web2Text_Phone_Number ?? "");
 
 	if (
 		storePhoneNumber?.number ===
@@ -282,16 +281,5 @@ export async function ParseAndVerifyLeadCreation(
 			},
 		);
 	}
-
-	const storePhoneStatus = await ctx.run("Store phone validation", async () => await CheckPhoneNumberStatus(globalThis.TWILIO_CLIENT,storePhoneNumber?.number));
-	if (storePhoneStatus.Status !== "VALID") {
-		throw new restate.TerminalError(
-			`Store phone number has status '${customerPhoneStatus.Status}' - ${customerPhoneStatus.Reason}`.trim(),
-			{
-				errorCode: 400,
-			},
-		);
-	}
-
 	return parseRequest.data;
 }

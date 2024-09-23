@@ -4,12 +4,13 @@ import { CheckClientStatus, CheckLocationStatus, CheckAPIKeyStatus, CheckAuthori
 import { NexusStoresAPI } from "../external/nexus";
 import { assert, is } from "tsafe";
 import type { UUID } from "node:crypto";
+import parsePhoneNumber  from "libphonenumber-js";
 
 type LocationStatus = {
     NexusLocationId: string;
     Name?: string,
     Address: string,
-    PhoneNumber: string,
+    PhoneNumber?: string,
     Status: "VALID" | "INVALID" | "NONEXISTANT";
     Reason?: string;
 };
@@ -56,12 +57,13 @@ export const DealerVirtualObject = restate.object({
                 const locationStatuses: LocationStatus[] = [];
                 for (const location of locations) {
                     const locationStatus = await ctx.run("Check location status", async () => await CheckLocationStatus(location.id as UUID));
+                    const phoneNumber = parsePhoneNumber(location.Web2Text_Phone_Number ?? "");
                     const status: LocationStatus = {
                         NexusLocationId: location.id,
                         // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
                         Name: location.store_name == "" ? undefined : location.store_name,
                         Address: location.street_address,
-                        PhoneNumber: location.store_phone_number,
+                        PhoneNumber: phoneNumber?.number,
                         ...locationStatus
                     }
                     locationStatuses.push(status);

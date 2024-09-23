@@ -67,8 +67,7 @@ export class TwilioIntegration
 				`Retailer info is missing in Nexus for Universal Retailer ID '${leadState.UniversalRetailerId}'`,
 			);
 		}
-		// TODO: Don't hardcode, fetch from Nexus API
-		const storePhoneNumber = parsePhoneNumber("+12246591931", "US").number;
+		const storePhoneNumber = parsePhoneNumber(locationInformation.Web2Text_Phone_Number!, "US").number;
 		const universalRetailerId = leadState.UniversalRetailerId;
 		const conversation: ConversationInstance = await context.run(
 			"Create Twilio conversation",

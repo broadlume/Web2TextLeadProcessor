@@ -8,12 +8,16 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 - [Restate](https://restate.dev/)
     - A framework that allows you to run functions as services durably and reliably and orchestrate between them
 - [Bun](https://bun.sh/)
-    - Used as a package manager and test runner
+    - Used as a package manager
     - As soon as HTTP2 support is landed, will also be used as a NodeJS replacement
+- [Vitest](https://vitest.dev/)
+    - A super fast test runner
 - [NodeJS](https://nodejs.org/en)
 - [Typescript](https://www.typescriptlang.org/)
 - [Docker](https://www.docker.com/)
     - Used for providing a unified dev environment using Dev Containers
+- [AWS Copilot](https://aws.github.io/copilot-cli/)
+    - Used to deploy all our services to AWS ECS smoothly
 
 ## Local Setup
 
@@ -23,10 +27,11 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
 5. Wait for the dev container to spin up
-    - This will provision three containers:
+    - This will provision five containers:
         - The Web2Text dev container where your VSCode window will open in
         - The restate admin server which will handle taking in requests, durable execution & retries and dispatching them to the service
         - A local DynamoDB database that Web2Text uses for development
+        - A twilio proxy application that allows assigning numbers from our pool intelligently to create two way Twilio conversations
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
     - Verify the dynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
 6. Open a new terminal within the dev container and run `bun run app-dev`
@@ -41,7 +46,20 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 
 ## Deployment
 
-TBD
+1. Navigate to the root of the repository (outside of the dev container)
+2. Run `copilot deploy`
+    - If you get an authorization error, run `aws sso login` first
+3. Select the service to deploy
+    - web2text-service
+        - This is the service you will need to deploy if you make any code changes in this repository to the endpoints
+    - twilio-proxy
+        - Deploy this service only if you make changes to the `/twilio_proxy` subrepository
+    - restate-server
+        - Deploy this only if you need to update the restate server - should be pretty infrequent.
+            - This can be dangerous to do so only do it if you know the update wont break anything
+            - See the [docs](https://docs.restate.dev/operate/upgrading/)
+4. Select the environment to deploy to
+5. Wait for the command to finish
 
 ## What is Restate
 [Restate](https://restate.dev/) is a framework that allows you to run functions as services durably and reliably and orchestrate between them.
@@ -57,7 +75,7 @@ I **heavily recommend** a read through the [Concepts](https://docs.restate.dev/c
 ## Edge Cases
 Q. User submits two leads with the same phone number, dealer ID, and location ID
 
-A. Web2Text will say a lead already exists and merge the leads
+A. Web2Text will open two leads with the same Twilio conversation ID
 
 Q. User submits two leads with the same phone number, dealer ID, but different location IDs
 
@@ -66,5 +84,4 @@ A. Web2Text will create two leads and two Twilio conversations
 
 Q. A retailer has two locations, both have the same phone number assigned to them. One user submits a lead to one location, and another submits it to the other location
 
-A. Web2Text will create two leads and two Twilio conversations
-> Each location has its own Twilio phone number
+A. Web2Text will open two leads with the same Twilio conversation ID

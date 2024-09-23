@@ -5,6 +5,7 @@ import type {
 } from "twilio/lib/rest/conversations/v1/conversation";
 import { TWILIO_PROXY_AUTHORIZATION_HEADERS } from ".";
 import ky from "ky";
+import { logger } from "../../logger";
 
 export async function CreateSession(
 	phoneNumbers: E164Number[],
@@ -23,7 +24,7 @@ export async function CreateSession(
 		}).json<ConversationInstance>();
 		return response;
 	} catch (e) {
-		Logger.warn(`[TwilioProxyAPI.CreateSession] Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`);
+		logger.child({label: "TwilioProxyAPI"}).warn(`[TwilioProxyAPI.CreateSession] Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`);
 		throw e;
 	}
 }

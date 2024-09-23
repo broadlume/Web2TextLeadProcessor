@@ -26,6 +26,5 @@ declare global {
         NODE_ENV: string;
       }
     }
-    var Logger: Console;
     var TWILIO_CLIENT: Twilio;
   }

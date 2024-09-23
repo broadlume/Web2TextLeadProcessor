@@ -128,7 +128,7 @@ export async function CheckLocationStatus(
 			Status: "NONEXISTANT",
 			Reason: "Could not find location with this Id in Nexus",
 		};
-	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number ?? "");
+	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number ?? "", "US");
 	if (locationPhone == null) {
 		return {
 			Status: "INVALID",
@@ -257,7 +257,7 @@ export async function ParseAndVerifyLeadCreation(
 			async () =>
 				await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
 		)
-	)?.Web2Text_Phone_Number ?? "");
+	)?.Web2Text_Phone_Number ?? "", "US");
 
 	if (
 		storePhoneNumber?.number ===

@@ -1,6 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
 import { z } from "zod";
-import { CheckClientStatus, CheckLocationStatus, CheckAPIKeyStatus, CheckAuthorization } from "./validators";
+import { CheckClientStatus, CheckLocationStatus, CheckAuthorization } from "./validators";
 import { NexusStoresAPI } from "../external/nexus";
 import { assert, is } from "tsafe";
 import type { UUID } from "node:crypto";
@@ -57,7 +57,7 @@ export const DealerVirtualObject = restate.object({
                 const locationStatuses: LocationStatus[] = [];
                 for (const location of locations) {
                     const locationStatus = await ctx.run("Check location status", async () => await CheckLocationStatus(location.id as UUID));
-                    const phoneNumber = parsePhoneNumber(location.Web2Text_Phone_Number ?? "");
+                    const phoneNumber = parsePhoneNumber(location.Web2Text_Phone_Number ?? "", "US");
                     const status: LocationStatus = {
                         NexusLocationId: location.id,
                         // biome-ignore lint/suspicious/noDoubleEquals: <explanation>

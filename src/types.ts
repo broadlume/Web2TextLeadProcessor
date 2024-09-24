@@ -46,7 +46,9 @@ export const Web2TextLeadSchema = z.object({
 	Integrations: z.record(z.string(), ExternalIntegrationStateSchema)
 });
 
-export const Web2TextLeadCreateRequestSchema = Web2TextLeadSchema.omit({Status: true, LeadId: true, DateSubmitted: true, Integrations: true, CloseReason: true});
+export const Web2TextLeadCreateRequestSchema = Web2TextLeadSchema.omit({Status: true, LeadId: true, DateSubmitted: true, Integrations: true, CloseReason: true}).extend({
+	SyncImmediately: z.boolean().optional()
+});
 
 export type Web2TextLead = z.infer<typeof Web2TextLeadSchema>;
 export type Web2TextLeadCreateRequest = z.infer<

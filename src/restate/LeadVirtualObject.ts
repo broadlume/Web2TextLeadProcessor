@@ -2,7 +2,10 @@ import * as restate from "@restatedev/restate-sdk";
 import type { UUID } from "node:crypto";
 import { Web2TextIntegrations } from "../external";
 import { type LeadState, SyncWithDB } from "./common";
-import { ParseAndVerifyLeadCreation, CheckAPIKeyStatus, CheckAuthorization } from "./validators";
+import {
+	ParseAndVerifyLeadCreation,
+	CheckAuthorization,
+} from "./validators";
 import { z } from "zod";
 import type { ExternalIntegrationState } from "../external/types";
 import { assert, is } from "tsafe";
@@ -84,6 +87,7 @@ export const LeadVirtualObject = restate.object({
 					ctx as unknown as restate.ObjectSharedContext,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
+				let SyncImmediately = false;
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
@@ -93,6 +97,9 @@ export const LeadVirtualObject = restate.object({
 					}));
 					// Validate the submitted lead
 					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
+					SyncImmediately = Lead.SyncImmediately ?? true;
+					// biome-ignore lint/performance/noDelete: <explanation>
+					delete Lead.SyncImmediately;
 
 					const currentDate = new Date(await ctx.date.now());
 					await ctx.update((_) => ({
@@ -114,11 +121,12 @@ export const LeadVirtualObject = restate.object({
 					}));
 					throw e;
 				}
-				// Schedule syncing the lead to external integrations
-				ctx
-					.objectSendClient(LeadVirtualObject, ctx.key)
-					.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
-
+				if (SyncImmediately) {
+					// Schedule syncing the lead to external integrations
+					ctx
+						.objectSendClient(LeadVirtualObject, ctx.key)
+						.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
+				}
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)

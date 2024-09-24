@@ -3,6 +3,7 @@ import { Item } from "dynamoose/dist/Item";
 import type { ExternalIntegrationState } from "../external/types";
 import type { Web2TextLead } from "../types";
 import type { UUID } from "node:crypto";
+import { ENV_PREFIX } from "./Environment";
 class LeadStateItem extends Item {
     SchemaVersion!: string;
     LeadId!: string;
@@ -13,7 +14,7 @@ class LeadStateItem extends Item {
     DateSubmitted!: Date;
     Integrations!: Record<string, ExternalIntegrationState>;
 }
-const LeadStateModelTableName = process.env["COPILOT_ENVIRONMENT_NAME"] === "production" ? "PROD_Web2Text_LeadStates" : "DEV_Web2Text_LeadStates";
+const LeadStateModelTableName = `${ENV_PREFIX}_Web2Text_LeadStates`;
 const DynamoDBLeadStateSchema = new dynamoose.Schema({
     SchemaVersion: {
         type: String,

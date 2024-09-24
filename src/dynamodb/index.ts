@@ -3,13 +3,14 @@ import { APIKeyModel } from "./APIKeyModel";
 import { LeadStateModel } from "./LeadStateModel";
 import { OptedOutNumberModel } from "./OptedOutNumberModel";
 import { logger } from "../logger";
+
 if (process.env.LOCAL_DYNAMODB_URL) {
 	// Use local DynamoDB instance
-	logger.child({label: "DynamoDB"}).info(
-		`Using local DynamoDB at '${process.env.LOCAL_DYNAMODB_URL}'`,{
-			DynamoDBURL: process.env.LOCAL_DYNAMODB_URL
-		}
-	);
+	logger
+		.child({ label: "DynamoDB" })
+		.info(`Using local DynamoDB at '${process.env.LOCAL_DYNAMODB_URL}'`, {
+			DynamoDBURL: process.env.LOCAL_DYNAMODB_URL,
+		});
 	dynamoose.aws.ddb.local(process.env.LOCAL_DYNAMODB_URL);
 	APIKeyModel.table();
 	new APIKeyModel({

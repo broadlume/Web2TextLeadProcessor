@@ -1,5 +1,6 @@
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
+import { ENV_PREFIX } from "./Environment";
 
 class APIKeyItem extends Item {
     API_Key!: string;
@@ -7,7 +8,7 @@ class APIKeyItem extends Item {
     Active!: boolean;
     Description?: string;
 }
-const APIKeyModelTableName = process.env["COPILOT_ENVIRONMENT_NAME"] === "production" ? "PROD_Web2Text_APIKeys" : "DEV_Web2Text_APIKeys";
+const APIKeyModelTableName = `${ENV_PREFIX}_Web2Text_APIKeys`;
 export const APIKeyModel = dynamoose.model<APIKeyItem>(APIKeyModelTableName,{
     API_Key: {
         type: String,

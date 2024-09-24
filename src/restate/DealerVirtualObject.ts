@@ -9,7 +9,7 @@ import parsePhoneNumber  from "libphonenumber-js";
 type LocationStatus = {
     NexusLocationId: string;
     Name?: string,
-    Address: string,
+    Address?: string,
     PhoneNumber?: string,
     Status: "VALID" | "INVALID" | "NONEXISTANT";
     Reason?: string;
@@ -62,7 +62,8 @@ export const DealerVirtualObject = restate.object({
                         NexusLocationId: location.id,
                         // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
                         Name: location.store_name == "" ? undefined : location.store_name,
-                        Address: location.street_address,
+                        // biome-ignore lint/suspicious/noDoubleEquals: <explanation>
+                        Address: location.street_address == "" ? undefined : location.street_address,
                         PhoneNumber: phoneNumber?.number,
                         ...locationStatus
                     }

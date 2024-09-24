@@ -128,12 +128,18 @@ export async function CheckLocationStatus(
 			Status: "NONEXISTANT",
 			Reason: "Could not find location with this Id in Nexus",
 		};
-	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number ?? "", "US");
+	if (location.Web2Text_Phone_Number == null || location.Web2Text_Phone_Number.trim() === "") {
+		return {
+			Status: "INVALID",
+			Reason: "Location does not have a Web2Text phone number associated in Nexus"
+		}
+	}
+	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number, "US");
 	if (locationPhone == null) {
 		return {
 			Status: "INVALID",
 			Reason:
-				"Location does not have a phone number associated in Nexus or phone number cannot be parsed",
+				`Location's phone number cannot be parsed: '${location.Web2Text_Phone_Number}'`,
 		};
 	}
 	const phoneNumberStatus = await CheckPhoneNumberStatus(

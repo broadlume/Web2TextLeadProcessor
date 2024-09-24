@@ -6,10 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Git checkout
+        uses: actions/checkout@v4
       - name: Build the stack
         run: docker compose -f docker-compose.yaml up --build --force-recreate -d
-
       - name: Execute tests in the running services
         run: |
           docker compose exec -T web2text-devcontainer bun run e2e

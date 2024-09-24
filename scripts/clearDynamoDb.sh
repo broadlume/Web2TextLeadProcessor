@@ -1,6 +1,12 @@
 #!/bin/bash
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <DEV|PROD|TEST>"
+    exit 1
+fi
 
-TABLE_NAMES=("Web2Text_APIKeys" "Web2Text_LeadStates")  # Replace with your DynamoDB table names
+ENV_PREFIX=$1
+
+TABLE_NAMES=("${ENV_PREFIX}_Web2Text_APIKeys" "${ENV_PREFIX}_Web2Text_LeadStates" "${ENV_PREFIX}_Web2Text_OptedOutNumbers")
 
 if [ -n "$LOCAL_DYNAMODB_URL" ]; then
   for TABLE_NAME in "${TABLE_NAMES[@]}"; do

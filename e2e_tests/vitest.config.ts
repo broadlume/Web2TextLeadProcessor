@@ -4,7 +4,7 @@ import path from 'node:path';
 config({path: path.resolve(__dirname,".env.test")})
 export default defineConfig({
     test: {
-      include: ["./tests/*"],
+      include: ["./tests/**/*"],
       setupFiles: ["dotenv/config","./setup.ts"],
       globalSetup: "./globalSetup.ts",
       pool: "forks",
@@ -24,6 +24,9 @@ export default defineConfig({
             enabled: false
           }
         }
+      },
+      sequence: {
+        "hooks": "list"
       },
       isolate: false,
       environment: "node",

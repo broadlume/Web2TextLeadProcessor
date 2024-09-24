@@ -16,39 +16,55 @@ import util from "node:util";
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
-globalThis.TWILIO_CLIENT = new Twilio(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
+globalThis.TWILIO_CLIENT = new Twilio(
+	process.env.TWILIO_ACCOUNT_SID,
+	process.env.TWILIO_AUTH_TOKEN,
+);
 // Create the Restate server to accept requests
 const restateLogger = _logger.child({
-	label: "Restate"
-})
-restate
+	label: "Restate",
+});
+export const RESTATE_SERVER = restate
 	.endpoint()
 	.setLogger((params, message, ...o) => {
-		const separated = [message, ...o].reduce((acc,m) => {
-			if (m instanceof Error) {
-				acc.errors.push(m);
-			}
-			else {
-				if (typeof m === "string") {
-					acc.messages.push(m);
+		const separated = [message, ...o].reduce(
+			(acc, m) => {
+				if (m instanceof Error) {
+					acc.errors.push(m);
+				} else {
+					if (typeof m === "string") {
+						acc.messages.push(m);
+					} else {
+						acc.messages.push(util.inspect(m, false, null, true));
+					}
 				}
-				else {
-					acc.messages.push(util.inspect(m,false,null,true));
-				}
-			}
-			return acc;
-		}, {messages: [], errors: []});
-		restateLogger.log(params.level, separated.messages.join(' '), {label: ["Restate",params.context?.fqMethodName, params.context?.invocationId], errors: separated.errors.map((e: Error) => ({...e, message: e.message, stack: e.stack})), ...params})
+				return acc;
+			},
+			{ messages: [], errors: [] },
+		);
+		restateLogger.log(params.level, separated.messages.join(" "), {
+			label: [
+				"Restate",
+				params.context?.fqMethodName,
+				params.context?.invocationId,
+			],
+			errors: separated.errors.map((e: Error) => ({
+				...e,
+				message: e.message,
+				stack: e.stack,
+			})),
+			...params,
+		});
 	})
 	.bind(LeadVirtualObject)
 	.bind(DealerVirtualObject)
-	.bind(TwilioWebhooks)
-	.listen(RESTATE_PORT);
+	.bind(TwilioWebhooks);
+RESTATE_SERVER.listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 
-const startupLogger = _logger.child({label: "Startup"});
-const shutdownLogger = _logger.child({label: "Shutdown"});
 if (process.env.NODE_ENV === "production") {
+	const startupLogger = _logger.child({ label: "Startup" });
+	const shutdownLogger = _logger.child({ label: "Shutdown" });
 	startupLogger.info(`Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);
 	RegisterThisServiceWithRestate(RESTATE_PORT)
 		.then((ipAddr) => {
@@ -69,7 +85,7 @@ if (process.env.NODE_ENV === "production") {
 		});
 
 	process.once("SIGTERM", async () => {
-		if (registeredRestateAddress) { 
+		if (registeredRestateAddress) {
 			await DeregisterThisServiceWithRestate(
 				registeredRestateAddress.address,
 				RESTATE_PORT,

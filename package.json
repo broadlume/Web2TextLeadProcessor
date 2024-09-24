@@ -15,6 +15,7 @@
     "clear-restate": "/app/scripts/clearRestate.sh Lead /app/scripts/clearRestate.sh Dealer",
     "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
     "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
+    "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
     "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.ts'"
   },
   "dependencies": {

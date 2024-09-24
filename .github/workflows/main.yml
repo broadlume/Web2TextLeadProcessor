@@ -6,11 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run docker-compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
-        with:
-          compose-file: "./docker-compose.prod.yaml"
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: docker compose -f docker-compose.yaml up --build --force-recreate
       - name: Execute tests in the running services
         run: |
           docker-compose exec web2text-devcontainer bun run e2e

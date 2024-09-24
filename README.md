@@ -60,6 +60,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
             - See the [docs](https://docs.restate.dev/operate/upgrading/)
 4. Select the environment to deploy to
 5. Wait for the command to finish
+    - This will also update the restate server with a new deployment automatically and (if possible and there are no inflight invocations) de-register the old deployment
 
 ## What is Restate
 [Restate](https://restate.dev/) is a framework that allows you to run functions as services durably and reliably and orchestrate between them.

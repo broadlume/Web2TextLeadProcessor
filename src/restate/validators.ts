@@ -64,7 +64,7 @@ export async function CheckAuthorization(
 	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(auth));
 	if (result.Status !== "VALID") {
 		throw new restate.TerminalError(result.Reason ?? "", {
-			errorCode: result.Status === "NONEXISTANT" ? 400 : 401,
+			errorCode: 401,
 		});
 	}
 }

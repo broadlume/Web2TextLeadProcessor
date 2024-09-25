@@ -87,7 +87,8 @@ export const LeadVirtualObject = restate.object({
 					ctx as unknown as restate.ObjectSharedContext,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
-				let SyncImmediately = false;
+				// Boolean flag for whether or not we should schedule a sync for the lead immediately after creation
+				let ShouldRunSync = false;
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
@@ -97,7 +98,7 @@ export const LeadVirtualObject = restate.object({
 					}));
 					// Validate the submitted lead
 					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
-					SyncImmediately = Lead.SyncImmediately ?? true;
+					ShouldRunSync = Lead.SyncImmediately ?? true;
 					// biome-ignore lint/performance/noDelete: <explanation>
 					delete Lead.SyncImmediately;
 
@@ -121,7 +122,7 @@ export const LeadVirtualObject = restate.object({
 					}));
 					throw e;
 				}
-				if (SyncImmediately) {
+				if (ShouldRunSync) {
 					// Schedule syncing the lead to external integrations
 					ctx
 						.objectSendClient(LeadVirtualObject, ctx.key)

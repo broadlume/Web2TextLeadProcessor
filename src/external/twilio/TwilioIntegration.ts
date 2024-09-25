@@ -297,7 +297,7 @@ export class TwilioIntegration
 			SyncStatus: "CLOSED",
 			Data: {
 				...state.Data!,
-				ConversationStatus: conversation.state,
+				ConversationStatus: newConversationState,
 			},
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};

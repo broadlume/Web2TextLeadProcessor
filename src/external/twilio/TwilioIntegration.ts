@@ -17,6 +17,7 @@ import {
 } from "./Web2TextMessagingStrings";
 import { FindConversationsFor } from "./TwilioConversationHelpers";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
+import { isProductionAndDeployed } from "../../util";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -28,6 +29,8 @@ export interface TwilioIntegrationState extends ExternalIntegrationState {
 export class TwilioIntegration
 	implements IExternalIntegration<TwilioIntegrationState>
 {
+	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed() ? "P14D" : "P1D";
+	readonly CONVERSATION_INACTIVE_TIMER = isProductionAndDeployed() ? "P7D" : undefined;
 	Name = "Twilio";
 	defaultState(): TwilioIntegrationState {
 		return {
@@ -97,8 +100,8 @@ export class TwilioIntegration
 						[leadState.Lead.PhoneNumber, storePhoneNumber],
 						{
 							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
-							"timers.inactive": "P7D",
-							"timers.closed": "P14D",
+							"timers.inactive": this.CONVERSATION_INACTIVE_TIMER,
+							"timers.closed": this.CONVERSATION_CLOSED_TIMER,
 							attributes: JSON.stringify({
 								LeadIDs: [leadState.LeadId],
 								DealerName: dealerInformation.name,

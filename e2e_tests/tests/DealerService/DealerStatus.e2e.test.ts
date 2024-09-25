@@ -210,7 +210,7 @@ describe("DealerStatus E2E Tests", () => {
 							Address: "123 Test St",
 							Status: "INVALID",
 							Reason:
-								"Location does not have a phone number associated in Nexus or phone number cannot be parsed",
+								"Location's phone number cannot be parsed: 'invalid'",
 						},
 					],
 				});

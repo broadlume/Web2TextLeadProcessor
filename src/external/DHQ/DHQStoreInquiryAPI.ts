@@ -306,7 +306,7 @@ export async function AddCommentToInquiry(
 		senderName = "System";
 	}
 	let messageBody = twilioMessage.body ?? "";
-	messageBody += twilioMessage.media.map(m => `\n[MEDIA ATTACHMENT - ${m.filename}]`).join("");
+	messageBody += (twilioMessage.media ?? []).map(m => `\n[MEDIA ATTACHMENT - ${m.filename}]`).join("");
 	const dhqComment: AddCommentRequest = {
 		comment: {
 			// Double any newline because DHQ doesn't render them correctly

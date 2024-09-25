@@ -159,8 +159,7 @@ export const LeadVirtualObject = restate.object({
 				for (const integration of integrations) {
 					// Set the default state if it doesn't exist
 					integrationStates[integration.Name] ??= integration.defaultState();
-					const state =
-						integrationStates[integration.Name];
+					const state = integrationStates[integration.Name];
 					// Don't sync closed integration
 					if (state.SyncStatus === "CLOSED") continue;
 					const shouldRunCreate =
@@ -182,6 +181,8 @@ export const LeadVirtualObject = restate.object({
 								Message: "An error occurred during sync",
 								Details: {
 									...e,
+									message: e.message,
+									stack: e.stack,
 								},
 							},
 						};
@@ -220,14 +221,18 @@ export const LeadVirtualObject = restate.object({
 				const integrations = Web2TextIntegrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
 				// Only set the close reason if it wasn't set already
-				const closeReason = await ctx.get("CloseReason") ?? req?.reason ?? "Not specified";
+				const closeReason =
+					(await ctx.get("CloseReason")) ?? req?.reason ?? "Not specified";
 				ctx.set("CloseReason", closeReason);
 				for (const integration of integrations) {
 					// Set the default state if it doesn't exist
 					integrationStates[integration.Name] ??= integration.defaultState();
-					const state =
-						integrationStates[integration.Name];
-					if (state.SyncStatus === "CLOSED" || state.SyncStatus === "NOT SYNCED") continue;
+					const state = integrationStates[integration.Name];
+					if (
+						state.SyncStatus === "CLOSED" ||
+						state.SyncStatus === "NOT SYNCED"
+					)
+						continue;
 					let newState: ExternalIntegrationState;
 					try {
 						newState = await integration.close(state, ctx);
@@ -240,6 +245,8 @@ export const LeadVirtualObject = restate.object({
 								Message: "An error occurred during close",
 								Details: {
 									...e,
+									message: e.message,
+									stack: e.stack,
 								},
 							},
 						};

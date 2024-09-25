@@ -130,12 +130,14 @@ export async function AttachNoteToLead(
 	if (attributes["SystemMessage"] === true) {
 		senderName = "System";
 	}
+	let messageBody = twilioMessage.body ?? "";
+	messageBody += twilioMessage.media.map(m => `\n[MEDIA ATTACHMENT - ${m.filename}]`).join("");
 	const note: RLMAttachNoteRequest = {
 		lead_uuid: RLMLeadUUID,
 		sender_name: senderName,
 		sender_phone: twilioMessage.author,
 		date: twilioMessage.dateCreated.toISOString(),
-		message: `\n\n${twilioMessage.body}\n`,
+		message: `\n\n${messageBody}\n`,
 	};
 
 	const rlmURL = new URL(process.env.RLM_API_URL);

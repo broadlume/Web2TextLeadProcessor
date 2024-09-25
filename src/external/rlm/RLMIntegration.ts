@@ -47,7 +47,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 		if (rlm_api_key == null) {
 			return {
 				...this.defaultState(),
-				Info: {
+				ErrorInfo: {
 					Message: "RLM API Key is missing",
 				},
 			};
@@ -73,7 +73,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 			return {
 				...state,
 				SyncStatus: "ERROR",
-				Info: {
+				ErrorInfo: {
 					Message: "Error with RLM lead endpoint",
 					Details: {
 						response: response,
@@ -104,7 +104,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 			return {
 				...state,
 				SyncStatus: "ERROR",
-				Info: {
+				ErrorInfo: {
 					Message: `Twilio integration is not in correct state 'SYNCED' to sync RLM. Current Twilio state is '${twilioIntegration?.SyncStatus}'`,
 				},
 			};
@@ -148,7 +148,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 						...state.Data!,
 						SyncedMessageIds: Array.from(syncedMessageIds),
 					},
-					Info: {
+					ErrorInfo: {
 						Message: `Error with RLM note endpoint syncing message '${message.sid}'`,
 						Details: {
 							message: message.toJSON(),

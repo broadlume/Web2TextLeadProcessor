@@ -6,7 +6,7 @@ export const ExternalIntegrationStateSchema = z.object({
 	SyncStatus: z.enum(["NOT SYNCED", "SYNCING", "SYNCED", "ERROR", "CLOSED"]),
 	Data: z.any().optional(),
 	LastSynced: z.string().datetime().optional(),
-	Info: z.object({
+	ErrorInfo: z.object({
 		Message: z.string(),
 		Details: z.any().optional()
 	}).optional()

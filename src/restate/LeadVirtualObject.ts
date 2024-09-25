@@ -178,11 +178,16 @@ export const LeadVirtualObject = restate.object({
 						newState = {
 							...state,
 							SyncStatus: "ERROR",
-							Info: {
+							ErrorInfo: {
 								Message: "An error occurred during sync",
 								Details: serializeError(e),
 							},
 						};
+					}
+					// Delete Error info if there is no error
+					if (newState.SyncStatus !== "ERROR") {
+						// biome-ignore lint/performance/noDelete: <explanation>
+						delete newState.ErrorInfo;
 					}
 					integrationStates[integration.Name] = newState;
 					ctx.set("Integrations", integrationStates);
@@ -238,11 +243,16 @@ export const LeadVirtualObject = restate.object({
 						newState = {
 							...state,
 							SyncStatus: "ERROR",
-							Info: {
+							ErrorInfo: {
 								Message: "An error occurred during close",
 								Details: serializeError(e),
 							},
 						};
+					}
+					// Delete Error info if there is no error
+					if (newState.SyncStatus !== "ERROR") {
+						// biome-ignore lint/performance/noDelete: <explanation>
+						delete newState.ErrorInfo;
 					}
 					integrationStates[integration.Name] = newState;
 					ctx.set("Integrations", integrationStates);

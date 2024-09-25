@@ -45,7 +45,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 			return {
 				...state,
 				SyncStatus: "ERROR",
-				Info: {
+				ErrorInfo: {
 					Message: `Store '${leadState.LocationId}' does not exist in Nexus API`,
 				},
 			};
@@ -65,7 +65,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 			return {
 				...state,
 				SyncStatus: "ERROR",
-				Info: {
+				ErrorInfo: {
 					Message: "Error with DHQ lead submit endpoint",
 					Details: {
 						response: response,
@@ -95,7 +95,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 			return {
 				...state,
 				SyncStatus: "ERROR",
-				Info: {
+				ErrorInfo: {
 					Message: `Twilio integration is not in correct state 'SYNCED' to sync DHQ. Current Twilio state is '${twilioIntegration?.SyncStatus}'`,
 				},
 			};
@@ -139,7 +139,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 						...state.Data!,
 						SyncedMessageIds: Array.from(syncedMessageIds),
 					},
-					Info: {
+					ErrorInfo: {
 						Message: `Error with DHQ comment endpoint syncing message '${message.sid}'`,
 						Details: {
 							message: message.toJSON(),

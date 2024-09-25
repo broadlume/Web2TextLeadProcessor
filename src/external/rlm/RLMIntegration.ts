@@ -46,7 +46,8 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 			process.env["RLM_API_KEY_OVERRIDE"] ?? retailer?.rlm_api_key;
 		if (rlm_api_key == null) {
 			return {
-				...this.defaultState(),
+				...state,
+                SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: "RLM API Key is missing",
 				},

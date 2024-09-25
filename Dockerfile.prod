@@ -54,4 +54,4 @@ COPY .env.prod .env
 # run the app
 EXPOSE 9080/tcp
 ENV NODE_ENV=production
-ENTRYPOINT ["node", "./dist/app.js"]
+ENTRYPOINT ["node","--enable-source-maps","./dist/app.js"]

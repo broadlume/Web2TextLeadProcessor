@@ -6,7 +6,6 @@ import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 import * as TwilioProxyAPI from "./TwilioProxyAPI";
 import {
 	type E164Number,
-	isPossiblePhoneNumber,
 	parsePhoneNumber,
 } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";

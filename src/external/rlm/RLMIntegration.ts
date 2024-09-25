@@ -65,7 +65,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
                 ...state,
                 SyncStatus: "ERROR",
                 Info: {
-                    Message: "Twilio integration is not in correct state 'SYNCED' to sync RLM"
+                    Message: `Twilio integration is not in correct state 'SYNCED' to sync RLM. Current Twilio state is '${twilioIntegration?.SyncStatus}'`
                 }
             }
         }
@@ -115,7 +115,10 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
         }
     }
     async close(state: RLMIntegrationState, context: restate.ObjectSharedContext<Web2TextLead>): Promise<RLMIntegrationState> {
-        return state;
+        return {
+            ...state,
+            SyncStatus: "CLOSED"
+        };
     }
 
 }

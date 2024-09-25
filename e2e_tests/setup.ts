@@ -46,6 +46,14 @@ beforeAll(async () => {
 	vi.mock("../src/restate/common",() => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {})
 	}));
+	vi.mock("../src/external", () => ({
+		Web2TextIntegrations: [{
+			defaultState: vi.fn().mockImplementation(() => ({SyncStatus: "NOT SYNCED"})),
+			create: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "SYNCED"})),
+			sync: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "SYNCED"})),
+			close: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "CLOSED"}))
+		}]
+	}));
 	globalThis.ranSetup = true;
 });
 

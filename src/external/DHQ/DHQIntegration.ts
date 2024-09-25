@@ -65,7 +65,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
                 ...state,
                 SyncStatus: "ERROR",
                 Info: {
-                    Message: "Twilio integration is not in correct state 'SYNCED' to sync DHQ"
+                    Message: `Twilio integration is not in correct state 'SYNCED' to sync DHQ. Current Twilio state is '${twilioIntegration?.SyncStatus}'`
                 }
             }
         }
@@ -115,7 +115,10 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
         }
     }
     async close(state: DHQIntegrationState, context: ObjectSharedContext<Web2TextLead>): Promise<DHQIntegrationState> {
-        return state;
+        return {
+            ...state,
+            SyncStatus: "CLOSED"
+        };
     }
 
 }

@@ -2,10 +2,7 @@ import * as restate from "@restatedev/restate-sdk";
 import type { UUID } from "node:crypto";
 import { Web2TextIntegrations } from "../external";
 import { type LeadState, SyncWithDB } from "./common";
-import {
-	ParseAndVerifyLeadCreation,
-	CheckAuthorization,
-} from "./validators";
+import { ParseAndVerifyLeadCreation, CheckAuthorization } from "./validators";
 import { z } from "zod";
 import type { ExternalIntegrationState } from "../external/types";
 import { assert, is } from "tsafe";
@@ -160,8 +157,12 @@ export const LeadVirtualObject = restate.object({
 
 				// Run create/sync method on each integration
 				for (const integration of integrations) {
+					// Set the default state if it doesn't exist
+					integrationStates[integration.Name] ??= integration.defaultState();
 					const state =
-						integrationStates[integration.Name] ?? integration.defaultState();
+						integrationStates[integration.Name];
+					// Don't sync closed integration
+					if (state.SyncStatus === "CLOSED") continue;
 					const shouldRunCreate =
 						state.SyncStatus === "NOT SYNCED" ||
 						(state.SyncStatus === "ERROR" && state.LastSynced == null);
@@ -213,18 +214,20 @@ export const LeadVirtualObject = restate.object({
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				// Run pre-handler setup
-				await setup(ctx, ["ACTIVE", "SYNCING"]);
+				await setup(ctx, ["ACTIVE", "SYNCING", "CLOSED"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
 				// Iterate through all integrations and call their close handlers
 				const integrations = Web2TextIntegrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
-				ctx.set("CloseReason", req?.reason ?? "Not specified");
+				// Only set the close reason if it wasn't set already
+				const closeReason = await ctx.get("CloseReason") ?? req?.reason ?? "Not specified";
+				ctx.set("CloseReason", closeReason);
 				for (const integration of integrations) {
+					// Set the default state if it doesn't exist
+					integrationStates[integration.Name] ??= integration.defaultState();
 					const state =
-						integrationStates[integration.Name] ?? integration.defaultState();
-					integrationStates[integration.Name] = state;
-					ctx.set("Integrations", integrationStates);
-					await SyncWithDB(ctx, "SEND");
+						integrationStates[integration.Name];
+					if (state.SyncStatus === "CLOSED" || state.SyncStatus === "NOT SYNCED") continue;
 					let newState: ExternalIntegrationState;
 					try {
 						newState = await integration.close(state, ctx);

@@ -1,7 +1,7 @@
 import nock from "nock";
 import { supertest, TEST_API_KEY } from "../../setup";
 import { v4 as uuidv4 } from "uuid";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { findNumbers } from "libphonenumber-js";
 const leadId = uuidv4();
@@ -18,6 +18,7 @@ const testLead = {
 	},
 	SyncImmediately: false,
 };
+
 
 describe("Lead Close E2E Tests", () => {
 	beforeEach(() => {
@@ -128,6 +129,40 @@ describe("Lead Close E2E Tests", () => {
 			CloseReason: "Test close reason",
 		});
 	});
+	it("should successfully close integrations on lead close", async () => {
+		// Create a lead first
+		await supertest
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
+			.auth(TEST_API_KEY, { type: "bearer" })
+			.send(testLead)
+			.expect(200);
+
+		// Sync the lead
+		await supertest
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/sync`)
+			.auth(TEST_API_KEY, { type: "bearer" })
+			.expect(200);
+
+		// Close the lead
+		const closeResponse = await supertest
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
+			.auth(TEST_API_KEY, { type: "bearer" })
+			.send({ reason: "Test close reason" })
+			.expect(200);
+
+		expect(closeResponse.body).toMatchObject({
+			LeadId: leadId,
+			Status: "CLOSED",
+			CloseReason: "Test close reason",
+		});
+		expect(closeResponse.body).to.have.property("Integrations");
+		expect(Object.keys(closeResponse.body.Integrations).length === 1);
+		for (const [integration,state] of Object.entries(closeResponse.body.Integrations)) {
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			expect((state as any).SyncStatus === "CLOSED");
+		}
+		
+	})
 
 	it("should return 409 when trying to close a non-existent lead", async () => {
 		const nonExistentLeadId = uuidv4();
@@ -138,7 +173,7 @@ describe("Lead Close E2E Tests", () => {
 			.expect(409);
 	});
 
-	it("should return 409 when trying to close an already closed lead", async () => {
+	it("should return the same response trying to close an already closed lead", async () => {
 		// Create and close a lead
 		const createResponse = await supertest
 			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
@@ -146,17 +181,19 @@ describe("Lead Close E2E Tests", () => {
 			.send(testLead)
 			.expect(200);
 
-		await supertest
+		const response1 = await supertest
 			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "First close" })
 			.expect(200);
 
 		// Try to close it again
-		await supertest
+		const response2 = await supertest
 			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Second close attempt" })
-			.expect(409);
+			.expect(200);
+		
+		expect(response2.body).to.deep.equal(response1.body,"Close responses aren't the same");
 	});
 });

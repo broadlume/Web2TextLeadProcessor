@@ -294,7 +294,7 @@ export class TwilioIntegration
 		}
 		return {
 			...state,
-			SyncStatus: "SYNCED",
+			SyncStatus: "CLOSED",
 			Data: {
 				...state.Data!,
 				ConversationStatus: conversation.state,

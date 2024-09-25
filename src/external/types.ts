@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Web2TextLead } from "../types";
 
 export const ExternalIntegrationStateSchema = z.object({
-	SyncStatus: z.enum(["NOT SYNCED", "SYNCING", "SYNCED", "ERROR"]),
+	SyncStatus: z.enum(["NOT SYNCED", "SYNCING", "SYNCED", "ERROR", "CLOSED"]),
 	Data: z.any().optional(),
 	LastSynced: z.string().datetime().optional(),
 	Info: z.object({

@@ -86,3 +86,7 @@ A. Web2Text will create two leads and two Twilio conversations
 Q. A retailer has two locations, both have the same phone number assigned to them. One user submits a lead to one location, and another submits it to the other location
 
 A. Web2Text will open two leads with the same Twilio conversation ID
+
+Q. A location has open Web2Text leads and changes it's phone number in Nexus/Salesforce
+
+A. Old Web2Text leads will continue to go to the old phone number, while new ones will go to the new phone number

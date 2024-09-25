@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { ExternalIntegrationState } from "../external/types";
 import { assert, is } from "tsafe";
 import type { Web2TextLead } from "../types";
+import { serializeError } from "serialize-error";
 
 /**
  * Helper function that runs before all of our exclusive handlers
@@ -32,7 +33,7 @@ async function setup(
 	} catch (e) {
 		await ctx.update((_) => ({
 			Status: "ERROR",
-			Error: (e as Error).message,
+			Error: serializeError(e),
 		}));
 		throw e;
 	}
@@ -115,7 +116,7 @@ export const LeadVirtualObject = restate.object({
 					await ctx.update((state) => ({
 						...state,
 						Status: "ERROR",
-						Error: (e as Error).message,
+						Error: serializeError(e),
 					}));
 					throw e;
 				}
@@ -179,11 +180,7 @@ export const LeadVirtualObject = restate.object({
 							SyncStatus: "ERROR",
 							Info: {
 								Message: "An error occurred during sync",
-								Details: {
-									...e,
-									message: e.message,
-									stack: e.stack,
-								},
+								Details: serializeError(e),
 							},
 						};
 					}
@@ -243,11 +240,7 @@ export const LeadVirtualObject = restate.object({
 							SyncStatus: "ERROR",
 							Info: {
 								Message: "An error occurred during close",
-								Details: {
-									...e,
-									message: e.message,
-									stack: e.stack,
-								},
+								Details: serializeError(e),
 							},
 						};
 					}

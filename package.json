@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --noEmitOnError",
     "prebundle": "rm -rf dist",
-    "bundle": "esbuild src/app.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/app.js",
+    "bundle": "esbuild src/app.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outfile=dist/app.js",
     "app": "NODE_ENV=production node ./dist/app.js",
     "app-dev": "tsx watch ./src/app.ts --inspect=9229",
     "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
@@ -27,6 +27,7 @@
     "dynamoose": "^4.0.1",
     "ky": "^1.7.2",
     "libphonenumber-js": "^1.11.4",
+    "serialize-error": "^11.0.3",
     "tsafe": "^1.7.2",
     "twilio": "^5.2.0",
     "winston": "^3.14.2",

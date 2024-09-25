@@ -15,7 +15,7 @@ export const LeadStateSchema = z.discriminatedUnion("Status", [
 	Web2TextLeadSchema,
 	z.object({
 		Status: z.literal("ERROR"),
-		Error: z.string(),
+		Error: z.any(),
 		Request: z.unknown(),
 	}),
 ]);

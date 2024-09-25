@@ -13,6 +13,7 @@ import { DealerVirtualObject } from "./restate/DealerVirtualObject";
 import { Twilio } from "twilio";
 import { logger as _logger } from "./logger";
 import util from "node:util";
+import { serializeError } from "serialize-error";
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -48,11 +49,7 @@ export const RESTATE_SERVER = restate
 				params.context?.fqMethodName,
 				params.context?.invocationId,
 			],
-			errors: separated.errors.map((e: Error) => ({
-				...e,
-				message: e.message,
-				stack: e.stack,
-			})),
+			errors: separated.errors.map((e: Error) => (serializeError(e))),
 			...params,
 		});
 	})

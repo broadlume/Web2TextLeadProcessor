@@ -9,9 +9,9 @@ import type * as restate from "@restatedev/restate-sdk";
 import "dotenv/config";
 import nock from "nock";
 import {RestateAdminDeploymentAPI} from "../src/external/restate";
-import { DEALER_SERVICE_NAME, LEAD_SERVICE_NAME } from "./globalSetup";
+import { ADMIN_SERVICE_NAME, DEALER_SERVICE_NAME, LEAD_SERVICE_NAME } from "./globalSetup";
 import { DealerVirtualObject } from "../src/restate/DealerVirtualObject";
-import { SyncWithDB } from "../src/restate/common";
+import { AdminService } from "../src/restate/AdminService";
 export const RESTATE_INGEST_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!).hostname}:8080/`;
 export const supertest = request(RESTATE_INGEST_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -28,6 +28,7 @@ beforeAll(async () => {
 			API_Key: TEST_API_KEY,
 			Active: true,
 			DateCreated: new Date().toISOString(),
+			AuthorizedEndpoints: ["*"],
 			Description: "E2E Test API Key",
 		},
 		{ overwrite: true },
@@ -36,6 +37,7 @@ beforeAll(async () => {
 	// Overwrite the service name with our own testing service name so we don't interfere with any other services running
 	Object.assign(LeadVirtualObject, { name: LEAD_SERVICE_NAME });
 	Object.assign(DealerVirtualObject, { name: DEALER_SERVICE_NAME });
+	Object.assign(AdminService, { name: ADMIN_SERVICE_NAME });
 
 	// Setup restate handler
 	TEST_SERVER = (await import("../src/app")).RESTATE_SERVER;
@@ -48,10 +50,10 @@ beforeAll(async () => {
 	}));
 	vi.mock("../src/external", () => ({
 		Web2TextIntegrations: [{
-			defaultState: vi.fn().mockImplementation(() => ({SyncStatus: "NOT SYNCED"})),
-			create: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "SYNCED"})),
-			sync: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "SYNCED"})),
-			close: vi.fn().mockImplementation((state) => ({...state,SyncStatus: "CLOSED"}))
+			defaultState: () => ({SyncStatus: "NOT SYNCED"}),
+			create: (state) => ({...state,SyncStatus: "SYNCED"}),
+			sync: (state) => ({...state,SyncStatus: "SYNCED"}),
+			close: (state) => ({...state,SyncStatus: "CLOSED"})
 		}]
 	}));
 	globalThis.ranSetup = true;
@@ -66,7 +68,7 @@ beforeEach(async () => {
 	});
 	nock.disableNetConnect();
 	nock.enableNetConnect(host => {
-		const allowedHosts = [LEAD_SERVICE_NAME,DEALER_SERVICE_NAME,"127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,new URL(process.env.RESTATE_ADMIN_URL!).hostname];
+		const allowedHosts = [LEAD_SERVICE_NAME,DEALER_SERVICE_NAME,ADMIN_SERVICE_NAME,"127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,new URL(process.env.RESTATE_ADMIN_URL!).hostname];
 		return allowedHosts.find(allowedHost => host.toLowerCase().includes(allowedHost.toLowerCase())) != null;
 	});
 	

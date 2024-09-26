@@ -6,19 +6,26 @@ import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 import { assert, is } from "tsafe";
 import type { Scan } from "dynamoose/dist/ItemRetriever";
-const NonEmptyObjectSchema = z.object({}).passthrough().refine(obj => Object.keys(obj).length > 0, {
-  message: "Object must not be empty",
-});
+import type { Web2TextLead } from "../types";
+const NonEmptyObjectSchema = z
+	.object({})
+	.passthrough()
+	.refine((obj) => Object.keys(obj).length > 0, {
+		message: "Object must not be empty",
+	});
 
-const BulkEndpointRequestSchema = z.object({
-	Operation: z.enum(["SYNC", "CLOSE"]),
-	Filter: z.union([z.enum(["*"]),NonEmptyObjectSchema]),
-	Verbose: z.boolean().optional().default(false)
-});
+const BulkEndpointRequestSchema = z.discriminatedUnion("Operation", [
+	z.object({
+		Operation: z.enum(["SYNC", "CLOSE", "FIND"]),
+		Reason: z.string().optional(),
+		Filter: z.union([z.enum(["*"]), NonEmptyObjectSchema]),
+		Verbose: z.boolean().optional().default(false),
+	}),
+]);
 type BulkEndpointResponse = {
 	Success: true;
 	Count: number;
-	LeadIds?: string[];
+	Leads?: string[] | Web2TextLead[];
 };
 export const AdminService = restate.service({
 	name: "Admin",
@@ -28,10 +35,14 @@ export const AdminService = restate.service({
 		 */
 		bulk: restate.handlers.handler(
 			{},
-			async (ctx: restate.Context, request: Record<string,string>): Promise<BulkEndpointResponse> => {
+			async (
+				ctx: restate.Context,
+				request: Record<string, string>,
+			): Promise<BulkEndpointResponse> => {
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
+					`${AdminService.name}/bulk`,
 					ctx.request().headers.get("authorization") ?? request?.["API_KEY"],
 				);
 				const parsed = await BulkEndpointRequestSchema.safeParse(request);
@@ -47,21 +58,22 @@ export const AdminService = restate.service({
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;
-				const leads = await ctx.run(
-					"Scan LeadStates in DynamoDB",
-					async () => {
-						// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-						let scan: Scan<any>
-						try {
-							scan =  LeadStateModel.scan(filter);
-						} catch (err) {
-							assert(is<Error>(err));
-							throw new restate.TerminalError(
-								`Error parsing Filter parameter - ${err.message}`,
-								{ errorCode: 400, cause: err },
-							);
-						}
-						return await scan.attributes(["LeadId"])
+				const leads = await ctx.run("Scan LeadStates in DynamoDB", async () => {
+					// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+					let scan: Scan<any>;
+					try {
+						scan = LeadStateModel.scan(filter);
+					} catch (err) {
+						assert(is<Error>(err));
+						throw new restate.TerminalError(
+							`Error parsing Filter parameter - ${err.message}`,
+							{ errorCode: 400, cause: err },
+						);
+					}
+					if (!parsed.data.Verbose) {
+						scan = scan.attributes(["LeadId"])
+					}
+					return await scan
 						.all()
 						.exec()
 						.catch((err) => {
@@ -69,35 +81,47 @@ export const AdminService = restate.service({
 								"Error scanning LeadState table",
 								{ errorCode: 500, cause: err },
 							);
-						})
-					}
-
-				);
-				for (const lead of leads) {
-					const leadId = lead.LeadId;
-					switch (parsed.data.Operation) {
-						case "CLOSE":
+						});
+				});
+				switch (parsed.data.Operation) {
+					case "CLOSE":
+						for (const lead of leads) {
+							const leadId = lead.LeadId;
 							ctx.objectSendClient(LeadVirtualObject, leadId).close({
-								reason: "Closed via bulk endpoint",
+								reason: parsed.data.Reason ?? "Closed by Administrator",
 								API_KEY: process.env.INTERNAL_API_TOKEN,
 							});
-							break;
-						case "SYNC":
-							ctx
-								.objectSendClient(LeadVirtualObject, leadId)
-								.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
-							break;
-						default:
-							throw new restate.TerminalError(
-								`Invalid operation: '${parsed.data.Operation}'`,
-							);
-					}
+						}
+
+						break;
+					case "SYNC":
+						for (const lead of leads) {
+							const leadId = lead.LeadId;
+							ctx.objectSendClient(LeadVirtualObject, leadId).sync({
+								API_KEY: process.env.INTERNAL_API_TOKEN,
+							});
+						}
+						break;
+					case "FIND":
+						break;
+					default:
+						throw new restate.TerminalError(
+							`Invalid operation: '${parsed.data.Operation}'`,
+						);
+				}
+				
+				if (parsed.data.Verbose) {
+					return {
+						Success: true,
+						Count: leads.length,
+						Leads: leads,
+					};
 				}
 				return {
 					Success: true,
 					Count: leads.length,
-					LeadIds: parsed.data.Verbose ? leads.map(l => l.LeadId) : undefined
-				}
+					Leads: leads.map((l) => l.LeadId),
+				};
 			},
 		),
 	},

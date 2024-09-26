@@ -63,6 +63,7 @@ export const LeadVirtualObject = restate.object({
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
+					`${LeadVirtualObject.name}/status`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				const state = await ctx.getAll();
@@ -83,6 +84,7 @@ export const LeadVirtualObject = restate.object({
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
+					`${LeadVirtualObject.name}/create`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				// Boolean flag for whether or not we should schedule a sync for the lead immediately after creation
@@ -144,6 +146,7 @@ export const LeadVirtualObject = restate.object({
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
+					`${LeadVirtualObject.name}/sync`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				// Run pre-handler setup
@@ -214,6 +217,7 @@ export const LeadVirtualObject = restate.object({
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
+					`${LeadVirtualObject.name}/close`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				// Run pre-handler setup

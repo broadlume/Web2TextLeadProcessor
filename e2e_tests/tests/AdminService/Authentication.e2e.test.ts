@@ -2,60 +2,56 @@ import { describe, test } from "vitest";
 import { randomUUID } from "node:crypto";
 import { supertest, TEST_API_KEY } from "../../setup";
 import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
-import { DEALER_SERVICE_NAME } from "../../globalSetup";
-describe("Dealer Service Authentication", () => {
-	for (const endpoint of ["status"]) {
+import {
+	ADMIN_SERVICE_NAME,
+} from "../../globalSetup";
+describe("Admin Service Authentication", () => {
+	for (const endpoint of ["bulk"]) {
 		test(`${endpoint}: should require authentication header`, async () => {
-			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.expect(401);
 		});
 		test(`${endpoint} should not allow invalid API keys`, async () => {
-			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.auth(randomUUID(), { type: "bearer" })
 				.expect(401);
 		});
 		test(`${endpoint} should not allow malformed Authentication headers`, async () => {
-			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.auth("username", "password")
 				.expect(401);
 		});
 		test(`${endpoint} should allow valid API keys`, async () => {
-			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.auth(TEST_API_KEY, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
 		test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
-			const universalRetailerId = randomUUID();
 			const apiKey = await APIKeyModel.create(
 				{
 					API_Key: randomUUID(),
 					Active: true,
 					DateCreated: new Date().toISOString(),
-					AuthorizedEndpoints: [`${DEALER_SERVICE_NAME}/${endpoint}`],
+					AuthorizedEndpoints: [`${ADMIN_SERVICE_NAME}/${endpoint}`],
 					Description: `E2E Test API Key for ${endpoint}`,
 				},
 				{ overwrite: true },
 			);
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
 		test(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
-			const universalRetailerId = randomUUID();
 			const apiKey = await APIKeyModel.create(
 				{
 					API_Key: randomUUID(),
@@ -67,7 +63,7 @@ describe("Dealer Service Authentication", () => {
 				{ overwrite: true },
 			);
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
+				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status === 401);

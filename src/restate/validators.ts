@@ -14,16 +14,17 @@ import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 import type { E164Number } from "libphonenumber-js";
 import parsePhoneNumber from "libphonenumber-js";
 import type { Twilio } from "twilio";
-
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
 };
+
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
  */
 export async function CheckAPIKeyStatus(
+	endpoint: string,
 	auth: string | undefined,
 ): Promise<ValidationStatus> {
 	if (auth == null) {
@@ -54,14 +55,16 @@ export async function CheckAPIKeyStatus(
 			Reason: "API Key doesn't exist or has been marked inactive",
 		};
 	}
-	return { Status: "VALID" };
+	if (apiKey.AuthorizedEndpoints.includes("*") || apiKey.AuthorizedEndpoints.includes(endpoint)) return {Status: "VALID"};
+	return { Status: "INVALID", Reason: `API Key does not have authorization for '${endpoint}'` };
 }
 
 export async function CheckAuthorization(
 	ctx: restate.Context,
+	endpoint: string,
 	auth: string | undefined,
 ) {
-	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(auth));
+	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(endpoint,auth));
 	if (result.Status !== "VALID") {
 		throw new restate.TerminalError(result.Reason ?? "", {
 			errorCode: 401,

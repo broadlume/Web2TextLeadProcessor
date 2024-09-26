@@ -17,6 +17,7 @@ if (process.env.LOCAL_DYNAMODB_URL) {
 		API_Key: process.env["INTERNAL_API_TOKEN"],
 		Active: true,
 		DateCreated: new Date().toISOString(),
+		AuthorizedEndpoints: ["*"],
 		Description: "Internal development API key",
 	}).save();
 	LeadStateModel.table();

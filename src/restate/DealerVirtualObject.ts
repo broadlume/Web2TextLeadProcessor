@@ -38,6 +38,7 @@ export const DealerVirtualObject = restate.object({
 				// Validate the API key
 				await CheckAuthorization(
 					ctx,
+                    `${DealerVirtualObject.name}/status`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);
 				const universalRetailerId = ctx.key;

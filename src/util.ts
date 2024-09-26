@@ -11,7 +11,7 @@ export function GetRunningEnvironment(): {
 	environment: ValidEnvironment;
 } {
 	return {
-		local: process.env.COPILOT_ENVIRONMENT_NAME != null,
+		local: process.env.COPILOT_ENVIRONMENT_NAME == null,
 		environment: (process.env.COPILOT_ENVIRONMENT_NAME ??
 			process.env.NODE_ENV ?? "development") as ValidEnvironment,
 	};
@@ -20,4 +20,7 @@ export function GetRunningEnvironment(): {
 export function isProductionAndDeployed(): boolean {
     const env = GetRunningEnvironment();
     return env.environment === "production" && env.local === false;
+}
+export function isDeployed(): boolean {
+	return GetRunningEnvironment().local === false;
 }

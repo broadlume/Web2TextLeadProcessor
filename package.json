@@ -5,7 +5,7 @@
   "main": "app.js",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc --noEmitOnError",
+    "check": "tsc --noEmitOnError",
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outfile=dist/app.js",
     "app": "NODE_ENV=production node ./dist/app.js",

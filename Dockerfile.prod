@@ -36,7 +36,7 @@ COPY . .
 # tests & build
 ENV NODE_ENV=production
 COPY .env.prod .env
-RUN bun run build && bun run bundle
+RUN bun run check && bun run bundle
 
 # copy production dependencies and source code into final image
 FROM node:slim AS release

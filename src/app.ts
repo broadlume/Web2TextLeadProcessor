@@ -14,6 +14,7 @@ import { Twilio } from "twilio";
 import { logger as _logger } from "./logger";
 import util from "node:util";
 import { serializeError } from "serialize-error";
+import { AdminService } from "./restate/AdminService";
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -55,6 +56,7 @@ export const RESTATE_SERVER = restate
 	})
 	.bind(LeadVirtualObject)
 	.bind(DealerVirtualObject)
+	.bind(AdminService)
 	.bind(TwilioWebhooks);
 RESTATE_SERVER.listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;

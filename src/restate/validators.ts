@@ -58,7 +58,7 @@ export async function CheckAPIKeyStatus(
 }
 
 export async function CheckAuthorization(
-	ctx: restate.ObjectSharedContext,
+	ctx: restate.Context,
 	auth: string | undefined,
 ) {
 	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(auth));

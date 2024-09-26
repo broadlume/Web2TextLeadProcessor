@@ -17,7 +17,7 @@ interface TwilioWebhookBody {
 	ClientIdentity: string;
 }
 
-type TwilioMessageWebhookBody = TwilioWebhookBody & {
+type TwilioConversationMessageWebhookBody = TwilioWebhookBody & {
 	Author: string;
 	Body: string;
 	MessageSid: string;
@@ -40,14 +40,13 @@ interface TwilioMessagingServiceBody {
 function ValidateTwilioRequest(
 	twilioHeader: string | undefined,
 	data: object,
-	leadId: string,
 	endpoint: string,
 ) {
 	if (twilioHeader == null) {
 		throw new restate.TerminalError("Twilio auth header missing");
 	}
 	const thisUrl = new URL(
-		`${TwilioWebhooks.name}/${leadId}/${endpoint}`,
+		`${TwilioWebhooks.name}/${endpoint}`,
 		process.env.RESTATE_ADMIN_URL,
 	);
 	thisUrl.port = "";
@@ -62,59 +61,62 @@ function ValidateTwilioRequest(
 		throw new restate.TerminalError("Twilio request validation failed");
 	}
 }
-export const TwilioWebhooks = restate.object({
+export const TwilioWebhooks = restate.service({
 	name: "TwilioWebhooks",
 	handlers: {
-		sync: restate.handlers.object.exclusive(
+		sync: restate.handlers.handler(
 			{
 				input: new FormUrlEncodedSerde(),
 			},
-			async (ctx: restate.ObjectContext, data: object) => {
+			async (ctx: restate.Context, data: object) => {
 				const twilioHeader =
 					ctx.request().headers.get("x-twilio-signature") ??
 					ctx.request().headers.get("X-Twilio-Signature");
-				ValidateTwilioRequest(twilioHeader, data, ctx.key, "sync");
-				ctx
-					.objectSendClient(LeadVirtualObject, ctx.key)
+				ValidateTwilioRequest(twilioHeader, data, "sync");
+				assert(is<TwilioConversationMessageWebhookBody>(data));
+				const conversation = await ctx.run("Fetch Twilio conversation", async () => await TWILIO_CLIENT.conversations.v1.conversations(data.ConversationSid).fetch());
+				const attributes = JSON.parse(conversation.attributes ?? "{}");
+				const leadIds = attributes["LeadIds"] ?? [];
+				for (const leadId of leadIds) {
+					ctx
+					.objectSendClient(LeadVirtualObject, leadId)
 					.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
+				}
+
 			},
 		),
-		close: restate.handlers.object.exclusive(
+		close: restate.handlers.handler(
 			{
 				input: new FormUrlEncodedSerde(),
 			},
-			async (ctx: restate.ObjectContext, data: object) => {
+			async (ctx: restate.Context, data: object) => {
 				const twilioHeader =
-					ctx.request().headers.get("x-twilio-signature") ??
-					ctx.request().headers.get("X-Twilio-Signature");
-				ValidateTwilioRequest(twilioHeader, data, ctx.key, "close");
-				assert(is<TwilioConversationStateUpdatedWebhookBody>(data));
-				if (data.StateTo !== "closed") {
-					return;
-				}
-				ctx.objectSendClient(LeadVirtualObject, ctx.key).close({
-					reason: "Inactivity",
-					API_KEY: process.env.INTERNAL_API_TOKEN,
-				});
+				ctx.request().headers.get("x-twilio-signature") ??
+				ctx.request().headers.get("X-Twilio-Signature");
+			ValidateTwilioRequest(twilioHeader, data, "close");
+			assert(is<TwilioConversationStateUpdatedWebhookBody>(data));
+			const conversation = await ctx.run("Fetch Twilio conversation", async () => await TWILIO_CLIENT.conversations.v1.conversations(data.ConversationSid).fetch());
+			const attributes = JSON.parse(conversation.attributes ?? "{}");
+			const leadIds = attributes["LeadIds"] ?? [];
+			for (const leadId of leadIds) {
+				ctx
+				.objectSendClient(LeadVirtualObject, leadId)
+				.close({ reason: "Inactivity", API_KEY: process.env.INTERNAL_API_TOKEN });
+			}
 			},
 		),
-		onIncomingMessage: restate.handlers.object.shared(
+		onIncomingMessage: restate.handlers.handler(
 			{
 				input: new FormUrlEncodedSerde(),
 				output: new XMLSerde(),
 			},
-			async (ctx: restate.ObjectSharedContext, data: object) => {
-				if (ctx.key !== "global") {
-					throw new restate.TerminalError(
-						"The object key must be 'global' for this endpoint",
-					);
-				}
+			async (ctx: restate.Context, data: object) => {
 				const twilioHeader =
 					ctx.request().headers.get("x-twilio-signature") ??
 					ctx.request().headers.get("X-Twilio-Signature");
 
 				assert(is<TwilioMessagingServiceBody>(data));
-				ValidateTwilioRequest(twilioHeader, data, ctx.key, "onIncomingMessage");
+				ValidateTwilioRequest(twilioHeader, data, "onIncomingMessage");
 				if (data.OptOutType === "START") {
 					return await HandleOptInMessage(ctx, data);
 				}
@@ -129,7 +131,7 @@ export const TwilioWebhooks = restate.object({
 });
 
 async function HandleOptInMessage(
-	ctx: restate.ObjectSharedContext,
+	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ) {
 	await ctx.run(
@@ -138,7 +140,7 @@ async function HandleOptInMessage(
 	);
 }
 async function HandleOptOutMessage(
-	ctx: restate.ObjectSharedContext,
+	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ) {
 	const participantConversations = await ctx.run(
@@ -173,7 +175,7 @@ async function HandleOptOutMessage(
 			isDealer = true;
 			continue;
 		}
-		const leadIds: string[] = attributes["LeadIDs"] ?? [];
+		const leadIds: string[] = attributes["LeadIds"] ?? [];
 		for (const leadId of leadIds) {
 			ctx.objectSendClient(LeadVirtualObject, leadId).close({
 				reason: "Participant opted out of text messaging",
@@ -186,7 +188,7 @@ async function HandleOptOutMessage(
 	}
 }
 async function HandleClosedMessagingThread(
-	ctx: restate.ObjectSharedContext,
+	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ): Promise<string | undefined> {
 	const participantConversations = await ctx.run(

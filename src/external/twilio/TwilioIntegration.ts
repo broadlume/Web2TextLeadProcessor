@@ -4,10 +4,7 @@ import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conv
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import type { ExternalIntegrationState, IExternalIntegration } from "../types";
 import * as TwilioProxyAPI from "./TwilioProxyAPI";
-import {
-	type E164Number,
-	parsePhoneNumber,
-} from "libphonenumber-js";
+import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
 import {
@@ -15,9 +12,11 @@ import {
 	SystemGreetingMessage,
 	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
-import { FindConversationsFor } from "./TwilioConversationHelpers";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
-import { isProductionAndDeployed } from "../../util";
+import { GetRunningEnvironment, isDeployed, isProductionAndDeployed } from "../../util";
+import { FindConversationsFor } from "./TwilioConversationHelpers";
+import { DealerVirtualObject } from "../../restate/DealerVirtualObject";
+import { assert, is } from "tsafe";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -29,8 +28,12 @@ export interface TwilioIntegrationState extends ExternalIntegrationState {
 export class TwilioIntegration
 	implements IExternalIntegration<TwilioIntegrationState>
 {
-	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed() ? "P14D" : "P1D";
-	readonly CONVERSATION_INACTIVE_TIMER = isProductionAndDeployed() ? "P7D" : undefined;
+	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
+		? "P14D"
+		: "P1D";
+	readonly CONVERSATION_INACTIVE_TIMER = isProductionAndDeployed()
+		? "P7D"
+		: undefined;
 	Name = "Twilio";
 	defaultState(): TwilioIntegrationState {
 		return {
@@ -69,102 +72,11 @@ export class TwilioIntegration
 				`Retailer info is missing in Nexus for Universal Retailer ID '${leadState.UniversalRetailerId}'`,
 			);
 		}
-		const storePhoneNumber = parsePhoneNumber(locationInformation.Web2Text_Phone_Number!, "US").number;
-		const universalRetailerId = leadState.UniversalRetailerId;
-		const conversation: ConversationInstance = await context.run(
-			"Create Twilio conversation",
-			async () => {
-				const preExistingConversationID =
-					await this.checkForPreexistingConversation(
-						leadState.Lead.PhoneNumber,
-						storePhoneNumber,
-					);
-				let conversation: ConversationInstance;
-				if (preExistingConversationID) {
-					context.console.info(
-						`Found pre-existing Twilio Conversation: ${preExistingConversationID}`,
-					);
-					conversation = await this.twilioClient.conversations.v1
-						.conversations(preExistingConversationID)
-						.update((err, conv) => {
-							// Add this LeadID to the conversation meta data
-							const attributes = JSON.parse(conv?.attributes ?? "{}");
-							attributes["LeadIds"] = Array.from(
-								new Set([...(attributes["LeadIds"] ?? []), leadState.LeadId]),
-							);
-							conv!.attributes = JSON.stringify(attributes);
-							return conv;
-						});
-				} else {
-					conversation = await TwilioProxyAPI.CreateSession(
-						[leadState.Lead.PhoneNumber, storePhoneNumber],
-						{
-							friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
-							"timers.inactive": this.CONVERSATION_INACTIVE_TIMER,
-							"timers.closed": this.CONVERSATION_CLOSED_TIMER,
-							attributes: JSON.stringify({
-								LeadIDs: [leadState.LeadId],
-								DealerName: dealerInformation.name,
-								DealerURL: dealerInformation.website_url,
-								StorePhoneNumber: storePhoneNumber,
-								CustomerName: leadState.Lead.Name,
-								UniversalRetailerId: universalRetailerId,
-								LocationID: leadState.LocationId,
-								Environment:
-									process.env["COPILOT_ENVIRONMENT_NAME"] ??
-									"Local Development",
-							}),
-						},
-					);
-					const systemParticipant = await this.twilioClient.conversations.v1
-						.conversations(conversation.sid)
-						.participants.create({ identity: "Broadlume" });
-				}
-				return conversation;
-			},
-		);
-		// Attach Twilio sync webhook only on production
-		if (process.env.COPILOT_ENVIRONMENT_NAME) {
-			const syncEndpoint = new URL(
-				`TwilioWebhooks/${leadState.LeadId}/sync`,
-				process.env.RESTATE_ADMIN_URL,
-			);
-			syncEndpoint.port = "";
-			const syncWebhook = await context.run(
-				"Add Twilio sync webhook",
-				async () =>
-					await this.twilioClient.conversations.v1
-						.conversations(conversation.sid)
-						.webhooks.create({
-							"configuration.url": encodeURI(syncEndpoint.toString()),
-							"configuration.method": "POST",
-							target: "webhook",
-							"configuration.filters": [
-								"onMessageAdded",
-								"onMessageRemoved",
-								"onMessageUpdated",
-							],
-						}),
-			);
-			const closeEndpoint = new URL(
-				`TwilioWebhooks/${leadState.LeadId}/close`,
-				process.env.RESTATE_ADMIN_URL,
-			);
-			closeEndpoint.port = "";
-
-			const closeWebhook = await context.run(
-				"Add Twilio close webhook",
-				async () =>
-					await this.twilioClient.conversations.v1
-						.conversations(conversation.sid)
-						.webhooks.create({
-							"configuration.url": encodeURI(closeEndpoint.toString()),
-							"configuration.method": "POST",
-							target: "webhook",
-							"configuration.filters": ["onConversationStateUpdated"],
-						}),
-			);
-		}
+		const storePhoneNumber = parsePhoneNumber(
+			locationInformation.Web2Text_Phone_Number!,
+			"US",
+		).number;
+		const {isNewConversation, conversation} = await this.createWeb2TextConversation(context,leadState,storePhoneNumber,dealerInformation,locationInformation);
 		const dealerMessaging = DealerGreetMessage(
 			leadState,
 			locationInformation.location_name ?? locationInformation.street_address,
@@ -234,8 +146,8 @@ export class TwilioIntegration
 			async () => await conversation.participants().list(),
 		);
 		const phoneNumbers = participants
-			.map(p => p.messagingBinding?.address)
-			.filter(p => p != null);
+			.map((p) => p.messagingBinding?.address)
+			.filter((p) => p != null);
 		if (phoneNumbers.length <= 1) {
 			// Close the lead if no phone numbers left in conversation
 			context
@@ -304,23 +216,6 @@ export class TwilioIntegration
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
 	}
-	private async checkForPreexistingConversation(
-		customerPhone: E164Number,
-		storePhone: E164Number,
-	): Promise<string | null> {
-		const conversationsUserIsIn = await FindConversationsFor(
-			this.twilioClient,
-			customerPhone,
-		).then((convos) => convos.map((c) => c.conversationSid));
-		const conversationsDealerIsIn = await FindConversationsFor(
-			this.twilioClient,
-			storePhone,
-		).then((convos) => convos.map((c) => c.conversationSid));
-		const conversation = conversationsUserIsIn.filter((x) =>
-			conversationsDealerIsIn.includes(x),
-		);
-		return conversation?.[0];
-	}
 	private async sendSystemMessage(
 		conversationSid: string,
 		message: string,
@@ -346,11 +241,15 @@ export class TwilioIntegration
 					.conversations(conversationSid)
 					.messages.get(twilioMessage.sid)
 					.deliveryReceipts.list();
-				if (deliveryReceipts.every((d) => d.status === "delivered" || d.status === "read")) {
+				if (
+					deliveryReceipts.every(
+						(d) => d.status === "delivered" || d.status === "read",
+					)
+				) {
 					clearInterval(interval);
 					resolve(undefined);
 				}
-				
+
 				const failedDelivery = deliveryReceipts.find(
 					(d) => d.status === "failed" || d.status === "undelivered",
 				);
@@ -392,5 +291,125 @@ export class TwilioIntegration
 				attempts -= 1;
 			}, 1000);
 		});
+	}
+	private async createWeb2TextConversation(
+		context: restate.ObjectSharedContext<Web2TextLead>,
+		leadState: Web2TextLead,
+		storePhoneNumber: E164Number,
+		dealerInformation: NexusRetailerAPI.NexusRetailer,
+		locationInformation: NexusStoresAPI.RetailerStore,
+	): Promise<{isNewConversation: boolean, conversation: ConversationInstance}> {
+		const conversation = await context.run(
+			"Create or fetch Twilio Conversation",
+			async () => {
+				const preExistingConversationID = await FindConversationsFor(
+					this.twilioClient,
+					[leadState.Lead.PhoneNumber, storePhoneNumber],
+					["active"],
+				).then((convos) => convos?.[0]?.conversationSid);
+				if (preExistingConversationID) {
+					context.console.info(
+						`Found pre-existing Twilio Conversation: ${preExistingConversationID}`,
+					);
+					return await this.twilioClient.conversations.v1
+						.conversations(preExistingConversationID)
+						.update((err, conv) => {
+							// Add this LeadID to the conversation meta data
+							const attributes = JSON.parse(conv?.attributes ?? "{}");
+							attributes["LeadIds"] = Array.from(
+								new Set([...(attributes["LeadIds"] ?? []), leadState.LeadId]),
+							);
+							conv!.attributes = JSON.stringify(attributes);
+							return conv;
+						});
+				}
+				return await TwilioProxyAPI.CreateSession(
+					[leadState.Lead.PhoneNumber, storePhoneNumber],
+					{
+						friendlyName: `Client: [${dealerInformation.name}]\nLocation: [${locationInformation.location_name ?? locationInformation.street_address}]\nWeb2Text Lead with [${leadState.Lead.PhoneNumber}]`,
+						"timers.inactive": this.CONVERSATION_INACTIVE_TIMER,
+						"timers.closed": this.CONVERSATION_CLOSED_TIMER,
+						attributes: JSON.stringify({
+							LeadIds: [leadState.LeadId],
+							DealerName: dealerInformation.name,
+							DealerURL: dealerInformation.website_url,
+							StorePhoneNumber: storePhoneNumber,
+							CustomerName: leadState.Lead.Name,
+							UniversalRetailerId: leadState.UniversalRetailerId,
+							LocationID: leadState.LocationId,
+							Environment: GetRunningEnvironment(),
+						}),
+					},
+				);
+			},
+		);
+		await context.run("Create system participant", async () =>
+			this.twilioClient.conversations.v1
+				.conversations(conversation.sid)
+				.participants.create({ identity: "Broadlume" }).catch(e => {
+					assert(is<Error>(e));
+					// Participant already exists, so do nothing
+					if ("code" in e && e.code === 50433) {
+						return;
+					}
+					throw e;
+				}),
+		);
+
+		// Attach Twilio webhooks only when deployed
+		if (isDeployed()) {
+			const syncEndpoint = new URL(
+				"TwilioWebhooks/sync",
+				process.env.RESTATE_ADMIN_URL,
+			);
+			syncEndpoint.port = "";
+			const closeEndpoint = new URL(
+				"TwilioWebhooks/close",
+				process.env.RESTATE_ADMIN_URL,
+			);
+			closeEndpoint.port = "";
+			await context.run(
+				"Check and attach webhooks",
+				async () => {
+					const activeWebhooks = await this.twilioClient.conversations.v1.conversations(conversation.sid).webhooks.list();
+					const hasSyncWebhook = activeWebhooks.find((w) =>
+						encodeURI(syncEndpoint.toString()),
+					);
+					const hasCloseWebhook = activeWebhooks.find((w) =>
+						encodeURI(closeEndpoint.toString()),
+					);
+					if (!hasSyncWebhook) {
+						await this.twilioClient.conversations.v1
+							.conversations(conversation.sid)
+							.webhooks.create({
+								"configuration.url": encodeURI(syncEndpoint.toString()),
+								"configuration.method": "POST",
+								target: "webhook",
+								"configuration.filters": [
+									"onMessageAdded",
+									"onMessageRemoved",
+									"onMessageUpdated",
+								],
+							});
+					}
+					if (!hasCloseWebhook) {
+						await this.twilioClient.conversations.v1
+							.conversations(conversation.sid)
+							.webhooks.create({
+								"configuration.url": encodeURI(closeEndpoint.toString()),
+								"configuration.method": "POST",
+								target: "webhook",
+								"configuration.filters": ["onConversationStateUpdated"],
+							});
+					}
+				},
+			);
+		}
+		const attributes = JSON.parse(conversation.attributes ?? "{}");
+		const leadIds: string[] = attributes["LeadIds"];
+		return {
+			isNewConversation: leadIds.length === 1,
+			conversation: conversation
+		};
 	}
 }

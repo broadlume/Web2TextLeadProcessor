@@ -76,7 +76,8 @@ I **heavily recommend** a read through the [Concepts](https://docs.restate.dev/c
 ## Edge Cases
 Q. User submits two leads with the same phone number, dealer ID, and location ID
 
-A. Web2Text will open two leads with the same Twilio conversation ID
+A. Web2Text will prompt the user that a lead is already open on the frontend side and ask if they want to resubmit.
+If they do, the old lead will be closed and a new one will be opened
 
 Q. User submits two leads with the same phone number, dealer ID, but different location IDs
 
@@ -90,3 +91,7 @@ A. Web2Text will open two leads with the same Twilio conversation ID
 Q. A location has open Web2Text leads and changes it's phone number in Nexus/Salesforce
 
 A. Old Web2Text leads will continue to go to the old phone number, while new ones will go to the new phone number
+
+Q. Two locations have the same phone number and two leads are created against both locations with the same phone number
+
+A. Two Web2Text leads will be open for each location using the same Twilio conversation

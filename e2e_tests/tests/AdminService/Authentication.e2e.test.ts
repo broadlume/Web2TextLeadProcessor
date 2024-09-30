@@ -7,7 +7,7 @@ import {
 } from "../../globalSetup";
 describe("Admin Service Authentication", () => {
 	for (const endpoint of ["bulk"]) {
-		test(`${endpoint}: should require authentication header`, async () => {
+		test(`${endpoint} should require authentication header`, async () => {
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({})

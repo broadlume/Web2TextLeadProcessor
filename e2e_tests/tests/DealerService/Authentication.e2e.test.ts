@@ -3,41 +3,45 @@ import { randomUUID } from "node:crypto";
 import { supertest, TEST_API_KEY } from "../../setup";
 import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
 import { DEALER_SERVICE_NAME } from "../../globalSetup";
+import nock from "nock";
 describe("Dealer Service Authentication", () => {
 	for (const endpoint of ["status"]) {
-		test(`${endpoint}: should require authentication header`, async () => {
+		test(`${endpoint} should require authentication header`, async () => {
 			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.expect(401);
 		});
 		test(`${endpoint} should not allow invalid API keys`, async () => {
 			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.auth(randomUUID(), { type: "bearer" })
 				.expect(401);
 		});
 		test(`${endpoint} should not allow malformed Authentication headers`, async () => {
 			const universalRetailerId = randomUUID();
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.auth("username", "password")
 				.expect(401);
 		});
 		test(`${endpoint} should allow valid API keys`, async () => {
 			const universalRetailerId = randomUUID();
+			nock(process.env.NEXUS_API_URL!)
+			.get(`/retailers/${universalRetailerId}`)
+			.reply(404, {});
+
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.auth(TEST_API_KEY, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
 		test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
 			const universalRetailerId = randomUUID();
+			nock(process.env.NEXUS_API_URL!)
+			.get(`/retailers/${universalRetailerId}`)
+			.reply(404, {});
 			const apiKey = await APIKeyModel.create(
 				{
 					API_Key: randomUUID(),
@@ -49,8 +53,7 @@ describe("Dealer Service Authentication", () => {
 				{ overwrite: true },
 			);
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
@@ -67,8 +70,7 @@ describe("Dealer Service Authentication", () => {
 				{ overwrite: true },
 			);
 			await supertest
-				.post(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
-				.send({})
+				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status === 401);
 		});

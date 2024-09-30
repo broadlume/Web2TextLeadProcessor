@@ -7,7 +7,7 @@ import { TEST_API_KEY } from "../../setup";
 
 describe("Lead Service Authentication", () => {
 		for (const endpoint of ["status", "create", "sync", "close"]) {
-			test(`${endpoint}: should require authentication header`, async () => {
+			test(`${endpoint} should require authentication header`, async () => {
 				const leadID = randomUUID();
 				await supertest
 					.post(`/${LEAD_SERVICE_NAME}/${leadID}/${endpoint}`)

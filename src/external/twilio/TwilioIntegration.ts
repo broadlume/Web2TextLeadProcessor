@@ -15,7 +15,6 @@ import {
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
 import { GetRunningEnvironment, isDeployed, isProductionAndDeployed } from "../../util";
 import { FindConversationsFor } from "./TwilioConversationHelpers";
-import { DealerVirtualObject } from "../../restate/DealerVirtualObject";
 import { assert, is } from "tsafe";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {

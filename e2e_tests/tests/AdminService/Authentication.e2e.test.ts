@@ -10,27 +10,39 @@ describe("Admin Service Authentication", () => {
 		test(`${endpoint} should require authentication header`, async () => {
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.expect(401);
 		});
 		test(`${endpoint} should not allow invalid API keys`, async () => {
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.auth(randomUUID(), { type: "bearer" })
 				.expect(401);
 		});
 		test(`${endpoint} should not allow malformed Authentication headers`, async () => {
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.auth("username", "password")
 				.expect(401);
 		});
 		test(`${endpoint} should allow valid API keys`, async () => {
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.auth(TEST_API_KEY, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
@@ -40,14 +52,17 @@ describe("Admin Service Authentication", () => {
 					API_Key: randomUUID(),
 					Active: true,
 					DateCreated: new Date().toISOString(),
-					AuthorizedEndpoints: [`${ADMIN_SERVICE_NAME}/${endpoint}`],
+					AuthorizedEndpoints: [`${ADMIN_SERVICE_NAME}/${endpoint}/FIND`],
 					Description: `E2E Test API Key for ${endpoint}`,
 				},
 				{ overwrite: true },
 			);
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status !== 401);
 		});
@@ -64,7 +79,10 @@ describe("Admin Service Authentication", () => {
 			);
 			await supertest
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
-				.send({})
+				.send({
+					Operation: "FIND",
+					Filter: "*"
+				})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status === 401);
 		});

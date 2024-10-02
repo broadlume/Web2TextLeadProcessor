@@ -39,12 +39,6 @@ export const AdminService = restate.service({
 				ctx: restate.Context,
 				request: Record<string, string>,
 			): Promise<BulkEndpointResponse> => {
-				// Validate the API key
-				await CheckAuthorization(
-					ctx as unknown as restate.ObjectSharedContext,
-					`${AdminService.name}/bulk`,
-					ctx.request().headers.get("authorization") ?? request?.["API_KEY"],
-				);
 				const parsed = await BulkEndpointRequestSchema.safeParse(request);
 				if (!parsed.success) {
 					const formattedError = fromError(parsed.error);
@@ -55,6 +49,12 @@ export const AdminService = restate.service({
 						},
 					);
 				}
+				// Validate the API key
+				await CheckAuthorization(
+					ctx as unknown as restate.ObjectSharedContext,
+					`${AdminService.name}/bulk/${parsed.data.Operation}`,
+					ctx.request().headers.get("authorization") ?? request?.["API_KEY"],
+				);
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;

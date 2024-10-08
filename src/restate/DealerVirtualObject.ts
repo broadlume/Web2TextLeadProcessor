@@ -13,7 +13,10 @@ import parsePhoneNumber from "libphonenumber-js";
 type LocationStatus = {
 	NexusLocationId: string;
 	Name?: string;
-	Address?: string;
+	City?: string;
+	State?: string;
+	ZipCode?: string;
+	StreetAddress?: string;
 	PhoneNumber?: string;
 	Hours?: string;
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
@@ -74,6 +77,8 @@ export const DealerVirtualObject = restate.object({
 					)) ?? [];
 
 				const locationStatuses: LocationStatus[] = [];
+				// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
+				const undefinedIfEmpty = (x: string) => x == "" ? undefined : x;
 				for (const location of locations) {
 					const locationStatus = await ctx.run(
 						"Check location status",
@@ -85,20 +90,13 @@ export const DealerVirtualObject = restate.object({
 					);
 					const status: LocationStatus = {
 						NexusLocationId: location.id,
-						// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
-						Name: location.store_name == "" ? undefined : location.store_name,
-						Address:
-							// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
-							location.street_address == ""
-								? undefined
-								: location.street_address,
+						Name: undefinedIfEmpty(location.store_name),
+						StreetAddress: undefinedIfEmpty(location.street_address),
+						City: undefinedIfEmpty(location.city),
+						State: undefinedIfEmpty(location.state_province),
+						ZipCode: undefinedIfEmpty(location.zip_code),
 						PhoneNumber: phoneNumber?.number,
-
-						Hours:
-							// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
-							location.hours_of_operation == ""
-								? undefined
-								: location.hours_of_operation,
+						Hours: undefinedIfEmpty(location.hours_of_operation),
 						...locationStatus,
 					};
 					locationStatuses.push(status);

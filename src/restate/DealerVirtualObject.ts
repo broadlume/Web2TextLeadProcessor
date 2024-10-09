@@ -17,7 +17,8 @@ type LocationStatus = {
 	State?: string;
 	ZipCode?: string;
 	StreetAddress?: string;
-	PhoneNumber?: string;
+	Web2TextPhoneNumber?: string;
+	StorePhoneNumber?: string;
 	Hours?: string;
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -43,7 +44,7 @@ export const DealerVirtualObject = restate.object({
 			},
 			async (
 				ctx: restate.ObjectSharedContext,
-                // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 				req?: Record<string, any>,
 			): Promise<DealerStatusResponse> => {
 				// Validate the API key
@@ -78,14 +79,18 @@ export const DealerVirtualObject = restate.object({
 
 				const locationStatuses: LocationStatus[] = [];
 				// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
-				const undefinedIfEmpty = (x: string) => x == "" ? undefined : x;
+				const undefinedIfEmpty = (x: string) => (x == "" ? undefined : x);
 				for (const location of locations) {
 					const locationStatus = await ctx.run(
 						"Check location status",
 						async () => await CheckLocationStatus(location.id as UUID),
 					);
-					const phoneNumber = parsePhoneNumber(
+					const web2TextPhoneNumber = parsePhoneNumber(
 						location.Web2Text_Phone_Number ?? "",
+						"US",
+					);
+					const storePhoneNumber = parsePhoneNumber(
+						location.store_phone_number ?? "",
 						"US",
 					);
 					const status: LocationStatus = {
@@ -95,7 +100,8 @@ export const DealerVirtualObject = restate.object({
 						City: undefinedIfEmpty(location.city),
 						State: undefinedIfEmpty(location.state_province),
 						ZipCode: undefinedIfEmpty(location.zip_code),
-						PhoneNumber: phoneNumber?.number,
+						Web2TextPhoneNumber: web2TextPhoneNumber?.number,
+						StorePhoneNumber: storePhoneNumber?.number,
 						Hours: undefinedIfEmpty(location.hours_of_operation),
 						...locationStatus,
 					};

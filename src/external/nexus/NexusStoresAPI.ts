@@ -46,10 +46,10 @@ export async function GetAllRetailerStores(
 		if (e instanceof HTTPError && e.response.status === 404) {
 			return null;
 		}
-		logger.child({label: "GetAllRetailerStores"}).warn(
+		logger.child({label: "NexusStoresAPI:GetAllRetailerStores"}).warn(
 			`Error fetching retailer stores from Nexus for UniversalId '${universalId}'`,
 		);
-		logger.child({label: "GetAllRetailerStores"}).error(e);
+		logger.child({label: "NexusStoresAPI:GetAllRetailerStores"}).error(e);
 		throw e;
 	}
 }
@@ -74,10 +74,10 @@ export async function GetRetailerStoreByID(
 		) {
 			return null;
 		}
-		logger.child({label: "GetRetailerStoreByID"}).warn(
+		logger.child({label: "NexusStoresAPI:GetRetailerStoreByID"}).warn(
 			`Error fetching retailer store from Nexus for Location ID: ${locationId}`,
 		);
-		logger.child({label: "GetRetailerStoreByID"}).error(e);
+		logger.child({label: "NexusStoresAPI:GetRetailerStoreByID"}).error(e);
 		throw e;
 	}
 }
@@ -143,10 +143,10 @@ export async function GetHoursOfOperation(
 		) {
 			return null;
 		}
-		logger.child({label: "GetHoursOfOperation"}).warn(
+		logger.child({label: "NexusStoresAPI:GetHoursOfOperation"}).warn(
 			`Error fetching retailer store(s) from Old Nexus API for Universal Retailer ID: '${universalRetailerId}'`,
 		);
-		logger.child({label: "GetHoursOfOperation"}).error(e);
+		logger.child({label: "NexusStoresAPI:GetHoursOfOperation"}).error(e);
 		throw e;
 	}
 }

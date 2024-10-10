@@ -24,7 +24,7 @@ export async function CreateSession(
 		}).json<ConversationInstance>();
 		return response;
 	} catch (e) {
-		logger.child({label: "TwilioProxyAPI"}).warn(`[TwilioProxyAPI.CreateSession] Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`);
+		logger.child({label: "TwilioProxyAPI:CreateSession"}).warn(` Failed to create Twilio Proxy for '[${phoneNumbers.join(",")}]'`);
 		throw e;
 	}
 }

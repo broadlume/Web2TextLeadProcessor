@@ -1,6 +1,7 @@
 import type { UUID } from "node:crypto";
 import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 import ky, { HTTPError } from "ky";
+import { logger } from "../../logger";
 
 export interface NexusRetailer {
     id: UUID,
@@ -71,7 +72,8 @@ export async function GetRetailerByID(universalId: UUID): Promise<NexusRetailer 
         if (e instanceof HTTPError && e.response.status === 404) {
             return null;
         }
-        console.warn("[GetRetailerById]: Error fetching retailer from Nexus");
+        logger.child({label: "NexusRetailerAPI:GetRetailerSubscriptions"}).warn("Error fetching retailer from Nexus");
+        logger.child({label: "NexusRetailerAPI:GetRetailerSubscriptions"}).error(e);
         throw e;
     }
 }
@@ -90,7 +92,8 @@ export async function GetRetailerSubscriptions(universalId: UUID): Promise<Nexus
         if (e instanceof HTTPError && e.response.status === 404) {
             return null;
         }
-        console.warn("[GetRetailerSubscriptions]: Error fetching retailer subscriptions from Nexus");
+        logger.child({label: "NexusRetailerAPI:GetRetailerSubscriptions"}).warn("Error fetching retailer subscriptions from Nexus");
+        logger.child({label: "NexusRetailerAPI:GetRetailerSubscriptions"}).error(e);
         throw e;
     }
 }

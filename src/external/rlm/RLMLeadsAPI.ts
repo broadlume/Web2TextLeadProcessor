@@ -1,5 +1,7 @@
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import type { Web2TextLead } from "../../types";
+import ky from "ky";
+import { logger } from "../../logger";
 
 type RLMLeadResponse =
 	| {
@@ -99,22 +101,20 @@ export async function CreateLead(
 	const rlmURL = new URL(process.env.RLM_API_URL);
 	rlmURL.pathname += `api/${apiKey}/leads`;
 
-	const headers = new Headers();
-	headers.set("content-type", "application/json");
-	const response = await fetch(rlmURL.toString(), {
-		method: "POST",
-		headers: headers,
-		body: JSON.stringify(lead),
-	});
-
-	if (response.ok) {
-		const responseBody = await response.json();
-		return responseBody as RLMLeadResponse;
+	try {
+		const response = await ky.post(rlmURL.toString(), {
+			timeout:60_000,
+			retry: 0,
+			json: lead
+		}).json<RLMLeadResponse>();
+		return response;
+	} catch (e) {
+		logger.child({label: "RLMLeadsAPI:CreateLead"}).warn(
+			`Failed to post lead '${web2TextLeadId}' to RLM`,
+		);
+		logger.child({label: "RLMLeadsAPI:CreateLead"}).error(e);
+		throw e;
 	}
-	const error = await response.text().catch((_) => response.status);
-	throw new Error(`Failed to post lead '${web2TextLeadId}' to RLM`, {
-		cause: { status: response.status, error },
-	});
 }
 
 export async function AttachNoteToLead(
@@ -142,22 +142,18 @@ export async function AttachNoteToLead(
 
 	const rlmURL = new URL(process.env.RLM_API_URL);
 	rlmURL.pathname += "api/note_from_sms";
-
-	const headers = new Headers();
-	headers.set("content-type", "application/json");
-	const response = await fetch(rlmURL.toString(), {
-		method: "POST",
-		headers: headers,
-		body: JSON.stringify(note),
-	});
-
-	if (response.ok) {
-		const responseBody = await response.json();
-		return responseBody as RLMLeadResponse;
+	try {
+		const response = ky.post(rlmURL.toString(), {
+			timeout:60_000,
+			retry: 0,
+			json: note
+		}).json<RLMLeadResponse>();
+		return response;
+	} catch (e) {
+		logger.child({label: "RLMLeadsAPI:AttachNoteToLead"}).warn(
+			`Failed to post note to RLM for Twilio message SID ${twilioMessage.sid}`,
+		);
+		logger.child({label: "RLMLeadsAPI:AttachNoteToLead"}).error(e);
+		throw e;
 	}
-	const error = await response.text().catch((_) => response.status);
-	throw new Error(
-		`Failed to post note to RLM for Twilio message SID ${twilioMessage.sid}`,
-		{ cause: { status: response.status, error } },
-	);
 }

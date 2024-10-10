@@ -3,6 +3,8 @@ import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import type { NexusStoresAPI } from "../nexus";
 import { DHQ_AUTHORIZATION_HEADERS } from ".";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
+import ky from "ky";
+import { logger } from "../../logger";
 
 /**
  * Possible flooring interests
@@ -275,21 +277,17 @@ export async function SubmitStoreInquiry(
 	dhqUrl.pathname += `retailer/rest/${lead.UniversalRetailerId}/store_inquiries`;
 
 	const headers = DHQ_AUTHORIZATION_HEADERS();
-	headers.set("content-type", "application/json");
-	const response = await fetch(dhqUrl.toString(), {
-		method: "POST",
-		headers: headers,
-		body: JSON.stringify(dhqLead),
-	});
-
-	if (response.ok) {
-		const responseBody = await response.json();
-		return responseBody as StoreInquiryResponse;
+	try {
+		const response = await ky.post(dhqUrl.toString(), {
+			headers: headers,
+			json:dhqLead,
+		}).json<StoreInquiryResponse>();
+		return response;
+	} catch (e) {
+		logger.child({label: "DHQStoreInquiryAPI:SubmitStoreInquiry"}).warn(`Failed to post lead '${lead.LeadId}' to DHQ`);
+		logger.child({label: "DHQStoreInquiryAPI:SubmitStoreInquiry"}).error(e);
+		throw e;
 	}
-	const error = await response.text().catch((_) => response.status);
-	throw new Error(`Failed to post lead '${lead.LeadId}' to DHQ`, {
-		cause: { status: response.status, error },
-	});
 }
 
 export async function AddCommentToInquiry(
@@ -318,22 +316,15 @@ export async function AddCommentToInquiry(
 	const dhqUrl = new URL(process.env.DHQ_API_URL);
 	dhqUrl.pathname += `retailer/rest/leads/${leadId}/comments`;
 	const headers = DHQ_AUTHORIZATION_HEADERS();
-	headers.set("content-type", "application/json");
-	const response = await fetch(dhqUrl.toString(), {
-		method: "POST",
-		headers: headers,
-		body: JSON.stringify(dhqComment),
-	});
-
-	if (response.ok) {
-		const responseBody = await response.json();
-		return responseBody as AddCommentResponse;
+	try {
+		const response = await ky.post(dhqUrl.toString(), {
+			headers: headers,
+			json:dhqComment,
+		}).json<AddCommentResponse>();
+		return response;
+	} catch (e) {
+		logger.child({label: "DHQStoreInquiryAPI:AddCommentToInquiry"}).warn(`Failed to post twilio message '${twilioMessage.sid}' on inquiry '${leadId}' to DHQ`);
+		logger.child({label: "DHQStoreInquiryAPI:AddCommentToInquiry"}).error(e);
+		throw e;
 	}
-	const error = await response.text().catch((_) => response.status);
-	throw new Error(
-		`Failed to post twilio message '${twilioMessage.sid}' on inquiry '${leadId}' to DHQ`,
-		{
-			cause: { status: response.status, error },
-		},
-	);
 }

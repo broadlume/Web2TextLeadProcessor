@@ -3,6 +3,7 @@ import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { fromError } from "zod-validation-error";
+import { GetRunningEnvironment } from "../util";
 
 export const LeadStateSchema = z.discriminatedUnion("Status", [
 	z.object({
@@ -29,7 +30,10 @@ export async function SyncWithDB(
 		case "SEND": {
 			const objectState = await ctx.getAll();
 			const parsed = Web2TextLeadSchema.parse(objectState);
-			ctx.console.log(parsed);
+			// For debugging
+			if (GetRunningEnvironment().local) {
+				ctx.console.log("SYNCED TO DB:", parsed);
+			}
 			await ctx.run(
 				"Sending lead to database",
 				async () => {

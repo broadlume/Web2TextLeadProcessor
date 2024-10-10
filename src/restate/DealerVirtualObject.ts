@@ -12,6 +12,7 @@ import parsePhoneNumber from "libphonenumber-js";
 
 type LocationStatus = {
 	NexusLocationId: string;
+	UniversalLocationId?: string;
 	Name?: string;
 	City?: string;
 	State?: string;
@@ -19,7 +20,6 @@ type LocationStatus = {
 	StreetAddress?: string;
 	Web2TextPhoneNumber?: string;
 	StorePhoneNumber?: string;
-	Hours?: string;
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
 };
@@ -76,7 +76,6 @@ export const DealerVirtualObject = restate.object({
 						async () =>
 							await NexusStoresAPI.GetAllRetailerStores(universalRetailerId),
 					)) ?? [];
-
 				const locationStatuses: LocationStatus[] = [];
 				// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
 				const undefinedIfEmpty = (x: string) => (x == "" ? undefined : x);
@@ -95,14 +94,14 @@ export const DealerVirtualObject = restate.object({
 					);
 					const status: LocationStatus = {
 						NexusLocationId: location.id,
-						Name: undefinedIfEmpty(location.store_name),
+						UniversalLocationId: location.universal_id,
+						Name: undefinedIfEmpty(location.location_name ?? location.store_name),
 						StreetAddress: undefinedIfEmpty(location.street_address),
 						City: undefinedIfEmpty(location.city),
 						State: undefinedIfEmpty(location.state_province),
 						ZipCode: undefinedIfEmpty(location.zip_code),
 						Web2TextPhoneNumber: web2TextPhoneNumber?.number,
 						StorePhoneNumber: storePhoneNumber?.number,
-						Hours: undefinedIfEmpty(location.hours_of_operation),
 						...locationStatus,
 					};
 					locationStatuses.push(status);

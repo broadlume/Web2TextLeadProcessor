@@ -26,10 +26,10 @@ network:
 environments:
   production:
     variables:
-      RESTATE_ADMIN_URL: http://web2text.web.broadlume.com:9070
+      RESTATE_ADMIN_URL: http://admin.web2text.web.broadlume.com:9070
   development:
     variables:
-      RESTATE_ADMIN_URL: http://web2text.web.dev.broadlume.com:9070
+      RESTATE_ADMIN_URL: http://admin.web2text.web.dev.broadlume.com:9070
 # storage:
   # readonly_fs: true       # Limit to read-only access to mounted root filesystems.
 

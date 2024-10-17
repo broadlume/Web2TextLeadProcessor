@@ -16,6 +16,7 @@ import { IsPhoneNumberOptedOut } from "../../restate/validators";
 import { GetRunningEnvironment, isDeployed, isProductionAndDeployed } from "../../util";
 import { FindConversationsFor } from "./TwilioConversationHelpers";
 import { assert, is } from "tsafe";
+import { RESTATE_INGRESS_URL } from "../restate";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -359,12 +360,12 @@ export class TwilioIntegration
 		if (isDeployed()) {
 			const syncEndpoint = new URL(
 				"TwilioWebhooks/sync",
-				process.env.RESTATE_ADMIN_URL,
+				RESTATE_INGRESS_URL,
 			);
 			syncEndpoint.port = "";
 			const closeEndpoint = new URL(
 				"TwilioWebhooks/close",
-				process.env.RESTATE_ADMIN_URL,
+				RESTATE_INGRESS_URL,
 			);
 			closeEndpoint.port = "";
 			await context.run(

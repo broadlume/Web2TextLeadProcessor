@@ -1,6 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
 import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
-import { Twilio, validateRequest } from "twilio";
+import { validateRequest } from "twilio";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 import { assert, is } from "tsafe";
 import { FindConversationsFor } from "../external/twilio/TwilioConversationHelpers";
@@ -9,6 +9,7 @@ import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
 import { CustomerCloseMessage, DealerCloseMessage } from "../external/twilio/Web2TextMessagingStrings";
 import { XMLSerde } from "./XMLSerde";
+import { RESTATE_INGRESS_URL } from "../external/restate";
 
 interface TwilioWebhookBody {
 	AccountSid: string;
@@ -47,7 +48,7 @@ function ValidateTwilioRequest(
 	}
 	const thisUrl = new URL(
 		`${TwilioWebhooks.name}/${endpoint}`,
-		process.env.RESTATE_ADMIN_URL,
+		RESTATE_INGRESS_URL,
 	);
 	thisUrl.port = "";
 	if (

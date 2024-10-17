@@ -8,12 +8,12 @@ import { LeadVirtualObject } from "../src/restate/LeadVirtualObject";
 import type * as restate from "@restatedev/restate-sdk";
 import "dotenv/config";
 import nock from "nock";
-import {RestateAdminDeploymentAPI} from "../src/external/restate";
+import { RestateAdminDeploymentAPI} from "../src/external/restate";
 import { ADMIN_SERVICE_NAME, DEALER_SERVICE_NAME, LEAD_SERVICE_NAME } from "./globalSetup";
 import { DealerVirtualObject } from "../src/restate/DealerVirtualObject";
 import { AdminService } from "../src/restate/AdminService";
-export const RESTATE_INGEST_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!).hostname}:8080/`;
-export const supertest = request(RESTATE_INGEST_URL);
+export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.","")).hostname}:8080/`;
+export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
 export let TEST_SERVER: restate.RestateEndpoint;
 
@@ -68,7 +68,7 @@ beforeEach(async () => {
 	});
 	nock.disableNetConnect();
 	nock.enableNetConnect(host => {
-		const allowedHosts = [LEAD_SERVICE_NAME,DEALER_SERVICE_NAME,ADMIN_SERVICE_NAME,"127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,new URL(process.env.RESTATE_ADMIN_URL!).hostname];
+		const allowedHosts = [LEAD_SERVICE_NAME,DEALER_SERVICE_NAME,ADMIN_SERVICE_NAME,"127.0.0.1","127.0.0.11",new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,new URL(process.env.RESTATE_ADMIN_URL!).hostname, new URL(RESTATE_INGRESS_URL)];
 		return allowedHosts.find(allowedHost => host.toLowerCase().includes(allowedHost.toLowerCase())) != null;
 	});
 	

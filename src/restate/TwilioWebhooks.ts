@@ -10,6 +10,7 @@ import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
 import { CustomerCloseMessage, DealerCloseMessage } from "../external/twilio/Web2TextMessagingStrings";
 import { XMLSerde } from "./XMLSerde";
 import { RESTATE_INGRESS_URL } from "../external/restate";
+import { logger as _logger } from "../logger";
 
 interface TwilioWebhookBody {
 	AccountSid: string;
@@ -62,6 +63,7 @@ function ValidateTwilioRequest(
 		throw new restate.TerminalError("Twilio request validation failed");
 	}
 }
+const logger = _logger.child({label: "TwilioWebhooks"});
 export const TwilioWebhooks = restate.service({
 	name: "TwilioWebhooks",
 	handlers: {
@@ -119,11 +121,17 @@ export const TwilioWebhooks = restate.service({
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, "onIncomingMessage");
 				if (data.OptOutType === "START") {
-					return await HandleOptInMessage(ctx, data);
+					logger.child({PhoneNumber: data.From, Operation: "OPT-IN"}).info(`Received 'OPT-IN' for ${data.From}`);
+					const result = await HandleOptInMessage(ctx, data);
+					logger.child({PhoneNumber: data.From, Operation: "OPT-IN"}).info(`Processed 'OPT-IN' for ${data.From}`);
+					return result;
 				}
 				// Close any active leads on opt-out
 				if (data.OptOutType === "STOP") {
-					return await HandleOptOutMessage(ctx, data);
+					logger.child({PhoneNumber: data.From, Operation: "OPT-OUT"}).info(`Received 'OPT-OUT' for ${data.From}`);
+					const result = await HandleOptOutMessage(ctx, data);
+					logger.child({PhoneNumber: data.From, Operation: "OPT-OUT"}).info(`Processed 'OPT-OUT' for ${data.From}`);
+					return result;
 				}
 				return await HandleClosedMessagingThread(ctx,data);
 			},

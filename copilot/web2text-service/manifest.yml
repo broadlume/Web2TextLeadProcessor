@@ -27,9 +27,11 @@ environments:
   production:
     variables:
       RESTATE_ADMIN_URL: http://admin.web2text.web.broadlume.com:9070
+      RLM_API_URL: https://app.retailleadmanagement.com
   development:
     variables:
       RESTATE_ADMIN_URL: http://admin.web2text.web.dev.broadlume.com:9070
+      RLM_API_URL: https://app.dev.retailleadmanagement.com
 # storage:
   # readonly_fs: true       # Limit to read-only access to mounted root filesystems.
 

@@ -96,8 +96,8 @@ describe("DealerStatus E2E Tests", () => {
 						{
 							NexusLocationId: mockLocationId,
 							Name: "Test Store",
-							Address: "123 Test St",
-							PhoneNumber: "+12345678900",
+							StreetAddress: "123 Test St",
+							Web2TextPhoneNumber: "+12345678900",
 							Status: "VALID",
 						},
 					],
@@ -207,7 +207,7 @@ describe("DealerStatus E2E Tests", () => {
 						{
 							NexusLocationId: mockLocationId,
 							Name: "Test Store",
-							Address: "123 Test St",
+							StreetAddress: "123 Test St",
 							Status: "INVALID",
 							Reason:
 								"Location's phone number cannot be parsed: 'invalid'",

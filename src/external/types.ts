@@ -8,7 +8,8 @@ export const ExternalIntegrationStateSchema = z.object({
 	LastSynced: z.string().datetime().optional(),
 	ErrorInfo: z.object({
 		Message: z.string(),
-		Details: z.any().optional()
+		Details: z.any().optional(),
+		ErrorDate: z.string().optional()
 	}).optional()
 });
 export type ExternalIntegrationState = z.infer<typeof ExternalIntegrationStateSchema>;

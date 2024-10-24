@@ -50,6 +50,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
                 SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: "RLM API Key is missing",
+					ErrorDate: new Date(await context.date.now()).toISOString()
 				},
 			};
 		}
@@ -79,6 +80,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 					Details: {
 						response: response,
 					},
+					ErrorDate: new Date(await context.date.now()).toISOString()
 				},
 			};
 		}
@@ -107,6 +109,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 				SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: `Twilio integration is not in correct state 'SYNCED' to sync RLM. Current Twilio state is '${twilioIntegration?.SyncStatus}'`,
+					ErrorDate: new Date(await context.date.now()).toISOString()
 				},
 			};
 		}
@@ -155,6 +158,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 							message: message.toJSON(),
 							response: result,
 						},
+						ErrorDate: new Date(await context.date.now()).toISOString()
 					},
 				};
 			}

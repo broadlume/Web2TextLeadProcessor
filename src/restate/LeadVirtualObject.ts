@@ -184,6 +184,7 @@ export const LeadVirtualObject = restate.object({
 							ErrorInfo: {
 								Message: "An error occurred during sync",
 								Details: serializeError(e),
+								ErrorDate: new Date(await ctx.date.now()).toISOString()
 							},
 						};
 					}
@@ -250,6 +251,7 @@ export const LeadVirtualObject = restate.object({
 							ErrorInfo: {
 								Message: "An error occurred during close",
 								Details: serializeError(e),
+								ErrorDate: new Date(await ctx.date.now()).toISOString()
 							},
 						};
 					}

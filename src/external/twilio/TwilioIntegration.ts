@@ -86,7 +86,7 @@ export class TwilioIntegration
 				conversation.sid,
 				dealerMessaging,
 				leadState.Lead.PhoneNumber,
-				true,
+				false,
 			);
 		});
 		await context.run("Send customer message", async () => {
@@ -95,7 +95,7 @@ export class TwilioIntegration
 				conversation.sid,
 				systemMessaging,
 				storePhoneNumber,
-				true,
+				false,
 			);
 		});
 

@@ -1,22 +1,26 @@
-import { Twilio } from "twilio";
 import * as restate from "@restatedev/restate-sdk";
+import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
+import { assert, is } from "tsafe";
+import { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
-import type { ExternalIntegrationState, IExternalIntegration } from "../types";
-import * as TwilioProxyAPI from "./TwilioProxyAPI";
-import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
+import { IsPhoneNumberOptedOut } from "../../restate/validators";
 import type { Web2TextLead } from "../../types";
-import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
 import {
+	GetRunningEnvironment,
+	isDeployed,
+	isProductionAndDeployed,
+} from "../../util";
+import { NexusRetailerAPI, NexusStoresAPI } from "../nexus";
+import { RESTATE_INGRESS_URL } from "../restate";
+import type { ExternalIntegrationState, IExternalIntegration } from "../types";
+import { FindConversationsFor } from "./TwilioConversationHelpers";
+import * as TwilioProxyAPI from "./TwilioProxyAPI";
+import {
+	DealerCloseMessage,
 	DealerGreetMessage,
 	SystemGreetingMessage,
-	DealerCloseMessage,
 } from "./Web2TextMessagingStrings";
-import { IsPhoneNumberOptedOut } from "../../restate/validators";
-import { GetRunningEnvironment, isDeployed, isProductionAndDeployed } from "../../util";
-import { FindConversationsFor } from "./TwilioConversationHelpers";
-import { assert, is } from "tsafe";
-import { RESTATE_INGRESS_URL } from "../restate";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -76,7 +80,14 @@ export class TwilioIntegration
 			locationInformation.Web2Text_Phone_Number!,
 			"US",
 		).number;
-		const {isNewConversation, conversation} = await this.createWeb2TextConversation(context,leadState,storePhoneNumber,dealerInformation,locationInformation);
+		const { isNewConversation, conversation } =
+			await this.createWeb2TextConversation(
+				context,
+				leadState,
+				storePhoneNumber,
+				dealerInformation,
+				locationInformation,
+			);
 		const dealerMessaging = DealerGreetMessage(
 			leadState,
 			locationInformation.location_name ?? locationInformation.street_address,
@@ -298,7 +309,10 @@ export class TwilioIntegration
 		storePhoneNumber: E164Number,
 		dealerInformation: NexusRetailerAPI.NexusRetailer,
 		locationInformation: NexusStoresAPI.RetailerStore,
-	): Promise<{isNewConversation: boolean, conversation: ConversationInstance}> {
+	): Promise<{
+		isNewConversation: boolean;
+		conversation: ConversationInstance;
+	}> {
 		const conversation = await context.run(
 			"Create or fetch Twilio Conversation",
 			async () => {
@@ -346,7 +360,8 @@ export class TwilioIntegration
 		await context.run("Create system participant", async () =>
 			this.twilioClient.conversations.v1
 				.conversations(conversation.sid)
-				.participants.create({ identity: "Broadlume" }).catch(e => {
+				.participants.create({ identity: "Broadlume" })
+				.catch((e) => {
 					assert(is<Error>(e));
 					// Participant already exists, so do nothing
 					if ("code" in e && e.code === 50433) {
@@ -358,58 +373,54 @@ export class TwilioIntegration
 
 		// Attach Twilio webhooks only when deployed
 		if (isDeployed()) {
-			const syncEndpoint = new URL(
-				"TwilioWebhooks/sync",
-				RESTATE_INGRESS_URL,
-			);
+			const syncEndpoint = new URL("TwilioWebhooks/sync", RESTATE_INGRESS_URL);
 			syncEndpoint.port = "";
 			const closeEndpoint = new URL(
 				"TwilioWebhooks/close",
 				RESTATE_INGRESS_URL,
 			);
 			closeEndpoint.port = "";
-			await context.run(
-				"Check and attach webhooks",
-				async () => {
-					const activeWebhooks = await this.twilioClient.conversations.v1.conversations(conversation.sid).webhooks.list();
-					const hasSyncWebhook = activeWebhooks.find((w) =>
-						encodeURI(syncEndpoint.toString()),
-					);
-					const hasCloseWebhook = activeWebhooks.find((w) =>
-						encodeURI(closeEndpoint.toString()),
-					);
-					if (!hasSyncWebhook) {
-						await this.twilioClient.conversations.v1
-							.conversations(conversation.sid)
-							.webhooks.create({
-								"configuration.url": encodeURI(syncEndpoint.toString()),
-								"configuration.method": "POST",
-								target: "webhook",
-								"configuration.filters": [
-									"onMessageAdded",
-									"onMessageRemoved",
-									"onMessageUpdated",
-								],
-							});
-					}
-					if (!hasCloseWebhook) {
-						await this.twilioClient.conversations.v1
-							.conversations(conversation.sid)
-							.webhooks.create({
-								"configuration.url": encodeURI(closeEndpoint.toString()),
-								"configuration.method": "POST",
-								target: "webhook",
-								"configuration.filters": ["onConversationStateUpdated"],
-							});
-					}
-				},
-			);
+			await context.run("Check and attach webhooks", async () => {
+				const activeWebhooks = await this.twilioClient.conversations.v1
+					.conversations(conversation.sid)
+					.webhooks.list();
+				const hasSyncWebhook = activeWebhooks.find((w) =>
+					encodeURI(syncEndpoint.toString()),
+				);
+				const hasCloseWebhook = activeWebhooks.find((w) =>
+					encodeURI(closeEndpoint.toString()),
+				);
+				if (!hasSyncWebhook) {
+					await this.twilioClient.conversations.v1
+						.conversations(conversation.sid)
+						.webhooks.create({
+							"configuration.url": encodeURI(syncEndpoint.toString()),
+							"configuration.method": "POST",
+							target: "webhook",
+							"configuration.filters": [
+								"onMessageAdded",
+								"onMessageRemoved",
+								"onMessageUpdated",
+							],
+						});
+				}
+				if (!hasCloseWebhook) {
+					await this.twilioClient.conversations.v1
+						.conversations(conversation.sid)
+						.webhooks.create({
+							"configuration.url": encodeURI(closeEndpoint.toString()),
+							"configuration.method": "POST",
+							target: "webhook",
+							"configuration.filters": ["onConversationStateUpdated"],
+						});
+				}
+			});
 		}
 		const attributes = JSON.parse(conversation.attributes ?? "{}");
 		const leadIds: string[] = attributes["LeadIds"];
 		return {
 			isNewConversation: leadIds.length === 1,
-			conversation: conversation
+			conversation: conversation,
 		};
 	}
 }

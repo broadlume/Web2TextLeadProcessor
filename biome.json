@@ -3,7 +3,11 @@
 	"organizeImports": {
 		"enabled": true
 	},
+	"files": {
+		"include": ["app/src/**/*.ts"]
+	},
 	"linter": {
+		"include": ["app/src/**/*.ts"],
 		"enabled": true,
 		"rules": {
 			"recommended": true,
@@ -14,6 +18,12 @@
 			},
 			"complexity": {
 				"useLiteralKeys": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off"
+			},
+			"performance": {
+				"noDelete": "off"
 			}
 		}
 	}

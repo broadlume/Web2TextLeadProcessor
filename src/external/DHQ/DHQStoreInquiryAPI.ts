@@ -1,10 +1,10 @@
-import type { Web2TextLead } from "../../types";
-import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
-import type { NexusStoresAPI } from "../nexus";
-import { DHQ_AUTHORIZATION_HEADERS } from ".";
-import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import ky from "ky";
+import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
+import { DHQ_AUTHORIZATION_HEADERS } from ".";
 import { logger } from "../../logger";
+import type { Web2TextLead } from "../../types";
+import type { NexusStoresAPI } from "../nexus";
+import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 
 /**
  * Possible flooring interests
@@ -243,7 +243,7 @@ export async function SubmitStoreInquiry(
 		},
 		inquiry: {
 			contact_method: "cys_inquiry",
-			email: `poweredbytextdirect+${lead.Lead.PhoneNumber.replace(/\D+/g,"")}@broadlume.com`,
+			email: `poweredbytextdirect+${lead.Lead.PhoneNumber.replace(/\D+/g, "")}@broadlume.com`,
 			external_id: lead.LeadId,
 			message: lead.Lead.CustomerMessage,
 			name: lead.Lead.Name,
@@ -278,14 +278,18 @@ export async function SubmitStoreInquiry(
 
 	const headers = DHQ_AUTHORIZATION_HEADERS();
 	try {
-		const response = await ky.post(dhqUrl.toString(), {
-			headers: headers,
-			json:dhqLead,
-		}).json<StoreInquiryResponse>();
+		const response = await ky
+			.post(dhqUrl.toString(), {
+				headers: headers,
+				json: dhqLead,
+			})
+			.json<StoreInquiryResponse>();
 		return response;
 	} catch (e) {
-		logger.child({label: "DHQStoreInquiryAPI:SubmitStoreInquiry"}).warn(`Failed to post lead '${lead.LeadId}' to DHQ`);
-		logger.child({label: "DHQStoreInquiryAPI:SubmitStoreInquiry"}).error(e);
+		logger
+			.child({ label: "DHQStoreInquiryAPI:SubmitStoreInquiry" })
+			.warn(`Failed to post lead '${lead.LeadId}' to DHQ`);
+		logger.child({ label: "DHQStoreInquiryAPI:SubmitStoreInquiry" }).error(e);
 		throw e;
 	}
 }
@@ -304,11 +308,13 @@ export async function AddCommentToInquiry(
 		senderName = "System";
 	}
 	let messageBody = twilioMessage.body ?? "";
-	messageBody += (twilioMessage.media ?? []).map(m => `\n[MEDIA ATTACHMENT - ${m.filename}]`).join("");
+	messageBody += (twilioMessage.media ?? [])
+		.map((m) => `\n[MEDIA ATTACHMENT - ${m.filename}]`)
+		.join("");
 	const dhqComment: AddCommentRequest = {
 		comment: {
 			// Double any newline because DHQ doesn't render them correctly
-			body: `**| ${senderName}**: ${messageBody.replaceAll("\n","\n\n")}`,
+			body: `**| ${senderName}**: ${messageBody.replaceAll("\n", "\n\n")}`,
 			author_id: 262,
 		},
 	};
@@ -317,14 +323,20 @@ export async function AddCommentToInquiry(
 	dhqUrl.pathname += `retailer/rest/leads/${leadId}/comments`;
 	const headers = DHQ_AUTHORIZATION_HEADERS();
 	try {
-		const response = await ky.post(dhqUrl.toString(), {
-			headers: headers,
-			json:dhqComment,
-		}).json<AddCommentResponse>();
+		const response = await ky
+			.post(dhqUrl.toString(), {
+				headers: headers,
+				json: dhqComment,
+			})
+			.json<AddCommentResponse>();
 		return response;
 	} catch (e) {
-		logger.child({label: "DHQStoreInquiryAPI:AddCommentToInquiry"}).warn(`Failed to post twilio message '${twilioMessage.sid}' on inquiry '${leadId}' to DHQ`);
-		logger.child({label: "DHQStoreInquiryAPI:AddCommentToInquiry"}).error(e);
+		logger
+			.child({ label: "DHQStoreInquiryAPI:AddCommentToInquiry" })
+			.warn(
+				`Failed to post twilio message '${twilioMessage.sid}' on inquiry '${leadId}' to DHQ`,
+			);
+		logger.child({ label: "DHQStoreInquiryAPI:AddCommentToInquiry" }).error(e);
 		throw e;
 	}
 }

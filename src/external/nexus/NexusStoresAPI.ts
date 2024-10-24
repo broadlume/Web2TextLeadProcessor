@@ -1,6 +1,6 @@
 import type { UUID } from "node:crypto";
-import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 import ky, { HTTPError } from "ky";
+import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 import { logger } from "../../logger";
 
 export interface RetailerStore {
@@ -46,10 +46,12 @@ export async function GetAllRetailerStores(
 		if (e instanceof HTTPError && e.response.status === 404) {
 			return null;
 		}
-		logger.child({label: "NexusStoresAPI:GetAllRetailerStores"}).warn(
-			`Error fetching retailer stores from Nexus for UniversalId '${universalId}'`,
-		);
-		logger.child({label: "NexusStoresAPI:GetAllRetailerStores"}).error(e);
+		logger
+			.child({ label: "NexusStoresAPI:GetAllRetailerStores" })
+			.warn(
+				`Error fetching retailer stores from Nexus for UniversalId '${universalId}'`,
+			);
+		logger.child({ label: "NexusStoresAPI:GetAllRetailerStores" }).error(e);
 		throw e;
 	}
 }
@@ -74,10 +76,12 @@ export async function GetRetailerStoreByID(
 		) {
 			return null;
 		}
-		logger.child({label: "NexusStoresAPI:GetRetailerStoreByID"}).warn(
-			`Error fetching retailer store from Nexus for Location ID: ${locationId}`,
-		);
-		logger.child({label: "NexusStoresAPI:GetRetailerStoreByID"}).error(e);
+		logger
+			.child({ label: "NexusStoresAPI:GetRetailerStoreByID" })
+			.warn(
+				`Error fetching retailer store from Nexus for Location ID: ${locationId}`,
+			);
+		logger.child({ label: "NexusStoresAPI:GetRetailerStoreByID" }).error(e);
 		throw e;
 	}
 }
@@ -105,8 +109,8 @@ type OldNexusAPIStoreResponse = {
 	}[];
 };
 export async function GetHoursOfOperation(
-	universalRetailerId: string
-): Promise<Record<string,HoursOfOperation> | null> {
+	universalRetailerId: string,
+): Promise<Record<string, HoursOfOperation> | null> {
 	const nexusURL = new URL(process.env.NEXUS_API_URL!);
 	nexusURL.pathname += `retailers/${universalRetailerId}/stores`;
 	try {
@@ -117,7 +121,7 @@ export async function GetHoursOfOperation(
 				headers: NEXUS_AUTHORIZATION_HEADERS(),
 			})
 			.json<OldNexusAPIStoreResponse | OldNexusAPIStoreResponse[]>();
-		const storeHours: Record<string,HoursOfOperation> = {};
+		const storeHours: Record<string, HoursOfOperation> = {};
 		for (const store of [retailerStores].flat()) {
 			storeHours[store.id] = {
 				TimeZone: store.time_zone,
@@ -134,7 +138,7 @@ export async function GetHoursOfOperation(
 					{} as HoursOfOperation["Hours"],
 				),
 			};
-		}			
+		}
 		return storeHours;
 	} catch (e) {
 		if (
@@ -143,10 +147,12 @@ export async function GetHoursOfOperation(
 		) {
 			return null;
 		}
-		logger.child({label: "NexusStoresAPI:GetHoursOfOperation"}).warn(
-			`Error fetching retailer store(s) from Old Nexus API for Universal Retailer ID: '${universalRetailerId}'`,
-		);
-		logger.child({label: "NexusStoresAPI:GetHoursOfOperation"}).error(e);
+		logger
+			.child({ label: "NexusStoresAPI:GetHoursOfOperation" })
+			.warn(
+				`Error fetching retailer store(s) from Old Nexus API for Universal Retailer ID: '${universalRetailerId}'`,
+			);
+		logger.child({ label: "NexusStoresAPI:GetHoursOfOperation" }).error(e);
 		throw e;
 	}
 }

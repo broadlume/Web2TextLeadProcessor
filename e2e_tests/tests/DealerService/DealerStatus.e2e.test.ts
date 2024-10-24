@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
-import { supertest, TEST_API_KEY } from "../../setup";
+import { findNumbers } from "libphonenumber-js";
 import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
+import { describe, expect, it } from "vitest";
 import { DEALER_SERVICE_NAME } from "../../globalSetup";
-import { findNumbers } from "libphonenumber-js";
+import { TEST_API_KEY, supertest } from "../../setup";
 
 describe("DealerStatus E2E Tests", () => {
 	const mockUniversalRetailerId = uuidv4();
@@ -209,8 +209,7 @@ describe("DealerStatus E2E Tests", () => {
 							Name: "Test Store",
 							StreetAddress: "123 Test St",
 							Status: "INVALID",
-							Reason:
-								"Location's phone number cannot be parsed: 'invalid'",
+							Reason: "Location's phone number cannot be parsed: 'invalid'",
 						},
 					],
 				});

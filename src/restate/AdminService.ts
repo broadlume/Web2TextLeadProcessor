@@ -1,12 +1,12 @@
 import * as restate from "@restatedev/restate-sdk";
+import type { Scan } from "dynamoose/dist/ItemRetriever";
+import { assert, is } from "tsafe";
 import { z } from "zod";
-import { CheckAuthorization } from "./validators";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
-import { LeadVirtualObject } from "./LeadVirtualObject";
-import { assert, is } from "tsafe";
-import type { Scan } from "dynamoose/dist/ItemRetriever";
 import type { Web2TextLead } from "../types";
+import { LeadVirtualObject } from "./LeadVirtualObject";
+import { CheckAuthorization } from "./validators";
 const NonEmptyObjectSchema = z
 	.object({})
 	.passthrough()
@@ -59,7 +59,6 @@ export const AdminService = restate.service({
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;
 				const leads = await ctx.run("Scan LeadStates in DynamoDB", async () => {
-					// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 					let scan: Scan<any>;
 					try {
 						scan = LeadStateModel.scan(filter);
@@ -71,7 +70,7 @@ export const AdminService = restate.service({
 						);
 					}
 					if (!parsed.data.Verbose) {
-						scan = scan.attributes(["LeadId"])
+						scan = scan.attributes(["LeadId"]);
 					}
 					return await scan
 						.all()
@@ -109,7 +108,7 @@ export const AdminService = restate.service({
 							`Invalid operation: '${parsed.data.Operation}'`,
 						);
 				}
-				
+
 				if (parsed.data.Verbose) {
 					return {
 						Success: true,

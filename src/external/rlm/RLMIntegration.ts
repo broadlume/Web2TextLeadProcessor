@@ -1,12 +1,12 @@
+import type * as restate from "@restatedev/restate-sdk";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { serializeError } from "serialize-error";
+import { Twilio } from "twilio";
 import { RLMLeadsAPI } from ".";
-import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 import type { Web2TextLead } from "../../types";
 import { NexusRetailerAPI } from "../nexus";
-import { Twilio } from "twilio";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import type * as restate from "@restatedev/restate-sdk";
-import { serializeError } from "serialize-error";
+import { type ExternalIntegrationState, IExternalIntegration } from "../types";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -47,10 +47,10 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 		if (rlm_api_key == null) {
 			return {
 				...state,
-                SyncStatus: "ERROR",
+				SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: "RLM API Key is missing",
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -67,7 +67,6 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 						({
 							result: "Error",
 							Error: serializeError(e),
-						// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 						}) as any,
 				),
 		);
@@ -80,7 +79,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 					Details: {
 						response: response,
 					},
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -109,7 +108,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 				SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: `Twilio integration is not in correct state 'SYNCED' to sync RLM. Current Twilio state is '${twilioIntegration?.SyncStatus}'`,
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -158,7 +157,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 							message: message.toJSON(),
 							response: result,
 						},
-						ErrorDate: new Date(await context.date.now()).toISOString()
+						ErrorDate: new Date(await context.date.now()).toISOString(),
 					},
 				};
 			}

@@ -1,13 +1,13 @@
-import * as restate from "@restatedev/restate-sdk";
 import type { UUID } from "node:crypto";
-import { Web2TextIntegrations } from "../external";
-import { type LeadState, SyncWithDB } from "./common";
-import { ParseAndVerifyLeadCreation, CheckAuthorization } from "./validators";
-import { z } from "zod";
-import type { ExternalIntegrationState } from "../external/types";
-import { assert, is } from "tsafe";
-import type { Web2TextLead } from "../types";
+import * as restate from "@restatedev/restate-sdk";
 import { serializeError } from "serialize-error";
+import { assert, is } from "tsafe";
+import { z } from "zod";
+import { Web2TextIntegrations } from "../external";
+import type { ExternalIntegrationState } from "../external/types";
+import type { Web2TextLead } from "../types";
+import { type LeadState, SyncWithDB } from "./common";
+import { CheckAuthorization, ParseAndVerifyLeadCreation } from "./validators";
 
 /**
  * Helper function that runs before all of our exclusive handlers
@@ -57,7 +57,6 @@ export const LeadVirtualObject = restate.object({
 		status: restate.handlers.object.shared(
 			async (
 				ctx: restate.ObjectSharedContext<LeadState>,
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
@@ -78,7 +77,7 @@ export const LeadVirtualObject = restate.object({
 		 */
 		create: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext<LeadState>, // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
@@ -140,7 +139,6 @@ export const LeadVirtualObject = restate.object({
 		sync: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
@@ -184,7 +182,7 @@ export const LeadVirtualObject = restate.object({
 							ErrorInfo: {
 								Message: "An error occurred during sync",
 								Details: serializeError(e),
-								ErrorDate: new Date(await ctx.date.now()).toISOString()
+								ErrorDate: new Date(await ctx.date.now()).toISOString(),
 							},
 						};
 					}
@@ -251,7 +249,7 @@ export const LeadVirtualObject = restate.object({
 							ErrorInfo: {
 								Message: "An error occurred during close",
 								Details: serializeError(e),
-								ErrorDate: new Date(await ctx.date.now()).toISOString()
+								ErrorDate: new Date(await ctx.date.now()).toISOString(),
 							},
 						};
 					}

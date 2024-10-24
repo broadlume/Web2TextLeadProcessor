@@ -32,9 +32,15 @@
 				"terminal.integrated.defaultProfile.linux": "zsh",
 				"editor.defaultFormatter": "biomejs.biome"
 			},
-			"extensions": ["biomejs.biome", "eamodio.gitlens","fractalbrew.backticks", "oven.bun-vscode", "pmneo.tsimporter"]
+			"extensions": [
+				"biomejs.biome",
+				"eamodio.gitlens",
+				"fractalbrew.backticks",
+				"oven.bun-vscode",
+				"pmneo.tsimporter"
+			]
 		}
-	},
+	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

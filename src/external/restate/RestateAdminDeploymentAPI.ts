@@ -28,9 +28,7 @@ type RestateError = {
  * @returns an array of registered restate deployments
  */
 export async function ListDeployments(): Promise<RestateDeployment[]> {
-	const restateURL = new URL(
-		process.env.RESTATE_ADMIN_URL!,
-	);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL!);
 	restateURL.pathname += "deployments";
 
 	const json = await ky
@@ -71,9 +69,7 @@ export async function CreateDeployment(
 		throw new Error(`deploymentUri '${deploymentUri}' is not a valid URL`);
 	}
 
-	const restateURL = new URL(
-		process.env.RESTATE_ADMIN_URL,
-	);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
 	restateURL.pathname += "deployments";
 
 	const json = await ky
@@ -104,7 +100,7 @@ export async function DeleteDeployment(
 		 * Default: false
 		 */
 		force?: boolean;
-		retry?: RetryOptions
+		retry?: RetryOptions;
 	} = {},
 ): Promise<void> {
 	options.force ??= false;
@@ -121,15 +117,13 @@ export async function DeleteDeployment(
 			);
 		}
 	}
-	const restateURL = new URL(
-		process.env.RESTATE_ADMIN_URL,
-	);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
 	restateURL.pathname += `deployments/${deploymentId}`;
 
 	await ky.delete(restateURL.toString(), {
 		retry: options.retry ?? 0,
 		searchParams: {
-			force: true // options.force
-		}
+			force: true, // options.force
+		},
 	});
 }

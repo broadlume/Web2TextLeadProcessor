@@ -1,20 +1,20 @@
 import "dotenv/config";
-import * as restate from "@restatedev/restate-sdk";
-import { LeadVirtualObject } from "./restate/LeadVirtualObject";
 import { randomUUID } from "node:crypto";
 import type os from "node:os";
+import * as restate from "@restatedev/restate-sdk";
+import { LeadVirtualObject } from "./restate/LeadVirtualObject";
 import "./dynamodb/index";
+import util from "node:util";
+import { serializeError } from "serialize-error";
+import { Twilio } from "twilio";
 import {
 	DeregisterThisServiceWithRestate,
 	RegisterThisServiceWithRestate,
 } from "./ServiceRegistrationHelper";
-import { TwilioWebhooks } from "./restate/TwilioWebhooks";
-import { DealerVirtualObject } from "./restate/DealerVirtualObject";
-import { Twilio } from "twilio";
 import { logger as _logger } from "./logger";
-import util from "node:util";
-import { serializeError } from "serialize-error";
 import { AdminService } from "./restate/AdminService";
+import { DealerVirtualObject } from "./restate/DealerVirtualObject";
+import { TwilioWebhooks } from "./restate/TwilioWebhooks";
 const RESTATE_PORT = 9080;
 
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -50,7 +50,7 @@ export const RESTATE_SERVER = restate
 				params.context?.fqMethodName,
 				params.context?.invocationId,
 			],
-			errors: separated.errors.map((e: Error) => (serializeError(e))),
+			errors: separated.errors.map((e: Error) => serializeError(e)),
 			...params,
 		});
 	})

@@ -1,6 +1,6 @@
-import { z } from "zod";
-import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import type { UUID as UUIDType } from "node:crypto";
+import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
+import { z } from "zod";
 import { ExternalIntegrationStateSchema } from "./external/types";
 
 const NonEmptyString = () =>

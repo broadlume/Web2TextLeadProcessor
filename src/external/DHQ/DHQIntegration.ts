@@ -1,13 +1,13 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
-import type { Web2TextLead } from "../../types";
-import { type ExternalIntegrationState, IExternalIntegration } from "../types";
-import { Twilio } from "twilio";
-import { NexusStoresAPI } from "../nexus";
-import * as StoreInquiryAPI from "./DHQStoreInquiryAPI";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
-import { DHQStoreInquiryAPI } from ".";
 import { serializeError } from "serialize-error";
+import { Twilio } from "twilio";
+import { DHQStoreInquiryAPI } from ".";
+import type { Web2TextLead } from "../../types";
+import { NexusStoresAPI } from "../nexus";
+import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
+import { type ExternalIntegrationState, IExternalIntegration } from "../types";
+import * as StoreInquiryAPI from "./DHQStoreInquiryAPI";
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
@@ -47,7 +47,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 				SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: `Store '${leadState.LocationId}' does not exist in Nexus API`,
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -71,7 +71,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 					Details: {
 						response: response,
 					},
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -99,7 +99,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 				SyncStatus: "ERROR",
 				ErrorInfo: {
 					Message: `Twilio integration is not in correct state 'SYNCED' to sync DHQ. Current Twilio state is '${twilioIntegration?.SyncStatus}'`,
-					ErrorDate: new Date(await context.date.now()).toISOString()
+					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
 		}
@@ -148,7 +148,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 							message: message.toJSON(),
 							response: result,
 						},
-						ErrorDate: new Date(await context.date.now()).toISOString()
+						ErrorDate: new Date(await context.date.now()).toISOString(),
 					},
 				};
 			}

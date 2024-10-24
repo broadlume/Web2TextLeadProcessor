@@ -1,9 +1,9 @@
-import { describe, test } from "vitest";
 import { randomUUID } from "node:crypto";
-import { supertest, TEST_API_KEY } from "../../setup";
+import nock from "nock";
+import { describe, test } from "vitest";
 import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
 import { DEALER_SERVICE_NAME } from "../../globalSetup";
-import nock from "nock";
+import { TEST_API_KEY, supertest } from "../../setup";
 describe("Dealer Service Authentication", () => {
 	for (const endpoint of ["status"]) {
 		test(`${endpoint} should require authentication header`, async () => {
@@ -29,8 +29,8 @@ describe("Dealer Service Authentication", () => {
 		test(`${endpoint} should allow valid API keys`, async () => {
 			const universalRetailerId = randomUUID();
 			nock(process.env.NEXUS_API_URL!)
-			.get(`/retailers/${universalRetailerId}`)
-			.reply(404, {});
+				.get(`/retailers/${universalRetailerId}`)
+				.reply(404, {});
 
 			await supertest
 				.get(`/${DEALER_SERVICE_NAME}/${universalRetailerId}/${endpoint}`)
@@ -40,8 +40,8 @@ describe("Dealer Service Authentication", () => {
 		test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
 			const universalRetailerId = randomUUID();
 			nock(process.env.NEXUS_API_URL!)
-			.get(`/retailers/${universalRetailerId}`)
-			.reply(404, {});
+				.get(`/retailers/${universalRetailerId}`)
+				.reply(404, {});
 			const apiKey = await APIKeyModel.create(
 				{
 					API_Key: randomUUID(),

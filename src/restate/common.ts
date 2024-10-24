@@ -1,8 +1,8 @@
 import * as restate from "@restatedev/restate-sdk";
-import { Web2TextLeadSchema } from "../types";
 import { z } from "zod";
-import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import { fromError } from "zod-validation-error";
+import { LeadStateModel } from "../dynamodb/LeadStateModel";
+import { Web2TextLeadSchema } from "../types";
 import { GetRunningEnvironment } from "../util";
 
 export const LeadStateSchema = z.discriminatedUnion("Status", [
@@ -34,13 +34,10 @@ export async function SyncWithDB(
 			if (GetRunningEnvironment().local) {
 				ctx.console.log("SYNCED TO DB:", parsed);
 			}
-			await ctx.run(
-				"Sending lead to database",
-				async () => {
-					const dynamoDBModel = new LeadStateModel(parsed);
-					await dynamoDBModel.save()
-				},
-			);
+			await ctx.run("Sending lead to database", async () => {
+				const dynamoDBModel = new LeadStateModel(parsed);
+				await dynamoDBModel.save();
+			});
 			return true;
 		}
 		case "RECEIVE": {

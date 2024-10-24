@@ -1,10 +1,10 @@
-import { describe, test } from "vitest";
-import { supertest } from "../../setup";
 import { randomUUID } from "node:crypto";
-import nock from "nock";
-import { TEST_API_KEY } from "../../setup";
-import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { findNumbers } from "libphonenumber-js";
+import nock from "nock";
+import { describe, test } from "vitest";
+import { LEAD_SERVICE_NAME } from "../../globalSetup";
+import { supertest } from "../../setup";
+import { TEST_API_KEY } from "../../setup";
 
 const testLead = {
 	UniversalRetailerId: "314aa161-867a-4902-b780-35c62319b418",
@@ -22,7 +22,7 @@ const testLead = {
 			Variant: "ExampleVariant",
 		},
 	},
-	SyncImmediately: false
+	SyncImmediately: false,
 };
 describe("Lead Creation", () => {
 	test("Successful lead creation", async () => {
@@ -62,7 +62,7 @@ describe("Lead Creation", () => {
 		nock("https://lookups.twilio.com")
 			.get(/\/v2\/PhoneNumbers\/.*/)
 			.query({
-				"Fields": "line_type_intelligence"
+				Fields: "line_type_intelligence",
 			})
 			.reply(200, (uri) => ({
 				calling_country_code: "1",
@@ -125,7 +125,8 @@ describe("Lead Creation", () => {
 				name: "Test Client",
 				status: "Customer",
 				rlm_api_key: randomUUID(),
-			}).persist()
+			})
+			.persist()
 			.get(`/retailers/${testLead.UniversalRetailerId}/subscriptions`)
 			.reply(200, [
 				{
@@ -134,7 +135,7 @@ describe("Lead Creation", () => {
 					subscription_status: "Live",
 				},
 			])
-			.persist();;
+			.persist();
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
 			.query({ location_id: testLead.LocationId })
@@ -215,7 +216,7 @@ describe("Lead Creation", () => {
 		nock("https://lookups.twilio.com")
 			.get(/\/v2\/PhoneNumbers\/.*/)
 			.query({
-				"Fields": "line_type_intelligence"
+				Fields: "line_type_intelligence",
 			})
 			.reply(200, (uri) => ({
 				calling_country_code: "1",

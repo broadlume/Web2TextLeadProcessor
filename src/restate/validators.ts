@@ -1,19 +1,19 @@
 import type { UUID } from "node:crypto";
+import * as restate from "@restatedev/restate-sdk";
+import type { E164Number } from "libphonenumber-js";
+import parsePhoneNumber from "libphonenumber-js";
+import type { Twilio } from "twilio";
+import { z } from "zod";
+import { fromError } from "zod-validation-error";
+import { APIKeyModel } from "../dynamodb/APIKeyModel";
+import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
+import { NexusRetailerAPI } from "../external/nexus";
+import { NexusStoresAPI } from "../external/nexus";
 import {
 	type Web2TextLeadCreateRequest,
 	Web2TextLeadCreateRequestSchema,
 } from "../types";
-import * as restate from "@restatedev/restate-sdk";
-import { APIKeyModel } from "../dynamodb/APIKeyModel";
-import { fromError } from "zod-validation-error";
-import { NexusRetailerAPI } from "../external/nexus";
-import { NexusStoresAPI } from "../external/nexus";
 import type { LeadState } from "./common";
-import { z } from "zod";
-import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
-import type { E164Number } from "libphonenumber-js";
-import parsePhoneNumber from "libphonenumber-js";
-import type { Twilio } from "twilio";
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -55,8 +55,15 @@ export async function CheckAPIKeyStatus(
 			Reason: "API Key doesn't exist or has been marked inactive",
 		};
 	}
-	if (apiKey.AuthorizedEndpoints.includes("*") || apiKey.AuthorizedEndpoints.includes(endpoint)) return {Status: "VALID"};
-	return { Status: "INVALID", Reason: `API Key does not have authorization for '${endpoint}'` };
+	if (
+		apiKey.AuthorizedEndpoints.includes("*") ||
+		apiKey.AuthorizedEndpoints.includes(endpoint)
+	)
+		return { Status: "VALID" };
+	return {
+		Status: "INVALID",
+		Reason: `API Key does not have authorization for '${endpoint}'`,
+	};
 }
 
 export async function CheckAuthorization(
@@ -64,7 +71,10 @@ export async function CheckAuthorization(
 	endpoint: string,
 	auth: string | undefined,
 ) {
-	const result = await ctx.run("Verify API Key", async () => await CheckAPIKeyStatus(endpoint,auth));
+	const result = await ctx.run(
+		"Verify API Key",
+		async () => await CheckAPIKeyStatus(endpoint, auth),
+	);
 	if (result.Status !== "VALID") {
 		throw new restate.TerminalError(result.Reason ?? "", {
 			errorCode: 401,
@@ -131,18 +141,21 @@ export async function CheckLocationStatus(
 			Status: "NONEXISTANT",
 			Reason: "Could not find location with this Id in Nexus",
 		};
-	if (location.Web2Text_Phone_Number == null || location.Web2Text_Phone_Number.trim() === "") {
+	if (
+		location.Web2Text_Phone_Number == null ||
+		location.Web2Text_Phone_Number.trim() === ""
+	) {
 		return {
 			Status: "INVALID",
-			Reason: "Location does not have a Web2Text phone number associated in Nexus"
-		}
+			Reason:
+				"Location does not have a Web2Text phone number associated in Nexus",
+		};
 	}
 	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number, "US");
 	if (locationPhone == null) {
 		return {
 			Status: "INVALID",
-			Reason:
-				`Location's phone number cannot be parsed: '${location.Web2Text_Phone_Number}'`,
+			Reason: `Location's phone number cannot be parsed: '${location.Web2Text_Phone_Number}'`,
 		};
 	}
 	const phoneNumberStatus = await CheckPhoneNumberStatus(
@@ -175,8 +188,8 @@ export async function CheckPhoneNumberStatus(
 	if (phoneNumber == null) {
 		return {
 			Status: "NONEXISTANT",
-			Reason: "Phone number is missing"
-		}
+			Reason: "Phone number is missing",
+		};
 	}
 	const optedOut = await IsPhoneNumberOptedOut(phoneNumber);
 	if (optedOut) {
@@ -223,9 +236,12 @@ export async function ParseAndVerifyLeadCreation(
 		await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
 	if (!parseRequest.success) {
 		const formattedError = fromError(parseRequest.error);
-		throw new restate.TerminalError(`Request could not be parsed - ${formattedError.message}`, {
-			errorCode: 400,
-		});
+		throw new restate.TerminalError(
+			`Request could not be parsed - ${formattedError.message}`,
+			{
+				errorCode: 400,
+			},
+		);
 	}
 	const leadState = parseRequest.data;
 	const ipAddressValid = await ctx.run<ValidationStatus>(
@@ -246,7 +262,7 @@ export async function ParseAndVerifyLeadCreation(
 	if (clientStatus.Status !== "VALID") {
 		throw new restate.TerminalError(
 			`UniversalRetailerId is '${clientStatus.Status}' - ${clientStatus.Reason}`.trim(),
-			{ errorCode: 400 }
+			{ errorCode: 400 },
 		);
 	}
 
@@ -257,30 +273,33 @@ export async function ParseAndVerifyLeadCreation(
 	if (locationStatus.Status !== "VALID") {
 		throw new restate.TerminalError(
 			`Location ID is '${locationStatus.Status}' - ${locationStatus.Reason}`.trim(),
-			{ errorCode: 400 }
+			{ errorCode: 400 },
 		);
 	}
-	const storePhoneNumber = parsePhoneNumber((
-		await ctx.run(
-			"Get store phone number",
-			async () =>
-				await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
-		)
-	)?.Web2Text_Phone_Number ?? "", "US");
+	const storePhoneNumber = parsePhoneNumber(
+		(
+			await ctx.run(
+				"Get store phone number",
+				async () =>
+					await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
+			)
+		)?.Web2Text_Phone_Number ?? "",
+		"US",
+	);
 
-	if (
-		storePhoneNumber?.number ===
-		leadState.Lead.PhoneNumber
-	) {
+	if (storePhoneNumber?.number === leadState.Lead.PhoneNumber) {
 		throw new restate.TerminalError(
-			"Customer phone number is the same as the store's phone number"
+			"Customer phone number is the same as the store's phone number",
 		);
 	}
 
 	const customerPhoneStatus = await ctx.run(
 		"Customer phone validation",
 		async () =>
-			await CheckPhoneNumberStatus(globalThis.TWILIO_CLIENT, leadState.Lead.PhoneNumber),
+			await CheckPhoneNumberStatus(
+				globalThis.TWILIO_CLIENT,
+				leadState.Lead.PhoneNumber,
+			),
 	);
 	if (customerPhoneStatus.Status !== "VALID") {
 		throw new restate.TerminalError(

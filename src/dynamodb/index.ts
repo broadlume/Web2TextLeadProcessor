@@ -1,8 +1,8 @@
 import dynamoose from "dynamoose";
+import { logger } from "../logger";
 import { APIKeyModel } from "./APIKeyModel";
 import { LeadStateModel } from "./LeadStateModel";
 import { OptedOutNumberModel } from "./OptedOutNumberModel";
-import { logger } from "../logger";
 
 if (process.env.LOCAL_DYNAMODB_URL) {
 	// Use local DynamoDB instance

@@ -1,14 +1,14 @@
+import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
+import parsePhoneNumber from "libphonenumber-js";
+import { assert, is } from "tsafe";
 import { z } from "zod";
+import { NexusStoresAPI } from "../external/nexus";
 import {
+	CheckAuthorization,
 	CheckClientStatus,
 	CheckLocationStatus,
-	CheckAuthorization,
 } from "./validators";
-import { NexusStoresAPI } from "../external/nexus";
-import { assert, is } from "tsafe";
-import type { UUID } from "node:crypto";
-import parsePhoneNumber from "libphonenumber-js";
 
 type LocationStatus = {
 	NexusLocationId: string;
@@ -44,7 +44,6 @@ export const DealerVirtualObject = restate.object({
 			},
 			async (
 				ctx: restate.ObjectSharedContext,
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 				req?: Record<string, any>,
 			): Promise<DealerStatusResponse> => {
 				// Validate the API key
@@ -95,7 +94,9 @@ export const DealerVirtualObject = restate.object({
 					const status: LocationStatus = {
 						NexusLocationId: location.id,
 						UniversalLocationId: location.universal_id,
-						Name: undefinedIfEmpty(location.location_name ?? location.store_name),
+						Name: undefinedIfEmpty(
+							location.location_name ?? location.store_name,
+						),
 						StreetAddress: undefinedIfEmpty(location.street_address),
 						City: undefinedIfEmpty(location.city),
 						State: undefinedIfEmpty(location.state_province),

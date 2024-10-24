@@ -1,10 +1,8 @@
-import { describe, test } from "vitest";
 import { randomUUID } from "node:crypto";
-import { supertest, TEST_API_KEY } from "../../setup";
+import { describe, test } from "vitest";
 import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
-import {
-	ADMIN_SERVICE_NAME,
-} from "../../globalSetup";
+import { ADMIN_SERVICE_NAME } from "../../globalSetup";
+import { TEST_API_KEY, supertest } from "../../setup";
 describe("Admin Service Authentication", () => {
 	for (const endpoint of ["bulk"]) {
 		test(`${endpoint} should require authentication header`, async () => {
@@ -12,7 +10,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.expect(401);
 		});
@@ -21,7 +19,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.auth(randomUUID(), { type: "bearer" })
 				.expect(401);
@@ -31,7 +29,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.auth("username", "password")
 				.expect(401);
@@ -41,7 +39,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.auth(TEST_API_KEY, { type: "bearer" })
 				.expect((s) => s.status !== 401);
@@ -61,7 +59,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status !== 401);
@@ -81,7 +79,7 @@ describe("Admin Service Authentication", () => {
 				.post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
 				.send({
 					Operation: "FIND",
-					Filter: "*"
+					Filter: "*",
 				})
 				.auth(apiKey.API_Key, { type: "bearer" })
 				.expect((s) => s.status === 401);

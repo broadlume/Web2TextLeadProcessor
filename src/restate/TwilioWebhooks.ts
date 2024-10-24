@@ -1,16 +1,19 @@
 import * as restate from "@restatedev/restate-sdk";
-import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
-import { validateRequest } from "twilio";
-import { LeadVirtualObject } from "./LeadVirtualObject";
-import { assert, is } from "tsafe";
-import { FindConversationsFor } from "../external/twilio/TwilioConversationHelpers";
 import type { E164Number } from "libphonenumber-js";
-import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
+import { assert, is } from "tsafe";
+import { validateRequest } from "twilio";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
-import { CustomerCloseMessage, DealerCloseMessage } from "../external/twilio/Web2TextMessagingStrings";
-import { XMLSerde } from "./XMLSerde";
+import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
 import { RESTATE_INGRESS_URL } from "../external/restate";
+import { FindConversationsFor } from "../external/twilio/TwilioConversationHelpers";
+import {
+	CustomerCloseMessage,
+	DealerCloseMessage,
+} from "../external/twilio/Web2TextMessagingStrings";
 import { logger as _logger } from "../logger";
+import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
+import { LeadVirtualObject } from "./LeadVirtualObject";
+import { XMLSerde } from "./XMLSerde";
 
 interface TwilioWebhookBody {
 	AccountSid: string;
@@ -63,7 +66,7 @@ function ValidateTwilioRequest(
 		throw new restate.TerminalError("Twilio request validation failed");
 	}
 }
-const logger = _logger.child({label: "TwilioWebhooks"});
+const logger = _logger.child({ label: "TwilioWebhooks" });
 export const TwilioWebhooks = restate.service({
 	name: "TwilioWebhooks",
 	handlers: {
@@ -77,15 +80,20 @@ export const TwilioWebhooks = restate.service({
 					ctx.request().headers.get("X-Twilio-Signature");
 				ValidateTwilioRequest(twilioHeader, data, "sync");
 				assert(is<TwilioConversationMessageWebhookBody>(data));
-				const conversation = await ctx.run("Fetch Twilio conversation", async () => await TWILIO_CLIENT.conversations.v1.conversations(data.ConversationSid).fetch());
+				const conversation = await ctx.run(
+					"Fetch Twilio conversation",
+					async () =>
+						await TWILIO_CLIENT.conversations.v1
+							.conversations(data.ConversationSid)
+							.fetch(),
+				);
 				const attributes = JSON.parse(conversation.attributes ?? "{}");
 				const leadIds = attributes["LeadIds"] ?? [];
 				for (const leadId of leadIds) {
 					ctx
-					.objectSendClient(LeadVirtualObject, leadId)
-					.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
+						.objectSendClient(LeadVirtualObject, leadId)
+						.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
 				}
-
 			},
 		),
 		close: restate.handlers.handler(
@@ -94,18 +102,25 @@ export const TwilioWebhooks = restate.service({
 			},
 			async (ctx: restate.Context, data: object) => {
 				const twilioHeader =
-				ctx.request().headers.get("x-twilio-signature") ??
-				ctx.request().headers.get("X-Twilio-Signature");
-			ValidateTwilioRequest(twilioHeader, data, "close");
-			assert(is<TwilioConversationStateUpdatedWebhookBody>(data));
-			const conversation = await ctx.run("Fetch Twilio conversation", async () => await TWILIO_CLIENT.conversations.v1.conversations(data.ConversationSid).fetch());
-			const attributes = JSON.parse(conversation.attributes ?? "{}");
-			const leadIds = attributes["LeadIds"] ?? [];
-			for (const leadId of leadIds) {
-				ctx
-				.objectSendClient(LeadVirtualObject, leadId)
-				.close({ reason: "Inactivity", API_KEY: process.env.INTERNAL_API_TOKEN });
-			}
+					ctx.request().headers.get("x-twilio-signature") ??
+					ctx.request().headers.get("X-Twilio-Signature");
+				ValidateTwilioRequest(twilioHeader, data, "close");
+				assert(is<TwilioConversationStateUpdatedWebhookBody>(data));
+				const conversation = await ctx.run(
+					"Fetch Twilio conversation",
+					async () =>
+						await TWILIO_CLIENT.conversations.v1
+							.conversations(data.ConversationSid)
+							.fetch(),
+				);
+				const attributes = JSON.parse(conversation.attributes ?? "{}");
+				const leadIds = attributes["LeadIds"] ?? [];
+				for (const leadId of leadIds) {
+					ctx.objectSendClient(LeadVirtualObject, leadId).close({
+						reason: "Inactivity",
+						API_KEY: process.env.INTERNAL_API_TOKEN,
+					});
+				}
 			},
 		),
 		onIncomingMessage: restate.handlers.handler(
@@ -121,19 +136,27 @@ export const TwilioWebhooks = restate.service({
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, "onIncomingMessage");
 				if (data.OptOutType === "START") {
-					logger.child({PhoneNumber: data.From, Operation: "OPT-IN"}).info(`Received 'OPT-IN' for ${data.From}`);
+					logger
+						.child({ PhoneNumber: data.From, Operation: "OPT-IN" })
+						.info(`Received 'OPT-IN' for ${data.From}`);
 					const result = await HandleOptInMessage(ctx, data);
-					logger.child({PhoneNumber: data.From, Operation: "OPT-IN"}).info(`Processed 'OPT-IN' for ${data.From}`);
+					logger
+						.child({ PhoneNumber: data.From, Operation: "OPT-IN" })
+						.info(`Processed 'OPT-IN' for ${data.From}`);
 					return result;
 				}
 				// Close any active leads on opt-out
 				if (data.OptOutType === "STOP") {
-					logger.child({PhoneNumber: data.From, Operation: "OPT-OUT"}).info(`Received 'OPT-OUT' for ${data.From}`);
+					logger
+						.child({ PhoneNumber: data.From, Operation: "OPT-OUT" })
+						.info(`Received 'OPT-OUT' for ${data.From}`);
 					const result = await HandleOptOutMessage(ctx, data);
-					logger.child({PhoneNumber: data.From, Operation: "OPT-OUT"}).info(`Processed 'OPT-OUT' for ${data.From}`);
+					logger
+						.child({ PhoneNumber: data.From, Operation: "OPT-OUT" })
+						.info(`Processed 'OPT-OUT' for ${data.From}`);
 					return result;
 				}
-				return await HandleClosedMessagingThread(ctx,data);
+				return await HandleClosedMessagingThread(ctx, data);
 			},
 		),
 	},
@@ -193,7 +216,9 @@ async function HandleOptOutMessage(
 		}
 	}
 	if (isDealer) {
-		return new MessagingResponse().message("WARNING: You have opted out of Web2Text messages. If this was an error, text START to opt back in. If you intended to opt out, please contact your account manager immediately, as this may negatively impact your business.");
+		return new MessagingResponse().message(
+			"WARNING: You have opted out of Web2Text messages. If this was an error, text START to opt back in. If you intended to opt out, please contact your account manager immediately, as this may negatively impact your business.",
+		);
 	}
 }
 async function HandleClosedMessagingThread(
@@ -224,8 +249,7 @@ async function HandleClosedMessagingThread(
 	if (data.From === storePhoneNumber) {
 		const customerName = attributes?.["CustomerName"];
 		closingMessage = DealerCloseMessage(customerName);
-	}	
-	else {
+	} else {
 		const dealerName = attributes?.["DealerName"];
 		const dealerWebsite = attributes?.["DealerURL"];
 		closingMessage = CustomerCloseMessage(
@@ -235,5 +259,4 @@ async function HandleClosedMessagingThread(
 		);
 	}
 	return new MessagingResponse().message(closingMessage).toString();
-
 }

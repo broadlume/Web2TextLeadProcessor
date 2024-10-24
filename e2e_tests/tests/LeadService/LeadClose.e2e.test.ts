@@ -1,9 +1,9 @@
-import nock from "nock";
-import { supertest, TEST_API_KEY } from "../../setup";
-import { v4 as uuidv4 } from "uuid";
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { findNumbers } from "libphonenumber-js";
+import nock from "nock";
+import { v4 as uuidv4 } from "uuid";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LEAD_SERVICE_NAME } from "../../globalSetup";
+import { TEST_API_KEY, supertest } from "../../setup";
 const leadId = uuidv4();
 const testLead = {
 	UniversalRetailerId: uuidv4(),
@@ -18,7 +18,6 @@ const testLead = {
 	},
 	SyncImmediately: false,
 };
-
 
 describe("Lead Close E2E Tests", () => {
 	beforeEach(() => {
@@ -157,12 +156,13 @@ describe("Lead Close E2E Tests", () => {
 		});
 		expect(closeResponse.body).to.have.property("Integrations");
 		expect(Object.keys(closeResponse.body.Integrations).length === 1);
-		for (const [integration,state] of Object.entries(closeResponse.body.Integrations)) {
+		for (const [integration, state] of Object.entries(
+			closeResponse.body.Integrations,
+		)) {
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			expect((state as any).SyncStatus === "CLOSED");
 		}
-		
-	})
+	});
 
 	it("should return 409 when trying to close a non-existent lead", async () => {
 		const nonExistentLeadId = uuidv4();
@@ -193,7 +193,10 @@ describe("Lead Close E2E Tests", () => {
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Second close attempt" })
 			.expect(200);
-		
-		expect(response2.body).to.deep.equal(response1.body,"Close responses aren't the same");
+
+		expect(response2.body).to.deep.equal(
+			response1.body,
+			"Close responses aren't the same",
+		);
 	});
 });

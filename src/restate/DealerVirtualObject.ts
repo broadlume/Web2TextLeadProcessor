@@ -20,6 +20,7 @@ type LocationStatus = {
 	StreetAddress?: string;
 	Web2TextPhoneNumber?: string;
 	StorePhoneNumber?: string;
+	CallTrackingPhoneNumber?: string;
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
 };
@@ -91,6 +92,10 @@ export const DealerVirtualObject = restate.object({
 						location.store_phone_number ?? "",
 						"US",
 					);
+					const callTrackingPhoneNumber = parsePhoneNumber(
+						location.call_tracking_number ?? "",
+						"US",
+					);
 					const status: LocationStatus = {
 						NexusLocationId: location.id,
 						UniversalLocationId: location.universal_id,
@@ -103,6 +108,7 @@ export const DealerVirtualObject = restate.object({
 						ZipCode: undefinedIfEmpty(location.zip_code),
 						Web2TextPhoneNumber: web2TextPhoneNumber?.number,
 						StorePhoneNumber: storePhoneNumber?.number,
+						CallTrackingPhoneNumber: callTrackingPhoneNumber?.number,
 						...locationStatus,
 					};
 					locationStatuses.push(status);

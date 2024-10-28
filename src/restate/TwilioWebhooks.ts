@@ -1,5 +1,5 @@
 import * as restate from "@restatedev/restate-sdk";
-import type { E164Number } from "libphonenumber-js";
+import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { validateRequest } from "twilio";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
@@ -14,6 +14,7 @@ import { logger as _logger } from "../logger";
 import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 import { XMLSerde } from "./XMLSerde";
+import { CheckAuthorization } from "./validators";
 
 interface TwilioWebhookBody {
 	AccountSid: string;
@@ -159,6 +160,48 @@ export const TwilioWebhooks = restate.service({
 				return await HandleClosedMessagingThread(ctx, data);
 			},
 		),
+		checkOptInStatus: restate.handlers.handler(
+			{},
+			async (
+				ctx: restate.Context,
+				req: Record<string, any>,
+			): Promise<{
+				Status: "OPTED-IN" | "OPTED-OUT";
+				OptInNumbers?: E164Number[];
+			}> => {
+				await CheckAuthorization(
+					ctx as unknown as restate.ObjectSharedContext,
+					`${TwilioWebhooks.name}/getOptInNumber`,
+					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+				);
+
+				const phoneNumber = parsePhoneNumber(req["PhoneNumber"], "US");
+				if (phoneNumber === undefined) {
+					throw new restate.TerminalError(
+						"'PhoneNumber' in POST body is missing or invalid",
+						{
+							errorCode: 400,
+						},
+					);
+				}
+				const optOut = await ctx.run(
+					"Fetch Opt-Out request",
+					async () => await OptedOutNumberModel.get(phoneNumber!.number),
+				);
+				if (optOut == null) {
+					return {
+						Status: "OPTED-IN",
+					};
+				}
+				const optInNumbers = Object.keys(
+					optOut.OptedOutNumbers,
+				) as E164Number[];
+				return {
+					Status: "OPTED-OUT",
+					OptInNumbers: optInNumbers,
+				};
+			},
+		),
 	},
 });
 
@@ -166,10 +209,16 @@ async function HandleOptInMessage(
 	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ) {
-	await ctx.run(
-		"Remove opted-out number",
-		async () => await OptedOutNumberModel.delete(data.From),
-	);
+	const optOutEntry = await ctx.run("Get Opted-Out number entry", async () => await OptedOutNumberModel.get(data.From));
+	if (optOutEntry == null) return;
+	if (optOutEntry.OptedOutNumbers[data.To] == null) return;
+	delete optOutEntry.OptedOutNumbers[data.To];
+	await ctx.run("Remove opted-out number", async () => {
+		if (Object.keys(optOutEntry.OptedOutNumbers).length === 0) {
+			return await optOutEntry.delete();
+		}
+		return await optOutEntry.save();
+	});
 }
 async function HandleOptOutMessage(
 	ctx: restate.Context,
@@ -184,16 +233,24 @@ async function HandleOptOutMessage(
 				"inactive",
 			]),
 	);
+	const optOutEntry = await ctx.run("Get Opted-Out number entry", async () => await OptedOutNumberModel.get(data.From));
+	const optedOutNumbers = optOutEntry?.OptedOutNumbers ?? {};
+	// Return early if this number is already opted out
+	if (optedOutNumbers[data.To] != null) return;
 	const now = await ctx.date.now();
-	ctx.console.log(data);
 	await ctx.run(
 		"Add opted-out number",
 		async () =>
 			await OptedOutNumberModel.create(
 				{
 					PhoneNumber: data.From,
-					DateOptedOut: new Date(now).toISOString(),
-					OptOutRequest: data
+					OptedOutNumbers: {
+						...optedOutNumbers,
+						[data.To]: {
+							OptOutRequest: data,
+							DateOptedOut: new Date(now).toISOString(),
+						},
+					},
 				},
 				{ overwrite: true },
 			),

@@ -6,8 +6,12 @@ import type { TwilioMessagingServiceBody } from "../restate/TwilioWebhooks";
 
 class OptedOutNumberItem extends Item {
 	PhoneNumber!: E164Number;
-	DateOptedOut!: string;
-	OptOutRequest?: TwilioMessagingServiceBody;
+	OptedOutNumbers!: {
+		[number: E164Number]: {
+			DateOptedOut: string;
+			OptOutRequest: TwilioMessagingServiceBody;
+		} 
+	};
 }
 const OptedOutNumberTableName = `${ENV_PREFIX}_Web2Text_OptedOutNumbers`;
 const OptedOutNumberSchema = new dynamoose.Schema(	{
@@ -16,13 +20,9 @@ const OptedOutNumberSchema = new dynamoose.Schema(	{
 		required: true,
 		hashKey: true,
 	},
-	DateOptedOut: {
-		type: String,
-		required: true,
-	},
-	OptOutRequest: {
+	OptedOutNumbers: {
 		type: Object,
-		required: false
+		required: true
 	}
 },
 {saveUnknown: true});

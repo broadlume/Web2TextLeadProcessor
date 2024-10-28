@@ -10,21 +10,23 @@ class OptedOutNumberItem extends Item {
 	OptOutRequest?: TwilioMessagingServiceBody;
 }
 const OptedOutNumberTableName = `${ENV_PREFIX}_Web2Text_OptedOutNumbers`;
+const OptedOutNumberSchema = new dynamoose.Schema(	{
+	PhoneNumber: {
+		type: String,
+		required: true,
+		hashKey: true,
+	},
+	DateOptedOut: {
+		type: String,
+		required: true,
+	},
+	OptOutRequest: {
+		type: Object,
+		required: false
+	}
+},
+{saveUnknown: true});
 export const OptedOutNumberModel = dynamoose.model<OptedOutNumberItem>(
 	OptedOutNumberTableName,
-	{
-		PhoneNumber: {
-			type: String,
-			required: true,
-			hashKey: true,
-		},
-		DateOptedOut: {
-			type: String,
-			required: true,
-		},
-		OptOutRequest: {
-			type: Object,
-			required: false
-		}
-	},
+	OptedOutNumberSchema
 );

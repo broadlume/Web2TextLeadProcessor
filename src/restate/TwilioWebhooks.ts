@@ -185,6 +185,7 @@ async function HandleOptOutMessage(
 			]),
 	);
 	const now = await ctx.date.now();
+	ctx.console.log(data);
 	await ctx.run(
 		"Add opted-out number",
 		async () =>

@@ -35,7 +35,7 @@ type TwilioConversationStateUpdatedWebhookBody = TwilioWebhookBody & {
 	ConversationSid: string;
 };
 
-interface TwilioMessagingServiceBody {
+export interface TwilioMessagingServiceBody {
 	MessageSid: string;
 	From: E164Number;
 	To: E164Number;
@@ -192,6 +192,7 @@ async function HandleOptOutMessage(
 				{
 					PhoneNumber: data.From,
 					DateOptedOut: new Date(now).toISOString(),
+					OptOutRequest: data
 				},
 				{ overwrite: true },
 			),

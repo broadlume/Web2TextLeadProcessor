@@ -59,6 +59,7 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectSharedContext<LeadState>,
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
+				ctx.console.info(`Lead ID: ${ctx.key}`);
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -80,6 +81,7 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
+				ctx.console.info(`Lead ID: ${ctx.key}`);
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -141,6 +143,7 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
+				ctx.console.info(`Lead ID: ${ctx.key}`);
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -213,6 +216,7 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req?: { reason?: string; API_KEY?: string },
 			): Promise<LeadState> => {
+				ctx.console.info(`Lead ID: ${ctx.key}`);
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,

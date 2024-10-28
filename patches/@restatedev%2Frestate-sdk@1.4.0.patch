@@ -1,5 +1,5 @@
 diff --git a/dist/cjs/src/context.d.ts b/dist/cjs/src/context.d.ts
-index 75a0b1431ff8049d5a41fd8b190ac8cb0f08e28d..5f1467fb10e352438b7e467f676e9b1d8149c73c 100644
+index 41b5412320a3588f4311048e1e8f80cf10a6f521..832fdedd481a1003178e4ffba852b7917896d0aa 100644
 --- a/dist/cjs/src/context.d.ts
 +++ b/dist/cjs/src/context.d.ts
 @@ -47,6 +47,8 @@ export type UntypedState = {
@@ -11,7 +11,7 @@ index 75a0b1431ff8049d5a41fd8b190ac8cb0f08e28d..5f1467fb10e352438b7e467f676e9b1d
      /**
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
-@@ -445,6 +447,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+@@ -478,6 +480,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
   */
  export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
      key: string;
@@ -21,25 +21,25 @@ index 75a0b1431ff8049d5a41fd8b190ac8cb0f08e28d..5f1467fb10e352438b7e467f676e9b1d
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
 diff --git a/dist/cjs/src/context_impl.d.ts b/dist/cjs/src/context_impl.d.ts
-index 6189902b184242689a9e35b156856edaacaa588b..f834c7d28ff22217d02d5a8687530de7d19f13ca 100644
+index 2c46350bfb9a5c71c7b9e5bd9abc7df90c3f331f..be6f3547dbe1ed44daacbc35bb4b8cf12a1144ea 100644
 --- a/dist/cjs/src/context_impl.d.ts
 +++ b/dist/cjs/src/context_impl.d.ts
-@@ -21,6 +21,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
-     promise<T>(name: string, serde?: Serde<T>): DurablePromise<T>;
+@@ -27,6 +27,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
      get key(): string;
      request(): Request;
+     get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
 +    getAll(): Promise<object>;
 +    update(operation: (state: object) => unknown): Promise<void>;
-     get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
      stateKeys(): Promise<Array<string>>;
      set<T>(name: string, value: T, serde?: Serde<T>): void;
+     clear(name: string): void;
 diff --git a/dist/cjs/src/context_impl.js b/dist/cjs/src/context_impl.js
-index f11ad0c564bb7f41e5676ec061efa089848addd9..938e2aa069e6a167f7fd6cadcfa78d0f64992443 100644
+index a0428242c38d3a342e7dfdcecde6bedb30c5b1ae..41a5170b73b7858d751deb03d8086483a44caadd 100644
 --- a/dist/cjs/src/context_impl.js
 +++ b/dist/cjs/src/context_impl.js
-@@ -101,6 +101,22 @@ class ContextImpl {
-         };
-         return getState();
+@@ -118,6 +118,22 @@ class ContextImpl {
+     clearAll() {
+         this.processNonCompletableEntry((vm) => vm.sys_clear_all_state());
      }
 +    async getAll() {
 +        const keys = await this.stateKeys();
@@ -52,16 +52,16 @@ index f11ad0c564bb7f41e5676ec061efa089848addd9..938e2aa069e6a167f7fd6cadcfa78d0f
 +    async update(operation) {
 +        const state = await this.getAll();
 +        const newState = operation(state);
-+        await this.clearAll();
++        this.clearAll();
 +        for (const key of Object.keys(newState)) {
 +            this.set(key,newState[key]);
 +        }
 +    }
-     // DON'T make this function async!!! see sideEffect comment for details.
-     stateKeys() {
-         // Check if this is a valid action
+     // --- Calls, background calls, etc
+     //
+     genericCall(call) {
 diff --git a/dist/esm/src/context.d.ts b/dist/esm/src/context.d.ts
-index 8732ff823402b4efe91227098bcc9e61888c83cf..2f0afbadc6774f05c635e7ff1ab4abba8e566d03 100644
+index aff120968c817e65cf6979f395ead8c9d94d47a0..80b68a0357a0824f91894e76db7c0c3c8151af6c 100644
 --- a/dist/esm/src/context.d.ts
 +++ b/dist/esm/src/context.d.ts
 @@ -47,6 +47,8 @@ export type UntypedState = {
@@ -73,7 +73,7 @@ index 8732ff823402b4efe91227098bcc9e61888c83cf..2f0afbadc6774f05c635e7ff1ab4abba
      /**
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
-@@ -445,6 +447,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+@@ -478,6 +480,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
   */
  export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
      key: string;
@@ -83,25 +83,25 @@ index 8732ff823402b4efe91227098bcc9e61888c83cf..2f0afbadc6774f05c635e7ff1ab4abba
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
 diff --git a/dist/esm/src/context_impl.d.ts b/dist/esm/src/context_impl.d.ts
-index 400a985f8f6cea15a91dcb9d4f3bbbb889e81846..64508565498441ef52393ebac06eccb9515ce432 100644
+index aee37de40ec7f53d6a94999cb25d1cbf05e781da..4e08499127e58794ccc34ac320ea68187e6ac53b 100644
 --- a/dist/esm/src/context_impl.d.ts
 +++ b/dist/esm/src/context_impl.d.ts
-@@ -21,6 +21,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
-     promise<T>(name: string, serde?: Serde<T>): DurablePromise<T>;
-     get key(): string;
-     request(): Request;
-+    getAll(): Promise<object>;
-+    update(operation: (state: object) => unknown): Promise<void>;
+@@ -29,6 +29,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
      get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
      stateKeys(): Promise<Array<string>>;
      set<T>(name: string, value: T, serde?: Serde<T>): void;
++    getAll(): Promise<object>;
++    update(operation: (state: object) => unknown): Promise<void>;
+     clear(name: string): void;
+     clearAll(): void;
+     genericCall<REQ = Uint8Array, RES = Uint8Array>(call: GenericCall<REQ, RES>): CombineablePromise<RES>;
 diff --git a/dist/esm/src/context_impl.js b/dist/esm/src/context_impl.js
-index 4658d495a497116ec28d1f5c5fb866ebf88c9266..28eab18c30066245cd1d702ffcb6cf547ddacaa0 100644
+index 462b435f5b999221156f1e2c88de8732912d3a77..c9ce00bdc319e8b6c6d1cc9d03c437420e5751c5 100644
 --- a/dist/esm/src/context_impl.js
 +++ b/dist/esm/src/context_impl.js
-@@ -98,6 +98,22 @@ export class ContextImpl {
-         };
-         return getState();
+@@ -115,6 +115,22 @@ export class ContextImpl {
+     clearAll() {
+         this.processNonCompletableEntry((vm) => vm.sys_clear_all_state());
      }
 +    async getAll() {
 +        const keys = await this.stateKeys();
@@ -119,6 +119,6 @@ index 4658d495a497116ec28d1f5c5fb866ebf88c9266..28eab18c30066245cd1d702ffcb6cf54
 +            this.set(key,newState[key]);
 +        }
 +    }
-     // DON'T make this function async!!! see sideEffect comment for details.
-     stateKeys() {
-         // Check if this is a valid action
+     // --- Calls, background calls, etc
+     //
+     genericCall(call) {

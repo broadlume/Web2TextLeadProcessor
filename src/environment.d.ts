@@ -24,6 +24,7 @@ declare global {
 			DHQ_API_KEY: string;
 			COPILOT_ENVIRONMENT_NAME: "development" | "production" | undefined;
 			NODE_ENV: string;
+			TWILIO_MESSAGING_SERVICE_SID: string;
 		}
 	}
 	var TWILIO_CLIENT: Twilio;

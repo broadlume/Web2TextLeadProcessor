@@ -353,6 +353,7 @@ export class TwilioIntegration
 							LocationID: leadState.LocationId,
 							Environment: GetRunningEnvironment(),
 						}),
+						messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID
 					},
 				);
 			},

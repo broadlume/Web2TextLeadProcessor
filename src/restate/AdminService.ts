@@ -1,6 +1,7 @@
 import * as restate from "@restatedev/restate-sdk";
 import type { Scan } from "dynamoose/dist/ItemRetriever";
 import { assert, is } from "tsafe";
+import { Jsonify } from "type-fest";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
@@ -113,7 +114,7 @@ export const AdminService = restate.service({
 					return {
 						Success: true,
 						Count: leads.length,
-						Leads: leads,
+						Leads: leads as Web2TextLead[],
 					};
 				}
 				return {

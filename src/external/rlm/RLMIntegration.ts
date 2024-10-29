@@ -114,17 +114,14 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 		}
 
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
-		const conversation = await context.run(
-			"Fetching Twilio conversation",
-			async () =>
-				this.twilioClient.conversations.v1
-					.conversations(conversationSID)
-					.fetch(),
-		);
 		const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
 		const messages = await context.run(
-			"Fetching Twilio messages",
-			async () => await conversation.messages().list(),
+			"Fetching twilio messages for DHQ",
+			async () =>
+				await this.twilioClient.conversations.v1
+					.conversations(conversationSID)
+					.messages.list()
+					.then((m) => m.map((m) => m.toJSON())),
 		);
 		for (const message of messages) {
 			if (syncedMessageIds.has(message.sid)) continue;
@@ -154,7 +151,7 @@ export class RLMIntegration extends IExternalIntegration<RLMIntegrationState> {
 					ErrorInfo: {
 						Message: `Error with RLM note endpoint syncing message '${message.sid}'`,
 						Details: {
-							message: message.toJSON(),
+							message: message,
 							response: result,
 						},
 						ErrorDate: new Date(await context.date.now()).toISOString(),

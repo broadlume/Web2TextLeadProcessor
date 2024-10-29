@@ -14,7 +14,6 @@ interface DHQIntegrationState extends ExternalIntegrationState {
 		SyncedMessageIds: string[];
 	};
 }
-
 export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 	Name = "DHQ";
 	defaultState(): DHQIntegrationState {
@@ -105,17 +104,14 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 		}
 
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
-		const conversation = await context.run(
-			"Fetching Twilio conversation for DHQ",
-			async () =>
-				this.twilioClient.conversations.v1
-					.conversations(conversationSID)
-					.fetch(),
-		);
 		const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
 		const messages = await context.run(
 			"Fetching twilio messages for DHQ",
-			async () => await conversation.messages().list(),
+			async () =>
+				await this.twilioClient.conversations.v1
+					.conversations(conversationSID)
+					.messages.list()
+					.then((m) => m.map((m) => m.toJSON())),
 		);
 		for (const message of messages) {
 			if (syncedMessageIds.has(message.sid)) continue;
@@ -145,7 +141,7 @@ export class DHQIntegration extends IExternalIntegration<DHQIntegrationState> {
 					ErrorInfo: {
 						Message: `Error with DHQ comment endpoint syncing message '${message.sid}'`,
 						Details: {
-							message: message.toJSON(),
+							message: message,
 							response: result,
 						},
 						ErrorDate: new Date(await context.date.now()).toISOString(),

@@ -1,8 +1,14 @@
 diff --git a/dist/cjs/src/context.d.ts b/dist/cjs/src/context.d.ts
-index 41b5412320a3588f4311048e1e8f80cf10a6f521..832fdedd481a1003178e4ffba852b7917896d0aa 100644
+index 41b5412320a3588f4311048e1e8f80cf10a6f521..7d7a4c8bbf287552ae9f7008dfa75c8332028c88 100644
 --- a/dist/cjs/src/context.d.ts
 +++ b/dist/cjs/src/context.d.ts
-@@ -47,6 +47,8 @@ export type UntypedState = {
+@@ -1,4 +1,5 @@
+ /// <reference types="node" />
++import type { Jsonify } from "type-fest";
+ import type { Client, SendClient } from "./types/rpc.js";
+ import type { RestateContext, RestateObjectContext, RestateObjectSharedContext, RestateWorkflowContext, RestateWorkflowSharedContext, Service, ServiceDefinitionFrom, VirtualObject, VirtualObjectDefinitionFrom, Workflow, WorkflowDefinitionFrom, Serde } from "@restatedev/restate-sdk-core";
+ /**
+@@ -47,6 +48,8 @@ export type UntypedState = {
   * Key value store operations. Only keyed services have an attached key-value store.
   */
  export interface KeyValueStore<TState extends TypedState> {
@@ -11,7 +17,27 @@ index 41b5412320a3588f4311048e1e8f80cf10a6f521..832fdedd481a1003178e4ffba852b791
      /**
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
-@@ -478,6 +480,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+@@ -265,7 +268,7 @@ export interface Context extends RestateContext {
+      *
+      * @param action The function to run.
+      */
+-    run<T>(action: RunAction<T>): Promise<T>;
++    run<T>(action: RunAction<T>): Promise<Jsonify<T>>;
+     /**
+      * Run an operation and store the result in Restate. The operation will thus not
+      * be re-run during a later replay, but take the durable result from Restate.
+@@ -273,8 +276,8 @@ export interface Context extends RestateContext {
+      * @param name the action's name
+      * @param action the action to run.
+      */
+-    run<T>(name: string, action: RunAction<T>): Promise<T>;
+-    run<T>(name: string, action: RunAction<T>, options: RunOptions<T>): Promise<T>;
++    run<T>(name: string, action: RunAction<T>): Promise<Jsonify<T>>;
++    run<T>(name: string, action: RunAction<T>, options: RunOptions<T>): Promise<Jsonify<T>>;
+     /**
+      * Register an awakeable and pause the processing until the awakeable ID (and optional payload) have been returned to the service
+      * (via ctx.completeAwakeable(...)). The SDK deserializes the payload with `JSON.parse(result.toString()) as T`.
+@@ -478,6 +481,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
   */
  export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
      key: string;
@@ -21,10 +47,18 @@ index 41b5412320a3588f4311048e1e8f80cf10a6f521..832fdedd481a1003178e4ffba852b791
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
 diff --git a/dist/cjs/src/context_impl.d.ts b/dist/cjs/src/context_impl.d.ts
-index 2c46350bfb9a5c71c7b9e5bd9abc7df90c3f331f..be6f3547dbe1ed44daacbc35bb4b8cf12a1144ea 100644
+index 2c46350bfb9a5c71c7b9e5bd9abc7df90c3f331f..1d76063310c5d33bc048788caf3f81585113a7c8 100644
 --- a/dist/cjs/src/context_impl.d.ts
 +++ b/dist/cjs/src/context_impl.d.ts
-@@ -27,6 +27,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+@@ -8,6 +8,7 @@ import type { Serde, Service, ServiceDefinitionFrom, VirtualObject, VirtualObjec
+ import type { Headers } from "./endpoint/handlers/generic.js";
+ import type { ReadableStreamDefaultReader, WritableStreamDefaultWriter } from "node:stream/web";
+ import type { CompletablePromise } from "./utils/completable_promise.js";
++import type { Jsonify } from "type-fest";
+ export type InternalCombineablePromise<T> = CombineablePromise<T> & {
+     asyncResultHandle: number;
+ };
+@@ -27,6 +28,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
      get key(): string;
      request(): Request;
      get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
@@ -33,6 +67,15 @@ index 2c46350bfb9a5c71c7b9e5bd9abc7df90c3f331f..be6f3547dbe1ed44daacbc35bb4b8cf1
      stateKeys(): Promise<Array<string>>;
      set<T>(name: string, value: T, serde?: Serde<T>): void;
      clear(name: string): void;
+@@ -39,7 +42,7 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+     serviceSendClient<D>({ name }: ServiceDefinitionFrom<D>, opts?: SendOptions): SendClient<Service<D>>;
+     objectSendClient<D>({ name }: VirtualObjectDefinitionFrom<D>, key: string, opts?: SendOptions): SendClient<VirtualObject<D>>;
+     workflowSendClient<D>({ name }: WorkflowDefinitionFrom<D>, key: string, opts?: SendOptions): SendClient<Workflow<D>>;
+-    run<T>(nameOrAction: string | RunAction<T>, actionSecondParameter?: RunAction<T>, options?: RunOptions<T>): Promise<T>;
++    run<T>(nameOrAction: string | RunAction<T>, actionSecondParameter?: RunAction<T>, options?: RunOptions<T>): Promise<Jsonify<T>>;
+     sleep(millis: number): CombineablePromise<void>;
+     awakeable<T>(serde?: Serde<T>): {
+         id: string;
 diff --git a/dist/cjs/src/context_impl.js b/dist/cjs/src/context_impl.js
 index a0428242c38d3a342e7dfdcecde6bedb30c5b1ae..41a5170b73b7858d751deb03d8086483a44caadd 100644
 --- a/dist/cjs/src/context_impl.js
@@ -61,10 +104,18 @@ index a0428242c38d3a342e7dfdcecde6bedb30c5b1ae..41a5170b73b7858d751deb03d8086483
      //
      genericCall(call) {
 diff --git a/dist/esm/src/context.d.ts b/dist/esm/src/context.d.ts
-index aff120968c817e65cf6979f395ead8c9d94d47a0..80b68a0357a0824f91894e76db7c0c3c8151af6c 100644
+index aff120968c817e65cf6979f395ead8c9d94d47a0..c322ade885e0926a2778d556f996ce5147ec56eb 100644
 --- a/dist/esm/src/context.d.ts
 +++ b/dist/esm/src/context.d.ts
-@@ -47,6 +47,8 @@ export type UntypedState = {
+@@ -1,6 +1,7 @@
+ /// <reference types="node" resolution-mode="require"/>
+ import type { Client, SendClient } from "./types/rpc.js";
+ import type { RestateContext, RestateObjectContext, RestateObjectSharedContext, RestateWorkflowContext, RestateWorkflowSharedContext, Service, ServiceDefinitionFrom, VirtualObject, VirtualObjectDefinitionFrom, Workflow, WorkflowDefinitionFrom, Serde } from "@restatedev/restate-sdk-core";
++import type { Jsonify } from "type-fest";
+ /**
+  * Represents the original request as sent to this handler.
+  *
+@@ -47,6 +48,8 @@ export type UntypedState = {
   * Key value store operations. Only keyed services have an attached key-value store.
   */
  export interface KeyValueStore<TState extends TypedState> {
@@ -73,7 +124,27 @@ index aff120968c817e65cf6979f395ead8c9d94d47a0..80b68a0357a0824f91894e76db7c0c3c
      /**
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
-@@ -478,6 +480,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
+@@ -265,7 +268,7 @@ export interface Context extends RestateContext {
+      *
+      * @param action The function to run.
+      */
+-    run<T>(action: RunAction<T>): Promise<T>;
++    run<T>(action: RunAction<T>): Promise<Jsonify<T>>;
+     /**
+      * Run an operation and store the result in Restate. The operation will thus not
+      * be re-run during a later replay, but take the durable result from Restate.
+@@ -273,8 +276,8 @@ export interface Context extends RestateContext {
+      * @param name the action's name
+      * @param action the action to run.
+      */
+-    run<T>(name: string, action: RunAction<T>): Promise<T>;
+-    run<T>(name: string, action: RunAction<T>, options: RunOptions<T>): Promise<T>;
++    run<T>(name: string, action: RunAction<T>): Promise<Jsonify<T>>;
++    run<T>(name: string, action: RunAction<T>, options: RunOptions<T>): Promise<Jsonify<T>>;
+     /**
+      * Register an awakeable and pause the processing until the awakeable ID (and optional payload) have been returned to the service
+      * (via ctx.completeAwakeable(...)). The SDK deserializes the payload with `JSON.parse(result.toString()) as T`.
+@@ -478,6 +481,8 @@ export interface ObjectContext<TState extends TypedState = UntypedState> extends
   */
  export interface ObjectSharedContext<TState extends TypedState = UntypedState> extends Context, RestateObjectSharedContext {
      key: string;
@@ -83,10 +154,18 @@ index aff120968c817e65cf6979f395ead8c9d94d47a0..80b68a0357a0824f91894e76db7c0c3c
       * Get/retrieve state from the Restate runtime.
       * Note that state objects are serialized with `Buffer.from(JSON.stringify(theObject))`
 diff --git a/dist/esm/src/context_impl.d.ts b/dist/esm/src/context_impl.d.ts
-index aee37de40ec7f53d6a94999cb25d1cbf05e781da..4e08499127e58794ccc34ac320ea68187e6ac53b 100644
+index aee37de40ec7f53d6a94999cb25d1cbf05e781da..dde3ae869f0158815acb331c4ae8f8043d003426 100644
 --- a/dist/esm/src/context_impl.d.ts
 +++ b/dist/esm/src/context_impl.d.ts
-@@ -29,6 +29,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+@@ -8,6 +8,7 @@ import type { Serde, Service, ServiceDefinitionFrom, VirtualObject, VirtualObjec
+ import type { Headers } from "./endpoint/handlers/generic.js";
+ import type { ReadableStreamDefaultReader, WritableStreamDefaultWriter } from "node:stream/web";
+ import type { CompletablePromise } from "./utils/completable_promise.js";
++import type { Jsonify } from "type-fest";
+ export type InternalCombineablePromise<T> = CombineablePromise<T> & {
+     asyncResultHandle: number;
+ };
+@@ -29,6 +30,8 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
      get<T>(name: string, serde?: Serde<T>): Promise<T | null>;
      stateKeys(): Promise<Array<string>>;
      set<T>(name: string, value: T, serde?: Serde<T>): void;
@@ -95,6 +174,15 @@ index aee37de40ec7f53d6a94999cb25d1cbf05e781da..4e08499127e58794ccc34ac320ea6818
      clear(name: string): void;
      clearAll(): void;
      genericCall<REQ = Uint8Array, RES = Uint8Array>(call: GenericCall<REQ, RES>): CombineablePromise<RES>;
+@@ -39,7 +42,7 @@ export declare class ContextImpl implements ObjectContext, WorkflowContext {
+     serviceSendClient<D>({ name }: ServiceDefinitionFrom<D>, opts?: SendOptions): SendClient<Service<D>>;
+     objectSendClient<D>({ name }: VirtualObjectDefinitionFrom<D>, key: string, opts?: SendOptions): SendClient<VirtualObject<D>>;
+     workflowSendClient<D>({ name }: WorkflowDefinitionFrom<D>, key: string, opts?: SendOptions): SendClient<Workflow<D>>;
+-    run<T>(nameOrAction: string | RunAction<T>, actionSecondParameter?: RunAction<T>, options?: RunOptions<T>): Promise<T>;
++    run<T>(nameOrAction: string | RunAction<T>, actionSecondParameter?: RunAction<T>, options?: RunOptions<T>): Promise<Jsonify<T>>;
+     sleep(millis: number): CombineablePromise<void>;
+     awakeable<T>(serde?: Serde<T>): {
+         id: string;
 diff --git a/dist/esm/src/context_impl.js b/dist/esm/src/context_impl.js
 index 462b435f5b999221156f1e2c88de8732912d3a77..c9ce00bdc319e8b6c6d1cc9d03c437420e5751c5 100644
 --- a/dist/esm/src/context_impl.js

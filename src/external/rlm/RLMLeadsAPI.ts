@@ -1,5 +1,6 @@
 import ky from "ky";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
+import type { Jsonify } from "type-fest";
 import { logger } from "../../logger";
 import type { Web2TextLead } from "../../types";
 
@@ -122,7 +123,7 @@ export async function CreateLead(
 export async function AttachNoteToLead(
 	RLMLeadUUID: string,
 	web2TextLead: Web2TextLead,
-	twilioMessage: MessageInstance,
+	twilioMessage: Jsonify<MessageInstance>,
 ): Promise<RLMLeadResponse> {
 	let senderName =
 		twilioMessage.author === web2TextLead.Lead.PhoneNumber
@@ -140,7 +141,7 @@ export async function AttachNoteToLead(
 		lead_uuid: RLMLeadUUID,
 		sender_name: senderName,
 		sender_phone: twilioMessage.author,
-		date: twilioMessage.dateCreated.toISOString(),
+		date: twilioMessage.dateCreated,
 		message: `\n\n${messageBody}\n`,
 	};
 

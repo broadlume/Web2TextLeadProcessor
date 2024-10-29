@@ -1,5 +1,6 @@
 import ky from "ky";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
+import type { Jsonify } from "type-fest";
 import { DHQ_AUTHORIZATION_HEADERS } from ".";
 import { logger } from "../../logger";
 import type { Web2TextLead } from "../../types";
@@ -273,6 +274,9 @@ export async function SubmitStoreInquiry(
 			},
 		],
 	};
+	if (dhqLead.inquiry.preferred_location == null) {
+		delete dhqLead.inquiry.preferred_location;
+	}
 	const dhqUrl = new URL(process.env.DHQ_API_URL);
 	dhqUrl.pathname += `retailer/rest/${lead.UniversalRetailerId}/store_inquiries`;
 
@@ -297,7 +301,7 @@ export async function SubmitStoreInquiry(
 export async function AddCommentToInquiry(
 	leadId: string,
 	web2TextLead: Web2TextLead,
-	twilioMessage: MessageInstance,
+	twilioMessage: Jsonify<MessageInstance>,
 ): Promise<AddCommentResponse> {
 	let senderName =
 		twilioMessage.author === web2TextLead.Lead.PhoneNumber

@@ -209,11 +209,11 @@ async function HandleOptInMessage(
 	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ) {
-	const optOutEntry = await ctx.run("Get Opted-Out number entry", async () => await OptedOutNumberModel.get(data.From));
-	if (optOutEntry == null) return;
-	if (optOutEntry.OptedOutNumbers[data.To] == null) return;
-	delete optOutEntry.OptedOutNumbers[data.To];
-	await ctx.run("Remove opted-out number", async () => {
+	await ctx.run("Handle opt-in message", async () => {
+		const optOutEntry = await OptedOutNumberModel.get(data.From);
+		if (optOutEntry == null) return;
+		if (optOutEntry.OptedOutNumbers[data.To] == null) return;
+		delete optOutEntry.OptedOutNumbers[data.To];
 		if (Object.keys(optOutEntry.OptedOutNumbers).length === 0) {
 			return await optOutEntry.delete();
 		}
@@ -233,7 +233,10 @@ async function HandleOptOutMessage(
 				"inactive",
 			]),
 	);
-	const optOutEntry = await ctx.run("Get Opted-Out number entry", async () => await OptedOutNumberModel.get(data.From));
+	const optOutEntry = await ctx.run(
+		"Get Opted-Out number entry",
+		async () => await OptedOutNumberModel.get(data.From),
+	);
 	const optedOutNumbers = optOutEntry?.OptedOutNumbers ?? {};
 	// Return early if this number is already opted out
 	if (optedOutNumbers[data.To] != null) return;

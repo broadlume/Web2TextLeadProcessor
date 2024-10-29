@@ -134,19 +134,22 @@ export class TwilioIntegration
 			async () =>
 				this.twilioClient.conversations.v1
 					.conversations(conversationSID)
-					.fetch(),
+					.fetch().catch(e => {
+						if ("code" in e && e.code === 404) return null;
+						throw e;
+					}),
 		);
 		const newState: TwilioIntegrationState = {
 			...state,
 			SyncStatus: "SYNCED",
 			Data: {
 				ConversationSID: conversationSID,
-				ConversationStatus: conversation.state,
+				ConversationStatus: conversation?.state ?? "closed"
 			},
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
 		// Signal to close this lead if the Twilio conversation is closed
-		if (conversation.state === "closed") {
+		if (conversation == null || conversation.state === "closed") {
 			context
 				.objectSendClient(LeadVirtualObject, lead.LeadId)
 				.close({ reason: "Inactivity" });
@@ -154,7 +157,11 @@ export class TwilioIntegration
 		}
 		const participants = await context.run(
 			"Get conversation participants",
-			async () => await conversation.participants().list(),
+			async () =>
+				await this.twilioClient.conversations.v1
+					.conversations(conversation.sid)
+					.participants.list()
+					.then((pa) => pa.map((p) => p.toJSON())),
 		);
 		const phoneNumbers = participants
 			.map((p) => p.messagingBinding?.address)
@@ -186,43 +193,56 @@ export class TwilioIntegration
 		const lead = await context.getAll();
 		const conversationID = state.Data?.ConversationSID;
 		if (conversationID == null) return state;
-		const conversation = await this.twilioClient.conversations.v1
-			.conversations(conversationID)
-			.fetch();
-
-		const attributes = JSON.parse(conversation?.attributes ?? "{}");
-		attributes["LeadIds"] = ((attributes["LeadIds"] as string[]) ?? []).filter(
-			(id) => id !== lead.LeadId,
+		const conversation = await context.run("Get conversation", async () =>
+			this.twilioClient.conversations.v1.conversations(conversationID).fetch().catch(e => {
+				if ("code" in e && e.code === 404) return null;
+				throw e;
+			}),
 		);
-		conversation.attributes = JSON.stringify(attributes);
-		let newConversationState = conversation.state;
+		if (conversation == null || conversation.state === "closed") {
+			return {
+				...state,
+				SyncStatus: "CLOSED",
+				Data: {
+					...state.Data,
+					ConversationSID: conversationID,
+					ConversationStatus: "closed"
+				}
+			}
+		}
+		// Remove this LeadID from attributes
+		const attributes = JSON.parse(conversation?.attributes ?? "{}");
+		const leadIds = new Set(attributes["LeadIds"] ?? []);
+		leadIds.delete(lead.LeadId);
+		attributes["LeadIds"] = Array.from(leadIds);
+
+		const update: Partial<ConversationInstance> = {
+			attributes: attributes
+		}
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
-			newConversationState = "closed";
+			update.state = "closed";
 			await context.run("Send dealer closing message", async () => {
 				await this.sendSystemMessage(
-					conversation.sid,
+					conversationID,
 					DealerCloseMessage(lead.Lead.Name, lead.CloseReason),
 					lead.Lead.PhoneNumber,
+					true,
 				).catch((e) => null); // ignore error
 			});
 		}
-		if (conversation.state !== "closed") {
-			await context.run("Update twilio conversation", async () => {
-				await this.twilioClient.conversations.v1
-					.conversations(conversationID)
-					.update({
-						attributes: conversation.attributes,
-						state: newConversationState,
-					});
-			});
-		}
+		await context.run("Update twilio conversation", async () => {
+			await this.twilioClient.conversations.v1
+				.conversations(conversationID)
+				.update(update);
+		});
 		return {
 			...state,
 			SyncStatus: "CLOSED",
 			Data: {
 				...state.Data!,
-				ConversationStatus: newConversationState,
+				ConversationSID: conversationID,
+				ConversationStatus: update.state ?? conversation.state,
 			},
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
@@ -316,26 +336,32 @@ export class TwilioIntegration
 		const conversation = await context.run(
 			"Create or fetch Twilio Conversation",
 			async () => {
-				const preExistingConversationID = await FindConversationsFor(
+				const preExistingConversation = await FindConversationsFor(
 					this.twilioClient,
 					[leadState.Lead.PhoneNumber, storePhoneNumber],
-					["active"],
-				).then((convos) => convos?.[0]?.conversationSid);
-				if (preExistingConversationID) {
+					["active", "inactive"],
+				).then((convos) => convos?.[0]);
+				if (preExistingConversation) {
 					context.console.info(
-						`Found pre-existing Twilio Conversation: ${preExistingConversationID}`,
+						`Found pre-existing Twilio Conversation: ${preExistingConversation}`,
 					);
+					const conversation = await this.twilioClient.conversations.v1
+						.conversations(preExistingConversation.conversationSid)
+						.fetch();
+					// Add this LeadID to the conversation metadata
+					const attributes = JSON.parse(conversation.attributes ?? "{}");
+					const leadIds = new Set(attributes["LeadIds"] ?? []);
+					leadIds.add(leadState.LeadId);
+					attributes["LeadIds"] = Array.from(leadIds);
+					const update: Record<string, string> = {
+						attributes: JSON.stringify(attributes),
+					};
+					if (conversation!.state !== "active") {
+						update.state = "active";
+					}
 					return await this.twilioClient.conversations.v1
-						.conversations(preExistingConversationID)
-						.update((err, conv) => {
-							// Add this LeadID to the conversation meta data
-							const attributes = JSON.parse(conv?.attributes ?? "{}");
-							attributes["LeadIds"] = Array.from(
-								new Set([...(attributes["LeadIds"] ?? []), leadState.LeadId]),
-							);
-							conv!.attributes = JSON.stringify(attributes);
-							return conv;
-						});
+						.conversations(conversation.sid)
+						.update(update);
 				}
 				return await TwilioProxyAPI.CreateSession(
 					[leadState.Lead.PhoneNumber, storePhoneNumber],
@@ -353,7 +379,7 @@ export class TwilioIntegration
 							LocationID: leadState.LocationId,
 							Environment: GetRunningEnvironment(),
 						}),
-						messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID
+						messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
 					},
 				);
 			},
@@ -421,7 +447,9 @@ export class TwilioIntegration
 		const leadIds: string[] = attributes["LeadIds"];
 		return {
 			isNewConversation: leadIds.length === 1,
-			conversation: conversation,
+			conversation: await this.twilioClient.conversations.v1
+				.conversations(conversation.sid)
+				.fetch(),
 		};
 	}
 }

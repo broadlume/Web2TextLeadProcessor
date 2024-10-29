@@ -134,7 +134,8 @@ export class TwilioIntegration
 			async () =>
 				this.twilioClient.conversations.v1
 					.conversations(conversationSID)
-					.fetch().catch(e => {
+					.fetch()
+					.catch((e) => {
 						if ("code" in e && e.code === 404) return null;
 						throw e;
 					}),
@@ -144,7 +145,7 @@ export class TwilioIntegration
 			SyncStatus: "SYNCED",
 			Data: {
 				ConversationSID: conversationSID,
-				ConversationStatus: conversation?.state ?? "closed"
+				ConversationStatus: conversation?.state ?? "closed",
 			},
 			LastSynced: new Date(await context.date.now()).toISOString(),
 		};
@@ -194,10 +195,13 @@ export class TwilioIntegration
 		const conversationID = state.Data?.ConversationSID;
 		if (conversationID == null) return state;
 		const conversation = await context.run("Get conversation", async () =>
-			this.twilioClient.conversations.v1.conversations(conversationID).fetch().catch(e => {
-				if ("code" in e && e.code === 404) return null;
-				throw e;
-			}),
+			this.twilioClient.conversations.v1
+				.conversations(conversationID)
+				.fetch()
+				.catch((e) => {
+					if ("code" in e && e.code === 404) return null;
+					throw e;
+				}),
 		);
 		if (conversation == null || conversation.state === "closed") {
 			return {
@@ -206,9 +210,9 @@ export class TwilioIntegration
 				Data: {
 					...state.Data,
 					ConversationSID: conversationID,
-					ConversationStatus: "closed"
-				}
-			}
+					ConversationStatus: "closed",
+				},
+			};
 		}
 		// Remove this LeadID from attributes
 		const attributes = JSON.parse(conversation?.attributes ?? "{}");
@@ -217,8 +221,8 @@ export class TwilioIntegration
 		attributes["LeadIds"] = Array.from(leadIds);
 
 		const update: Partial<ConversationInstance> = {
-			attributes: attributes
-		}
+			attributes: attributes,
+		};
 		// If no other leads are using this conversation, close it
 		if (attributes["LeadIds"].length === 0) {
 			update.state = "closed";

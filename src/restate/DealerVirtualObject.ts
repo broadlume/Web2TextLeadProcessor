@@ -77,8 +77,8 @@ export const DealerVirtualObject = restate.object({
 							await NexusStoresAPI.GetAllRetailerStores(universalRetailerId),
 					)) ?? [];
 				const locationStatuses: LocationStatus[] = [];
-				// biome-ignore lint/suspicious/noDoubleEquals: <explanation>
-				const undefinedIfEmpty = (x: string | null | undefined) => (x == "" || x == null ? undefined : x);
+				const undefinedIfEmpty = (x: string | null | undefined) =>
+					x === "" || x == null ? undefined : x;
 				for (const location of locations) {
 					const locationStatus = await ctx.run(
 						"Check location status",

@@ -100,7 +100,6 @@ export const LeadVirtualObject = restate.object({
 					// Validate the submitted lead
 					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
 					ShouldRunSync = Lead.SyncImmediately ?? true;
-					// biome-ignore lint/performance/noDelete: <explanation>
 					delete Lead.SyncImmediately;
 
 					const currentDate = new Date(await ctx.date.now());
@@ -191,7 +190,6 @@ export const LeadVirtualObject = restate.object({
 					}
 					// Delete Error info if there is no error
 					if (newState.SyncStatus !== "ERROR") {
-						// biome-ignore lint/performance/noDelete: <explanation>
 						delete newState.ErrorInfo;
 					}
 					integrationStates[integration.Name] = newState;
@@ -259,7 +257,6 @@ export const LeadVirtualObject = restate.object({
 					}
 					// Delete Error info if there is no error
 					if (newState.SyncStatus !== "ERROR") {
-						// biome-ignore lint/performance/noDelete: <explanation>
 						delete newState.ErrorInfo;
 					}
 					integrationStates[integration.Name] = newState;

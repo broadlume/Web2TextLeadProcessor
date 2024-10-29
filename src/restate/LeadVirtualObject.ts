@@ -173,7 +173,7 @@ export const LeadVirtualObject = restate.object({
 					try {
 						if (shouldRunCreate) {
 							ctx.console.info(
-								`Executing 'create' for external integration '${integration.Name}' `,
+								`Executing 'create' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
 									label: ctx.key,
@@ -183,7 +183,7 @@ export const LeadVirtualObject = restate.object({
 							);
 							newState = await integration.create(state, ctx);
 							ctx.console.info(
-								`Finished 'create' for external integration '${integration.Name}' with status: '${newState.SyncStatus}' `,
+								`Finished 'create' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
 									label: ctx.key,
@@ -194,7 +194,7 @@ export const LeadVirtualObject = restate.object({
 							);
 						} else {
 							ctx.console.info(
-								`Executing 'sync' for external integration '${integration.Name}' `,
+								`Executing 'sync' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
 									label: ctx.key,
@@ -204,7 +204,7 @@ export const LeadVirtualObject = restate.object({
 							);
 							newState = await integration.sync(state, ctx);
 							ctx.console.info(
-								`Finished 'sync' for external integration '${integration.Name}' with status: '${newState.SyncStatus}' `,
+								`Finished 'sync' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
 									label: ctx.key,
@@ -227,7 +227,7 @@ export const LeadVirtualObject = restate.object({
 						};
 						const operation = shouldRunCreate ? "create" : "sync";
 						ctx.console.warn(
-							`Error executing '${operation}' for external integration '${integration.Name}' `,
+							`Error executing '${operation}' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
 								label: ctx.key,

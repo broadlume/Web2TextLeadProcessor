@@ -52,6 +52,7 @@ export async function SyncWithDB(
 			ctx.clearAll();
 			if (lead == null) {
 				synced = false;
+				break;
 			}
 			const { data, success, error } =
 				await Web2TextLeadSchema.safeParseAsync(lead);

@@ -23,8 +23,8 @@ export interface RetailerStore {
 	store_phone_number: string;
 	Web2Text_Phone_Number?: string;
 	store_type: string;
-	street_address: string;
-	universal_id: string;
+	street_address?: string;
+	universal_id?: string;
 	zip_code: string;
 }
 

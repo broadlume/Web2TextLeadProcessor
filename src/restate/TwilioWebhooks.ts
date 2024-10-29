@@ -10,7 +10,6 @@ import {
 	CustomerCloseMessage,
 	DealerCloseMessage,
 } from "../external/twilio/Web2TextMessagingStrings";
-import { logger as _logger } from "../logger";
 import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 import { XMLSerde } from "./XMLSerde";
@@ -67,7 +66,6 @@ function ValidateTwilioRequest(
 		throw new restate.TerminalError("Twilio request validation failed");
 	}
 }
-const logger = _logger.child({ label: "TwilioWebhooks" });
 export const TwilioWebhooks = restate.service({
 	name: "TwilioWebhooks",
 	handlers: {
@@ -90,6 +88,7 @@ export const TwilioWebhooks = restate.service({
 				);
 				const attributes = JSON.parse(conversation.attributes ?? "{}");
 				const leadIds = attributes["LeadIds"] ?? [];
+				ctx.console.log(`Executing 'sync' for ${leadIds.length} lead(s)`, {_meta: 1, TwilioConversationSID: conversation.sid, LeadIds: leadIds})
 				for (const leadId of leadIds) {
 					ctx
 						.objectSendClient(LeadVirtualObject, leadId)
@@ -116,6 +115,7 @@ export const TwilioWebhooks = restate.service({
 				);
 				const attributes = JSON.parse(conversation.attributes ?? "{}");
 				const leadIds = attributes["LeadIds"] ?? [];
+				ctx.console.log(`Executing 'close' for ${leadIds.length} lead(s)`, {_meta: 1, TwilioConversationSID: conversation.sid, LeadIds: leadIds})
 				for (const leadId of leadIds) {
 					ctx.objectSendClient(LeadVirtualObject, leadId).close({
 						reason: "Inactivity",
@@ -137,24 +137,16 @@ export const TwilioWebhooks = restate.service({
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, "onIncomingMessage");
 				if (data.OptOutType === "START") {
-					logger
-						.child({ PhoneNumber: data.From, Operation: "OPT-IN" })
-						.info(`Received 'OPT-IN' for ${data.From}`);
+					ctx.console.log(`Received 'OPT-IN' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-IN" });
 					const result = await HandleOptInMessage(ctx, data);
-					logger
-						.child({ PhoneNumber: data.From, Operation: "OPT-IN" })
-						.info(`Processed 'OPT-IN' for ${data.From}`);
+					ctx.console.log(`Processed 'OPT-IN' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-IN" });
 					return result;
 				}
 				// Close any active leads on opt-out
 				if (data.OptOutType === "STOP") {
-					logger
-						.child({ PhoneNumber: data.From, Operation: "OPT-OUT" })
-						.info(`Received 'OPT-OUT' for ${data.From}`);
+					ctx.console.log(`Received 'OPT-OUT' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-OUT" });
 					const result = await HandleOptOutMessage(ctx, data);
-					logger
-						.child({ PhoneNumber: data.From, Operation: "OPT-OUT" })
-						.info(`Processed 'OPT-OUT' for ${data.From}`);
+					ctx.console.log(`Processed 'OPT-OUT' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-OUT" });
 					return result;
 				}
 				return await HandleClosedMessagingThread(ctx, data);

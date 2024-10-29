@@ -26,19 +26,22 @@ export async function SyncWithDB(
 	ctx: restate.ObjectContext<LeadState>,
 	direction: "SEND" | "RECEIVE",
 ) {
+	ctx.console.debug(`Begin DynamoDB lead state sync with direction: ${direction}`, {_meta: 1, label: ctx.key});
+	let synced = false;
 	switch (direction) {
 		case "SEND": {
 			const objectState = await ctx.getAll();
 			const parsed = Web2TextLeadSchema.parse(objectState);
 			// For debugging
 			if (GetRunningEnvironment().local) {
-				ctx.console.log("SYNCED TO DB:", parsed);
+				ctx.console.debug("SYNCED TO DB:", parsed);
 			}
 			await ctx.run("Sending lead to database", async () => {
 				const dynamoDBModel = new LeadStateModel(parsed);
 				await dynamoDBModel.save();
 			});
-			return true;
+			synced = true;
+			break;
 		}
 		case "RECEIVE": {
 			const leadID = ctx.key;
@@ -48,7 +51,7 @@ export async function SyncWithDB(
 			);
 			ctx.clearAll();
 			if (lead == null) {
-				return false;
+				synced = false;
 			}
 			const { data, success, error } =
 				await Web2TextLeadSchema.safeParseAsync(lead);
@@ -59,7 +62,10 @@ export async function SyncWithDB(
 				);
 			}
 			await ctx.update((_) => data);
-			return true;
+			synced = true;
+			break;
 		}
 	}
+	ctx.console.debug(`End DynamoDB lead state sync with direction: ${direction}`, {_meta: 1, label: ctx.key, Success: synced});
+	return synced;
 }

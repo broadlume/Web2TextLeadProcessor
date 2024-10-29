@@ -347,7 +347,8 @@ export class TwilioIntegration
 				).then((convos) => convos?.[0]);
 				if (preExistingConversation) {
 					context.console.info(
-						`Found pre-existing Twilio Conversation: ${preExistingConversation}`,
+						`Found pre-existing Twilio Conversation: ${preExistingConversation.conversationSid}`,
+						{_meta: 1, label: [leadState.LeadId, `${this.Name}/createWeb2TextConversation`,]}
 					);
 					const conversation = await this.twilioClient.conversations.v1
 						.conversations(preExistingConversation.conversationSid)

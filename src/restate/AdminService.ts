@@ -1,7 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
 import type { Scan } from "dynamoose/dist/ItemRetriever";
 import { assert, is } from "tsafe";
-import { Jsonify } from "type-fest";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
@@ -40,7 +39,7 @@ export const AdminService = restate.service({
 				ctx: restate.Context,
 				request: Record<string, string>,
 			): Promise<BulkEndpointResponse> => {
-				const parsed = await BulkEndpointRequestSchema.safeParse(request);
+				const parsed = BulkEndpointRequestSchema.safeParse(request);
 				if (!parsed.success) {
 					const formattedError = fromError(parsed.error);
 					throw new restate.TerminalError(
@@ -109,7 +108,7 @@ export const AdminService = restate.service({
 							`Invalid operation: '${parsed.data.Operation}'`,
 						);
 				}
-
+				ctx.console.log(`Executed admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`, {_meta: 1, Operation: parsed.data.Operation, LeadCount: leads.length, Leads: leads.map(l => l.LeadId)});
 				if (parsed.data.Verbose) {
 					return {
 						Success: true,

@@ -76,6 +76,9 @@ export async function CheckAuthorization(
 		async () => await CheckAPIKeyStatus(endpoint, auth),
 	);
 	if (result.Status !== "VALID") {
+		const request = ctx.request();
+		const key = "key" in ctx ? ctx.key : undefined;
+		ctx.console.warn(`API Key failed validation for endpoint '${endpoint}'`, {_meta: 1, label: key, APIKey: auth, Endpoint: endpoint, Status: result.Status, Reason: result.Reason, Request: request})
 		throw new restate.TerminalError(result.Reason ?? "", {
 			errorCode: 401,
 		});

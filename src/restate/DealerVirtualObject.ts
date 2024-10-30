@@ -90,7 +90,7 @@ export const DealerVirtualObject = restate.object({
 				for (const location of locations) {
 					const locationStatus = await ctx.run(
 						"Check location status",
-						async () => await CheckLocationStatus(location.id as UUID),
+						async () => await CheckLocationStatus(location),
 					);
 					const web2TextPhoneNumber = parsePhoneNumber(
 						location.Web2Text_Phone_Number ?? "",

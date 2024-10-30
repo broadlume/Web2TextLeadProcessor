@@ -139,9 +139,11 @@ export async function CheckClientStatus(
  * @returns true if the location exists, false otherwise
  */
 export async function CheckLocationStatus(
-	locationId: UUID,
+	location: UUID | NexusStoresAPI.RetailerStore | null,
 ): Promise<ValidationStatus> {
-	const location = await NexusStoresAPI.GetRetailerStoreByID(locationId);
+	if (typeof location === "string") {
+		location = await NexusStoresAPI.GetRetailerStoreByID(location);	
+	} 
 	if (location == null)
 		return {
 			Status: "NONEXISTANT",

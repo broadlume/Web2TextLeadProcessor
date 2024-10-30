@@ -368,11 +368,11 @@ export class TwilioIntegration
 					const update: Record<string, string> = {
 						attributes: JSON.stringify(attributes),
 					};
-					if (conversation!.state !== "active") {
+					if (preExistingConversation!.state !== "active") {
 						update.state = "active";
 					}
 					return await this.twilioClient.conversations.v1
-						.conversations(conversation.sid)
+						.conversations(preExistingConversation.sid)
 						.update(update);
 				}
 				return await TwilioProxyAPI.CreateSession(

@@ -29,7 +29,7 @@ export const Web2TextLeadSchema = z.object({
 	LocationId: UUID(),
 	Lead: z.object({
 		PageUrl: NonEmptyString().url(),
-		IPAddress: NonEmptyString().ip(),
+		IPAddress: NonEmptyString().ip().optional(),
 		Name: NonEmptyString(),
 		PhoneNumber: PhoneNumber(),
 		PreferredMethodOfContact: z.enum(["phone", "text"]).default("text"),

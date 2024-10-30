@@ -98,9 +98,6 @@ export async function CheckAuthorization(
 export async function CheckIpAddressStatus(
 	ipAddress: string,
 ): Promise<ValidationStatus> {
-	if (z.string().ip().safeParse(ipAddress).success === false) {
-		return { Status: "INVALID", Reason: "Not a valid IPv4 or IPv6 address" };
-	}
 	return { Status: "VALID" };
 }
 /**
@@ -253,17 +250,18 @@ export async function ParseAndVerifyLeadCreation(
 		);
 	}
 	const leadState = parseRequest.data;
-	const ipAddressValid = await ctx.run<ValidationStatus>(
-		"IP address validation",
-		async () => await CheckIpAddressStatus(leadState.Lead.IPAddress),
-	);
-	if (ipAddressValid.Status !== "VALID") {
-		throw new restate.TerminalError(
-			`IP Address is '${ipAddressValid.Status}' - ${ipAddressValid.Reason}`.trim(),
-			{ errorCode: 401 },
+	if (leadState.Lead.IPAddress != null) {
+		const ipAddressValid = await ctx.run<ValidationStatus>(
+			"IP address validation",
+			async () => await CheckIpAddressStatus(leadState.Lead.IPAddress!),
 		);
+		if (ipAddressValid.Status !== "VALID") {
+			throw new restate.TerminalError(
+				`IP Address is '${ipAddressValid.Status}' - ${ipAddressValid.Reason}`.trim(),
+				{ errorCode: 401 },
+			);
+		}
 	}
-
 	const clientStatus = await ctx.run<ValidationStatus>(
 		"Client status check",
 		async () => await CheckClientStatus(leadState.UniversalRetailerId),

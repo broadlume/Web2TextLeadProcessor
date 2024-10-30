@@ -57,9 +57,12 @@ export const DealerVirtualObject = restate.object({
 				if (
 					z.string().uuid().safeParse(universalRetailerId).success === false
 				) {
-					throw new restate.TerminalError(`Invalid UniversalRetailerId: '${universalRetailerId}'`, {
-						errorCode: 400,
-					});
+					throw new restate.TerminalError(
+						`Invalid UniversalRetailerId: '${universalRetailerId}'`,
+						{
+							errorCode: 400,
+						},
+					);
 				}
 				assert(is<UUID>(universalRetailerId));
 
@@ -67,9 +70,9 @@ export const DealerVirtualObject = restate.object({
 					"Check retailer eligiblity for Web2Text",
 					async () => await CheckClientStatus(universalRetailerId),
 					{
-						"maxRetryAttempts": 4,
-						"initialRetryIntervalMillis": 1000
-					}
+						maxRetryAttempts: 4,
+						initialRetryIntervalMillis: 1000,
+					},
 				);
 				if (dealerStatus.Status !== "VALID") {
 					return { Status: dealerStatus.Status, Reason: dealerStatus.Reason };
@@ -80,9 +83,9 @@ export const DealerVirtualObject = restate.object({
 						async () =>
 							await NexusStoresAPI.GetAllRetailerStores(universalRetailerId),
 						{
-							"maxRetryAttempts": 4,
-							"initialRetryIntervalMillis": 1000
-						}
+							maxRetryAttempts: 4,
+							initialRetryIntervalMillis: 1000,
+						},
 					)) ?? [];
 				const locationStatuses: LocationStatus[] = [];
 				const undefinedIfEmpty = (x: string | null | undefined) =>

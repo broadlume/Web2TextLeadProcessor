@@ -26,7 +26,10 @@ export async function SyncWithDB(
 	ctx: restate.ObjectContext<LeadState>,
 	direction: "SEND" | "RECEIVE",
 ) {
-	ctx.console.debug(`Begin DynamoDB lead state sync with direction: ${direction}`, {_meta: 1, label: ctx.key});
+	ctx.console.debug(
+		`Begin DynamoDB lead state sync with direction: ${direction}`,
+		{ _meta: 1, label: ctx.key },
+	);
 	let synced = false;
 	switch (direction) {
 		case "SEND": {
@@ -67,6 +70,9 @@ export async function SyncWithDB(
 			break;
 		}
 	}
-	ctx.console.debug(`End DynamoDB lead state sync with direction: ${direction}`, {_meta: 1, label: ctx.key, Success: synced});
+	ctx.console.debug(
+		`End DynamoDB lead state sync with direction: ${direction}`,
+		{ _meta: 1, label: ctx.key, Success: synced },
+	);
 	return synced;
 }

@@ -79,12 +79,19 @@ export async function CheckAuthorization(
 		const request = ctx.request();
 		let key: string | undefined = undefined;
 		try {
-			key = "key" in ctx ? ctx.key as string : undefined;
-		}
-		catch (e) {
+			key = "key" in ctx ? (ctx.key as string) : undefined;
+		} catch (e) {
 			// ignore
 		}
-		ctx.console.warn(`API Key failed validation for endpoint '${endpoint}'`, {_meta: 1, label: key, APIKey: auth, Endpoint: endpoint, Status: result.Status, Reason: result.Reason, Request: request})
+		ctx.console.warn(`API Key failed validation for endpoint '${endpoint}'`, {
+			_meta: 1,
+			label: key,
+			APIKey: auth,
+			Endpoint: endpoint,
+			Status: result.Status,
+			Reason: result.Reason,
+			Request: request,
+		});
 		throw new restate.TerminalError(result.Reason ?? "", {
 			errorCode: 401,
 		});
@@ -142,8 +149,8 @@ export async function CheckLocationStatus(
 	location: UUID | NexusStoresAPI.RetailerStore | null,
 ): Promise<ValidationStatus> {
 	if (typeof location === "string") {
-		location = await NexusStoresAPI.GetRetailerStoreByID(location);	
-	} 
+		location = await NexusStoresAPI.GetRetailerStoreByID(location);
+	}
 	if (location == null)
 		return {
 			Status: "NONEXISTANT",

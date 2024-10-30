@@ -108,7 +108,15 @@ export const AdminService = restate.service({
 							`Invalid operation: '${parsed.data.Operation}'`,
 						);
 				}
-				ctx.console.log(`Executed admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`, {_meta: 1, Operation: parsed.data.Operation, LeadCount: leads.length, Leads: leads.map(l => l.LeadId)});
+				ctx.console.log(
+					`Executed admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`,
+					{
+						_meta: 1,
+						Operation: parsed.data.Operation,
+						LeadCount: leads.length,
+						Leads: leads.map((l) => l.LeadId),
+					},
+				);
 				if (parsed.data.Verbose) {
 					return {
 						Success: true,

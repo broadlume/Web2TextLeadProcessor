@@ -88,7 +88,11 @@ export const TwilioWebhooks = restate.service({
 				);
 				const attributes = JSON.parse(conversation.attributes ?? "{}");
 				const leadIds = attributes["LeadIds"] ?? [];
-				ctx.console.log(`Executing 'sync' for ${leadIds.length} lead(s)`, {_meta: 1, TwilioConversationSID: conversation.sid, LeadIds: leadIds})
+				ctx.console.log(`Executing 'sync' for ${leadIds.length} lead(s)`, {
+					_meta: 1,
+					TwilioConversationSID: conversation.sid,
+					LeadIds: leadIds,
+				});
 				for (const leadId of leadIds) {
 					ctx
 						.objectSendClient(LeadVirtualObject, leadId)
@@ -115,7 +119,11 @@ export const TwilioWebhooks = restate.service({
 				);
 				const attributes = JSON.parse(conversation.attributes ?? "{}");
 				const leadIds = attributes["LeadIds"] ?? [];
-				ctx.console.log(`Executing 'close' for ${leadIds.length} lead(s)`, {_meta: 1, TwilioConversationSID: conversation.sid, LeadIds: leadIds})
+				ctx.console.log(`Executing 'close' for ${leadIds.length} lead(s)`, {
+					_meta: 1,
+					TwilioConversationSID: conversation.sid,
+					LeadIds: leadIds,
+				});
 				for (const leadId of leadIds) {
 					ctx.objectSendClient(LeadVirtualObject, leadId).close({
 						reason: "Inactivity",
@@ -137,16 +145,32 @@ export const TwilioWebhooks = restate.service({
 				assert(is<TwilioMessagingServiceBody>(data));
 				ValidateTwilioRequest(twilioHeader, data, "onIncomingMessage");
 				if (data.OptOutType === "START") {
-					ctx.console.log(`Received 'OPT-IN' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-IN" });
+					ctx.console.log(`Received 'OPT-IN' for ${data.From}`, {
+						_meta: 1,
+						PhoneNumber: data.From,
+						Operation: "OPT-IN",
+					});
 					const result = await HandleOptInMessage(ctx, data);
-					ctx.console.log(`Processed 'OPT-IN' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-IN" });
+					ctx.console.log(`Processed 'OPT-IN' for ${data.From}`, {
+						_meta: 1,
+						PhoneNumber: data.From,
+						Operation: "OPT-IN",
+					});
 					return result;
 				}
 				// Close any active leads on opt-out
 				if (data.OptOutType === "STOP") {
-					ctx.console.log(`Received 'OPT-OUT' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-OUT" });
+					ctx.console.log(`Received 'OPT-OUT' for ${data.From}`, {
+						_meta: 1,
+						PhoneNumber: data.From,
+						Operation: "OPT-OUT",
+					});
 					const result = await HandleOptOutMessage(ctx, data);
-					ctx.console.log(`Processed 'OPT-OUT' for ${data.From}`, {_meta: 1, PhoneNumber: data.From, Operation: "OPT-OUT" });
+					ctx.console.log(`Processed 'OPT-OUT' for ${data.From}`, {
+						_meta: 1,
+						PhoneNumber: data.From,
+						Operation: "OPT-OUT",
+					});
 					return result;
 				}
 				return await HandleClosedMessagingThread(ctx, data);
@@ -216,14 +240,12 @@ async function HandleOptOutMessage(
 	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ) {
-	const participantConversations = await ctx.run(
-		"Find twilio conversation",
-		async () =>
-			FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
-				"active",
-				"closed",
-				"inactive",
-			]),
+	const conversations = await ctx.run("Find twilio conversation", async () =>
+		FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
+			"active",
+			"closed",
+			"inactive",
+		]),
 	);
 	const optOutEntry = await ctx.run(
 		"Get Opted-Out number entry",
@@ -251,11 +273,9 @@ async function HandleOptOutMessage(
 			),
 	);
 	let isDealer = false;
-	for (const participantConversation of participantConversations) {
-		if (participantConversation.conversationState === "closed") continue;
-		const attributes = JSON.parse(
-			participantConversation.conversationAttributes ?? "{}",
-		);
+	for (const conversation of conversations) {
+		if (conversation.state === "closed") continue;
+		const attributes = JSON.parse(conversation.attributes ?? "{}");
 		// Don't close lead if dealer opts out for some reason
 		if (attributes["StorePhoneNumber"] === data.From) {
 			isDealer = true;
@@ -279,25 +299,20 @@ async function HandleClosedMessagingThread(
 	ctx: restate.Context,
 	data: TwilioMessagingServiceBody,
 ): Promise<string | undefined> {
-	const participantConversations = await ctx.run(
-		"Find twilio conversation",
-		async () =>
-			FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
-				"active",
-				"closed",
-				"inactive",
-			]),
+	const conversations = await ctx.run("Find twilio conversation", async () =>
+		FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
+			"active",
+			"closed",
+			"inactive",
+		]),
 	);
-	if (participantConversations.length === 0) return;
-	if (participantConversations.find((c) => c.conversationState === "active"))
-		return;
+	if (conversations.length === 0) return;
+	if (conversations.find((c) => c.state === "active")) return;
 
 	// If we get a message from a number that doesn't have any active conversations, but has in the past
 	// Send them a closing message to let them know the thread has ended
-	const lastActiveConversation = participantConversations[0];
-	const attributes = JSON.parse(
-		lastActiveConversation.conversationAttributes ?? "{}",
-	);
+	const lastActiveConversation = conversations[0];
+	const attributes = JSON.parse(lastActiveConversation.attributes ?? "{}");
 	const storePhoneNumber = attributes?.["StorePhoneNumber"];
 	let closingMessage: string;
 	if (data.From === storePhoneNumber) {

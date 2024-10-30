@@ -29,7 +29,10 @@ const restateLogger = _logger.child({
 export const RESTATE_SERVER = restate
 	.endpoint()
 	.setLogger((params, message, ...o) => {
-		const separated: {messages: string[], errors: Error[], meta: any} = [message, ...o].reduce(
+		const separated: { messages: string[]; errors: Error[]; meta: any } = [
+			message,
+			...o,
+		].reduce(
 			(acc, m) => {
 				if (m instanceof Error) {
 					acc.errors.push(m);
@@ -40,11 +43,9 @@ export const RESTATE_SERVER = restate
 						if (typeof m === "object" && m["_meta"] != null) {
 							delete m["_meta"];
 							acc.meta = m;
-						}
-						else {
+						} else {
 							acc.messages.push(util.inspect(m, false, null, true));
 						}
-
 					}
 				}
 				return acc;
@@ -58,7 +59,7 @@ export const RESTATE_SERVER = restate
 				"Restate",
 				params.context?.fqMethodName,
 				params.context?.invocationId,
-				...[separated.meta.label].flat().filter(x => x != null)
+				...[separated.meta.label].flat().filter((x) => x != null),
 			],
 			errors: separated.errors.map((e: Error) => serializeError(e)),
 		});

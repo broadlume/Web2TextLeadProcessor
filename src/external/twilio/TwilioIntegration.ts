@@ -3,6 +3,7 @@ import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
+import type { Jsonify } from "type-fest";
 import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
 import type { Web2TextLead } from "../../types";
@@ -337,24 +338,30 @@ export class TwilioIntegration
 		isNewConversation: boolean;
 		conversation: ConversationInstance;
 	}> {
-		const conversation = await context.run(
+		const conversation: Jsonify<ConversationInstance> = await context.run(
 			"Create or fetch Twilio Conversation",
 			async () => {
 				const preExistingConversation = await FindConversationsFor(
 					this.twilioClient,
 					[leadState.Lead.PhoneNumber, storePhoneNumber],
 					["active", "inactive"],
+					process.env.TWILIO_MESSAGING_SERVICE_SID,
 				).then((convos) => convos?.[0]);
 				if (preExistingConversation) {
 					context.console.info(
-						`Found pre-existing Twilio Conversation: ${preExistingConversation.conversationSid}`,
-						{_meta: 1, label: [leadState.LeadId, `${this.Name}/createWeb2TextConversation`,]}
+						`Found pre-existing Twilio Conversation: ${preExistingConversation.sid}`,
+						{
+							_meta: 1,
+							label: [
+								leadState.LeadId,
+								`${this.Name}/createWeb2TextConversation`,
+							],
+						},
 					);
-					const conversation = await this.twilioClient.conversations.v1
-						.conversations(preExistingConversation.conversationSid)
-						.fetch();
 					// Add this LeadID to the conversation metadata
-					const attributes = JSON.parse(conversation.attributes ?? "{}");
+					const attributes = JSON.parse(
+						preExistingConversation.attributes ?? "{}",
+					);
 					const leadIds = new Set(attributes["LeadIds"] ?? []);
 					leadIds.add(leadState.LeadId);
 					attributes["LeadIds"] = Array.from(leadIds);

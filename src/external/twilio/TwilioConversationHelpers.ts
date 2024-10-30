@@ -1,5 +1,6 @@
 import type { E164Number } from "libphonenumber-js";
 import type { Twilio } from "twilio";
+import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import type { ParticipantConversationInstance } from "twilio/lib/rest/conversations/v1/participantConversation";
 
 /**
@@ -13,7 +14,8 @@ export async function FindConversationsFor(
 	twilioClient: Twilio,
 	phone: E164Number | E164Number[],
 	statuses: ("active" | "inactive" | "closed")[] = ["active", "inactive"],
-): Promise<ParticipantConversationInstance[]> {
+	messagingService: string = process.env["TWILIO_MESSAGING_SERVICE_SID"],
+): Promise<ConversationInstance[]> {
 	const [firstPhoneNumber, ...restOfNumbers] = [phone].flat();
 	// Find all conversations the first phone number is in
 	let conversations: ParticipantConversationInstance[] =
@@ -33,11 +35,18 @@ export async function FindConversationsFor(
 			otherConversationSIDs.includes(convo.conversationSid),
 		);
 	}
-	return conversations
-		.filter((c) => statuses.includes(c.conversationState))
-		.sort(
-			(a, b) =>
-				b.conversationDateUpdated.getTime() -
-				a.conversationDateUpdated.getTime(),
-		);
+	conversations = conversations.filter((c) =>
+		statuses.includes(c.conversationState),
+	);
+	const conversationInstances = await Promise.all(
+		conversations.map(
+			async (c) =>
+				await twilioClient.conversations.v1
+					.conversations(c.conversationSid)
+					.fetch(),
+		),
+	);
+	return conversationInstances
+		.filter((c) => c.messagingServiceSid === messagingService)
+		.sort((a, b) => b.dateUpdated.getTime() - a.dateUpdated.getTime());
 }

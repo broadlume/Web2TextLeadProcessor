@@ -66,6 +66,10 @@ export const DealerVirtualObject = restate.object({
 				const dealerStatus = await ctx.run(
 					"Check retailer eligiblity for Web2Text",
 					async () => await CheckClientStatus(universalRetailerId),
+					{
+						"maxRetryAttempts": 4,
+						"initialRetryIntervalMillis": 1000
+					}
 				);
 				if (dealerStatus.Status !== "VALID") {
 					return { Status: dealerStatus.Status, Reason: dealerStatus.Reason };
@@ -75,6 +79,10 @@ export const DealerVirtualObject = restate.object({
 						"Fetch location info",
 						async () =>
 							await NexusStoresAPI.GetAllRetailerStores(universalRetailerId),
+						{
+							"maxRetryAttempts": 4,
+							"initialRetryIntervalMillis": 1000
+						}
 					)) ?? [];
 				const locationStatuses: LocationStatus[] = [];
 				const undefinedIfEmpty = (x: string | null | undefined) =>

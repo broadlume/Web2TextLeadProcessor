@@ -57,7 +57,7 @@ export const DealerVirtualObject = restate.object({
 				if (
 					z.string().uuid().safeParse(universalRetailerId).success === false
 				) {
-					throw new restate.TerminalError("Invalid UniversalRetailerId", {
+					throw new restate.TerminalError(`Invalid UniversalRetailerId: '${universalRetailerId}'`, {
 						errorCode: 400,
 					});
 				}

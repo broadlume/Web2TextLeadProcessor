@@ -103,6 +103,75 @@ index a0428242c38d3a342e7dfdcecde6bedb30c5b1ae..41a5170b73b7858d751deb03d8086483
      // --- Calls, background calls, etc
      //
      genericCall(call) {
+diff --git a/dist/cjs/src/endpoint/handlers/generic.js b/dist/cjs/src/endpoint/handlers/generic.js
+index 97207054c8c256a08ff82126abc2bda7249aa5f9..74e307d458cd34633303e45cd70097864c6fbcd6 100644
+--- a/dist/cjs/src/endpoint/handlers/generic.js
++++ b/dist/cjs/src/endpoint/handlers/generic.js
+@@ -43,6 +43,7 @@ const context_impl_js_1 = require("../../context_impl.js");
+ const logger_js_1 = require("../../logger.js");
+ const vm = __importStar(require("./vm/sdk_shared_core_wasm_bindings.js"));
+ const completable_promise_js_1 = require("../../utils/completable_promise.js");
++const HandlerKind = require("../../types/rpc.js");
+ var ServiceDiscoveryProtocolVersion;
+ (function (ServiceDiscoveryProtocolVersion) {
+     /**
+@@ -199,7 +200,7 @@ class GenericHandler {
+         // Get input
+         const input = coreVm.sys_input();
+         // Prepare context
+-        const console = (0, logger_js_1.createRestateConsole)(this.endpoint.logger, logger_js_1.LogSource.USER, new logger_js_1.LoggerContext(input.invocation_id, "", handler.component().name(), handler.name(), additionalContext), () => !coreVm.is_processing());
++        const console = (0, logger_js_1.createRestateConsole)(this.endpoint.logger, logger_js_1.LogSource.USER, new logger_js_1.LoggerContext(input.invocation_id, handler.component().name(), handler.name(), handler.kind() === HandlerKind.SERVICE ? undefined : input.key, additionalContext), () => !coreVm.is_processing());
+         // This promise is used to signal the end of the computation,
+         // which can be either the user returns a value,
+         // or an exception gets catched, or the state machine fails/suspends.
+diff --git a/dist/cjs/src/logger.d.ts b/dist/cjs/src/logger.d.ts
+index 497d4f4d31a063c34433a6e4955f5d69f2f4f05c..b7a1581d45844a88dee9e1681f69a862ead8f711 100644
+--- a/dist/cjs/src/logger.d.ts
++++ b/dist/cjs/src/logger.d.ts
+@@ -21,8 +21,8 @@ export declare class LoggerContext {
+     readonly additionalContext?: {
+         [name: string]: string;
+     } | undefined;
+-    readonly fqMethodName: string;
+-    constructor(invocationId: string, packageName: string, serviceName: string, handlerName: string, additionalContext?: {
++    readonly invocationTarget: string;
++    constructor(invocationId: string, serviceName: string, handlerName: string, key: string, additionalContext?: {
+         [name: string]: string;
+     } | undefined);
+ }
+diff --git a/dist/cjs/src/logger.js b/dist/cjs/src/logger.js
+index b8267e2800a99ac7653e7b9bc2b90d2daa5cfff5..9eea228332e06bed1de01c6aae4a9f62146f9e5d 100644
+--- a/dist/cjs/src/logger.js
++++ b/dist/cjs/src/logger.js
+@@ -96,13 +96,14 @@ function readRestateLogLevel() {
+ class LoggerContext {
+     invocationId;
+     additionalContext;
+-    fqMethodName;
+-    constructor(invocationId, packageName, serviceName, handlerName, additionalContext) {
++    invocationTarget;
++    constructor(invocationId, serviceName, handlerName, key, additionalContext) {
+         this.invocationId = invocationId;
+         this.additionalContext = additionalContext;
+-        this.fqMethodName = packageName
+-            ? `${packageName}.${serviceName}/${handlerName}`
+-            : `${serviceName}/${handlerName}`;
++        this.invocationTarget =
++              key === undefined || key.length === 0
++                ? `${serviceName}/${handlerName}`
++                : `${serviceName}/${key}/${handlerName}`;
+     }
+ }
+ exports.LoggerContext = LoggerContext;
+@@ -110,7 +111,7 @@ function formatLogPrefix(context) {
+     if (context === undefined) {
+         return "[restate] ";
+     }
+-    let prefix = `[restate] [${context.fqMethodName}][${context.invocationId}]`;
++    let prefix = `[restate] [${context.invocationTarget}][${context.invocationId}]`;
+     if (context.additionalContext !== undefined) {
+         for (const [k, v] of Object.entries(context.additionalContext)) {
+             prefix = prefix + `[${k}: ${v}]`;
 diff --git a/dist/esm/src/context.d.ts b/dist/esm/src/context.d.ts
 index aff120968c817e65cf6979f395ead8c9d94d47a0..c322ade885e0926a2778d556f996ce5147ec56eb 100644
 --- a/dist/esm/src/context.d.ts
@@ -210,3 +279,71 @@ index 462b435f5b999221156f1e2c88de8732912d3a77..c9ce00bdc319e8b6c6d1cc9d03c43742
      // --- Calls, background calls, etc
      //
      genericCall(call) {
+diff --git a/dist/esm/src/endpoint/handlers/generic.js b/dist/esm/src/endpoint/handlers/generic.js
+index 3648c7975836340d4b5783fc1c97568bfdc34565..4a580a33ac4b11c0f22f75c53f9a324c9a3656ad 100644
+--- a/dist/esm/src/endpoint/handlers/generic.js
++++ b/dist/esm/src/endpoint/handlers/generic.js
+@@ -17,6 +17,7 @@ import { ContextImpl } from "../../context_impl.js";
+ import { createRestateConsole, DEFAULT_LOGGER_LOG_LEVEL, defaultLogger, LoggerContext, LogSource, RestateLogLevel, } from "../../logger.js";
+ import * as vm from "./vm/sdk_shared_core_wasm_bindings.js";
+ import { CompletablePromise } from "../../utils/completable_promise.js";
++import { HandlerKind } from "../../types/rpc.js";
+ export var ServiceDiscoveryProtocolVersion;
+ (function (ServiceDiscoveryProtocolVersion) {
+     /**
+@@ -173,7 +174,7 @@ export class GenericHandler {
+         // Get input
+         const input = coreVm.sys_input();
+         // Prepare context
+-        const console = createRestateConsole(this.endpoint.logger, LogSource.USER, new LoggerContext(input.invocation_id, "", handler.component().name(), handler.name(), additionalContext), () => !coreVm.is_processing());
++        const console = createRestateConsole(this.endpoint.logger, LogSource.USER, new LoggerContext(input.invocation_id, handler.component().name(), handler.name(),handler.kind() === HandlerKind.SERVICE ? undefined : input.key, additionalContext), () => !coreVm.is_processing());
+         // This promise is used to signal the end of the computation,
+         // which can be either the user returns a value,
+         // or an exception gets catched, or the state machine fails/suspends.
+diff --git a/dist/esm/src/logger.d.ts b/dist/esm/src/logger.d.ts
+index 7323170f11bce3b49be15ac86c5192b6caf2ca3c..5ed1283d688aecb0424239363b8b7f5d5ff93eed 100644
+--- a/dist/esm/src/logger.d.ts
++++ b/dist/esm/src/logger.d.ts
+@@ -21,8 +21,8 @@ export declare class LoggerContext {
+     readonly additionalContext?: {
+         [name: string]: string;
+     } | undefined;
+-    readonly fqMethodName: string;
+-    constructor(invocationId: string, packageName: string, serviceName: string, handlerName: string, additionalContext?: {
++    readonly invocationTarget: string;
++    constructor(invocationId: string, serviceName: string, handlerName: string, key: string, additionalContext?: {
+         [name: string]: string;
+     } | undefined);
+ }
+diff --git a/dist/esm/src/logger.js b/dist/esm/src/logger.js
+index 6f49c156ff406fd558c7bd94ee1673b6f66a9196..351a6bb4b050a99435431935c09d2b68318f77e7 100644
+--- a/dist/esm/src/logger.js
++++ b/dist/esm/src/logger.js
+@@ -91,20 +91,21 @@ function readRestateLogLevel() {
+ export class LoggerContext {
+     invocationId;
+     additionalContext;
+-    fqMethodName;
+-    constructor(invocationId, packageName, serviceName, handlerName, additionalContext) {
++    invocationTarget;
++    constructor(invocationId, serviceName, handlerName, key, additionalContext) {
+         this.invocationId = invocationId;
+         this.additionalContext = additionalContext;
+-        this.fqMethodName = packageName
+-            ? `${packageName}.${serviceName}/${handlerName}`
+-            : `${serviceName}/${handlerName}`;
++        this.invocationTarget =
++              key === undefined || key.length === 0
++                ? `${serviceName}/${handlerName}`
++                : `${serviceName}/${key}/${handlerName}`;
+     }
+ }
+ function formatLogPrefix(context) {
+     if (context === undefined) {
+         return "[restate] ";
+     }
+-    let prefix = `[restate] [${context.fqMethodName}][${context.invocationId}]`;
++    let prefix = `[restate] [${context.invocationTarget}][${context.invocationId}]`;
+     if (context.additionalContext !== undefined) {
+         for (const [k, v] of Object.entries(context.additionalContext)) {
+             prefix = prefix + `[${k}: ${v}]`;

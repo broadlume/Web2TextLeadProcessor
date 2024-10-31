@@ -57,7 +57,7 @@ export const RESTATE_SERVER = restate
 			...separated.meta,
 			label: [
 				"Restate",
-				params.context?.fqMethodName,
+				params.context?.invocationTarget,
 				params.context?.invocationId,
 				...[separated.meta.label].flat().filter((x) => x != null),
 			],

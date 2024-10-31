@@ -112,6 +112,7 @@ export const LeadVirtualObject = restate.object({
 					// Mark the lead as ACTIVE and sync with the database
 					ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 					await SyncWithDB(ctx, "SEND");
+					ctx.console.log(`Created new lead with LeadID: '${ctx.key}'`, {_meta:1, Lead: Lead});
 				} catch (e) {
 					await ctx.update((state) => ({
 						...state,
@@ -148,6 +149,7 @@ export const LeadVirtualObject = restate.object({
 				);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
+				ctx.console.log(`Starting 'sync' for Lead ID: '${ctx.key}'`);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
 				// Update the state of the lead to SYNCING
 				ctx.set("Status", "SYNCING");
@@ -240,6 +242,7 @@ export const LeadVirtualObject = restate.object({
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
 				ctx.set<LeadState["Status"]>("Status", "ACTIVE");
 				await SyncWithDB(ctx, "SEND");
+				ctx.console.log(`Finished 'sync' for Lead ID: '${ctx.key}'`);
 
 				// Return the status of the lead
 				return await ctx
@@ -264,6 +267,7 @@ export const LeadVirtualObject = restate.object({
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING", "CLOSED"]);
 				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
+				ctx.console.log(`Starting 'close' for Lead ID: '${ctx.key}'`);
 				// Iterate through all integrations and call their close handlers
 				const integrations = Web2TextIntegrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
@@ -332,6 +336,7 @@ export const LeadVirtualObject = restate.object({
 				// Mark the lead status as CLOSED and sync with the database
 				ctx.set("Status", "CLOSED");
 				await SyncWithDB(ctx, "SEND");
+				ctx.console.log(`Finished 'close' for Lead ID: '${ctx.key}'`);
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)

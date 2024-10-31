@@ -28,7 +28,7 @@ export async function SyncWithDB(
 ) {
 	ctx.console.debug(
 		`Begin DynamoDB lead state sync with direction: ${direction}`,
-		{ _meta: 1, label: ctx.key },
+		{ _meta: 1},
 	);
 	let synced = false;
 	switch (direction) {
@@ -72,7 +72,7 @@ export async function SyncWithDB(
 	}
 	ctx.console.debug(
 		`End DynamoDB lead state sync with direction: ${direction}`,
-		{ _meta: 1, label: ctx.key, Success: synced },
+		{ _meta: 1, Success: synced },
 	);
 	return synced;
 }

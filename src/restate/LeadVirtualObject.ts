@@ -59,7 +59,6 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectSharedContext<LeadState>,
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
-				ctx.console.info(`Lead ID: ${ctx.key}`, { _meta: 1, label: ctx.key });
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -81,7 +80,6 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				ctx.console.info(`Lead ID: ${ctx.key}`, { _meta: 1, label: ctx.key });
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -142,7 +140,6 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
-				ctx.console.info(`Lead ID: ${ctx.key}`, { _meta: 1, label: ctx.key });
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -176,7 +173,6 @@ export const LeadVirtualObject = restate.object({
 								`Executing 'create' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
-									label: ctx.key,
 									Integration: integration.Name,
 									CurrentSyncState: state,
 								},
@@ -186,7 +182,6 @@ export const LeadVirtualObject = restate.object({
 								`Finished 'create' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
-									label: ctx.key,
 									Integration: integration.Name,
 									OldSyncState: state,
 									CurrentSyncState: newState,
@@ -197,7 +192,6 @@ export const LeadVirtualObject = restate.object({
 								`Executing 'sync' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
-									label: ctx.key,
 									Integration: integration.Name,
 									CurrentSyncState: state,
 								},
@@ -207,7 +201,6 @@ export const LeadVirtualObject = restate.object({
 								`Finished 'sync' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
-									label: ctx.key,
 									Integration: integration.Name,
 									OldSyncState: state,
 									CurrentSyncState: newState,
@@ -230,7 +223,6 @@ export const LeadVirtualObject = restate.object({
 							`Error executing '${operation}' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
-								label: ctx.key,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,
@@ -263,7 +255,6 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req?: { reason?: string; API_KEY?: string },
 			): Promise<LeadState> => {
-				ctx.console.info(`Lead ID: ${ctx.key}`, { _meta: 1, label: ctx.key });
 				// Validate the API key
 				await CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -295,7 +286,6 @@ export const LeadVirtualObject = restate.object({
 							`Executing 'close' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
-								label: ctx.key,
 								Integration: integration.Name,
 								CurrentSyncState: state,
 							},
@@ -305,7 +295,6 @@ export const LeadVirtualObject = restate.object({
 							`Finished 'close' for external integration '${integration.Name}' with status '${newState.SyncStatus}'`,
 							{
 								_meta: 1,
-								label: ctx.key,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,
@@ -326,7 +315,6 @@ export const LeadVirtualObject = restate.object({
 							`Error executing 'close' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
-								label: ctx.key,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,

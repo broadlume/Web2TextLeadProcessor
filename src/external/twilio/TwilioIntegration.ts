@@ -353,7 +353,6 @@ export class TwilioIntegration
 						{
 							_meta: 1,
 							label: [
-								leadState.LeadId,
 								`${this.Name}/createWeb2TextConversation`,
 							],
 						},

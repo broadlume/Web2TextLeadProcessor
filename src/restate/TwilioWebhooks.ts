@@ -243,7 +243,6 @@ async function HandleOptOutMessage(
 	const conversations = await ctx.run("Find twilio conversation", async () =>
 		FindConversationsFor(globalThis.TWILIO_CLIENT, data.From, [
 			"active",
-			"closed",
 			"inactive",
 		]),
 	);
@@ -307,7 +306,7 @@ async function HandleClosedMessagingThread(
 		]),
 	);
 	if (conversations.length === 0) return;
-	if (conversations.find((c) => c.state === "active")) return;
+	if (conversations.find((c) => c.state === "active" || c.state === "inactive")) return;
 
 	// If we get a message from a number that doesn't have any active conversations, but has in the past
 	// Send them a closing message to let them know the thread has ended

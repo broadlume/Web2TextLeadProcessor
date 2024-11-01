@@ -21,7 +21,7 @@ const BulkEndpointRequestSchema = z.discriminatedUnion("Operation", [
 		Reason: z.string().optional(),
 		Filter: z.union([z.enum(["*"]), NonEmptyObjectSchema]),
 		Verbose: z.boolean().optional().default(false),
-		Async: z.boolean().optional().default(true)
+		Async: z.boolean().optional().default(true),
 	}),
 ]);
 type BulkEndpointResponse = {
@@ -59,80 +59,103 @@ export const AdminService = restate.service({
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;
-				const leads: Web2TextLead[] = await ctx.run("Scan LeadStates in DynamoDB", async () => {
-					let scan: Scan<any>;
-					try {
-						scan = LeadStateModel.scan(filter);
-					} catch (err) {
-						assert(is<Error>(err));
-						throw new restate.TerminalError(
-							`Error parsing Filter parameter - ${err.message}`,
-							{ errorCode: 400, cause: err },
-						);
-					}
-					if (!parsed.data.Verbose) {
-						scan = scan.attributes(["LeadId"]);
-					}
-					return await scan
-						.all()
-						.exec()
-						.catch((err) => {
+				const leads: Web2TextLead[] = (await ctx.run(
+					"Scan LeadStates in DynamoDB",
+					async () => {
+						let scan: Scan<any>;
+						try {
+							scan = LeadStateModel.scan(filter);
+						} catch (err) {
+							assert(is<Error>(err));
 							throw new restate.TerminalError(
-								"Error scanning LeadState table",
-								{ errorCode: 500, cause: err },
+								`Error parsing Filter parameter - ${err.message}`,
+								{ errorCode: 400, cause: err },
 							);
-						});
-				}) as Web2TextLead[];
+						}
+						if (!parsed.data.Verbose) {
+							scan = scan.attributes(["LeadId"]);
+						}
+						return await scan
+							.all()
+							.exec()
+							.catch((err) => {
+								throw new restate.TerminalError(
+									"Error scanning LeadState table",
+									{ errorCode: 500, cause: err },
+								);
+							});
+					},
+				)) as Web2TextLead[];
 				let result: any[] = [];
 				switch (parsed.data.Operation) {
 					case "CLOSE": {
 						if (parsed.data.Async === true) {
-							for (const lead of leads ) {
+							for (const lead of leads) {
 								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).close({
 									reason: parsed.data.Reason ?? "Closed by Administrator",
 									API_KEY: process.env.INTERNAL_API_TOKEN,
 								});
 							}
-							result = leads.map(l => parsed.data.Verbose ? l : l.LeadId);
-						}
-						else {
-							const results: any[] = await restate.CombineablePromise.allSettled(leads.map((lead) => ctx.objectClient(LeadVirtualObject, lead.LeadId).close({
-								reason: parsed.data.Reason ?? "Closed by Administrator",
-								API_KEY: process.env.INTERNAL_API_TOKEN,
-							})));
+							result = leads.map((l) => (parsed.data.Verbose ? l : l.LeadId));
+						} else {
+							const results: any[] =
+								await restate.CombineablePromise.allSettled(
+									leads.map((lead) =>
+										ctx.objectClient(LeadVirtualObject, lead.LeadId).close({
+											reason: parsed.data.Reason ?? "Closed by Administrator",
+											API_KEY: process.env.INTERNAL_API_TOKEN,
+										}),
+									),
+								);
 							for (let i = 0; i < leads.length; i++) {
 								if (!("LeadId" in results[i])) {
-									results[i] = {LeadId: leads[i].LeadId, Error: {...serializeError(results[i]), stack: undefined}}
+									results[i] = {
+										LeadId: leads[i].LeadId,
+										Error: { ...serializeError(results[i]), stack: undefined },
+									};
 								}
 							}
-							result = parsed.data.Verbose ? results : leads.map(l => l.LeadId);
+							result = parsed.data.Verbose
+								? results
+								: leads.map((l) => l.LeadId);
 						}
 						break;
 					}
 					case "SYNC": {
 						if (parsed.data.Async === true) {
-							for (const lead of leads ) {
+							for (const lead of leads) {
 								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).sync({
 									API_KEY: process.env.INTERNAL_API_TOKEN,
 								});
 							}
-							result = leads.map(l => parsed.data.Verbose ? l : l.LeadId);
-						}
-						else {
-							const results: any[] = await restate.CombineablePromise.allSettled(leads.map((lead) => ctx.objectClient(LeadVirtualObject, lead.LeadId).sync({
-								API_KEY: process.env.INTERNAL_API_TOKEN,
-							})));
+							result = leads.map((l) => (parsed.data.Verbose ? l : l.LeadId));
+						} else {
+							const results: any[] =
+								await restate.CombineablePromise.allSettled(
+									leads.map((lead) =>
+										ctx.objectClient(LeadVirtualObject, lead.LeadId).sync({
+											API_KEY: process.env.INTERNAL_API_TOKEN,
+										}),
+									),
+								);
 							for (let i = 0; i < leads.length; i++) {
 								if (!("LeadId" in results[i])) {
-									results[i] = {LeadId: leads[i].LeadId, Error: {...serializeError(results[i]), stack: undefined}}
+									results[i] = {
+										LeadId: leads[i].LeadId,
+										Error: { ...serializeError(results[i]), stack: undefined },
+									};
 								}
 							}
-							result = parsed.data.Verbose ? results : leads.map(l => l.LeadId);
+							result = parsed.data.Verbose
+								? results
+								: leads.map((l) => l.LeadId);
 						}
 						break;
 					}
-					case "FIND":
+					case "FIND": {
+						result = parsed.data.Verbose ? leads : leads.map((l) => l.LeadId);
 						break;
+					}
 					default:
 						throw new restate.TerminalError(
 							`Invalid operation: '${parsed.data.Operation}'`,

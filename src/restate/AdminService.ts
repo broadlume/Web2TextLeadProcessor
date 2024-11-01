@@ -7,6 +7,7 @@ import { LeadStateModel } from "../dynamodb/LeadStateModel";
 import type { Web2TextLead } from "../types";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 import { CheckAuthorization } from "./validators";
+import { serializeError } from "serialize-error";
 const NonEmptyObjectSchema = z
 	.object({})
 	.passthrough()
@@ -20,12 +21,12 @@ const BulkEndpointRequestSchema = z.discriminatedUnion("Operation", [
 		Reason: z.string().optional(),
 		Filter: z.union([z.enum(["*"]), NonEmptyObjectSchema]),
 		Verbose: z.boolean().optional().default(false),
+		Async: z.boolean().optional().default(true)
 	}),
 ]);
 type BulkEndpointResponse = {
-	Success: true;
 	Count: number;
-	Leads?: string[] | Web2TextLead[];
+	Result?: any[];
 };
 export const AdminService = restate.service({
 	name: "Admin",
@@ -58,7 +59,7 @@ export const AdminService = restate.service({
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;
-				const leads = await ctx.run("Scan LeadStates in DynamoDB", async () => {
+				const leads: Web2TextLead[] = await ctx.run("Scan LeadStates in DynamoDB", async () => {
 					let scan: Scan<any>;
 					try {
 						scan = LeadStateModel.scan(filter);
@@ -81,26 +82,55 @@ export const AdminService = restate.service({
 								{ errorCode: 500, cause: err },
 							);
 						});
-				});
+				}) as Web2TextLead[];
+				let result: any[] = [];
 				switch (parsed.data.Operation) {
-					case "CLOSE":
-						for (const lead of leads) {
-							const leadId = lead.LeadId;
-							ctx.objectSendClient(LeadVirtualObject, leadId).close({
+					case "CLOSE": {
+						if (parsed.data.Async === true) {
+							for (const lead of leads ) {
+								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).close({
+									reason: parsed.data.Reason ?? "Closed by Administrator",
+									API_KEY: process.env.INTERNAL_API_TOKEN,
+								});
+							}
+							result = leads.map(l => parsed.data.Verbose ? l : l.LeadId);
+						}
+						else {
+							const results: any[] = await restate.CombineablePromise.allSettled(leads.map((lead) => ctx.objectClient(LeadVirtualObject, lead.LeadId).close({
 								reason: parsed.data.Reason ?? "Closed by Administrator",
 								API_KEY: process.env.INTERNAL_API_TOKEN,
-							});
+							})));
+							for (let i = 0; i < leads.length; i++) {
+								if (!("LeadId" in results[i])) {
+									results[i] = {LeadId: leads[i].LeadId, Error: {...serializeError(results[i]), stack: undefined}}
+								}
+							}
+							result = parsed.data.Verbose ? results : leads.map(l => l.LeadId);
 						}
-
 						break;
-					case "SYNC":
-						for (const lead of leads) {
-							const leadId = lead.LeadId;
-							ctx.objectSendClient(LeadVirtualObject, leadId).sync({
+					}
+					case "SYNC": {
+						if (parsed.data.Async === true) {
+							for (const lead of leads ) {
+								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).sync({
+									API_KEY: process.env.INTERNAL_API_TOKEN,
+								});
+							}
+							result = leads.map(l => parsed.data.Verbose ? l : l.LeadId);
+						}
+						else {
+							const results: any[] = await restate.CombineablePromise.allSettled(leads.map((lead) => ctx.objectClient(LeadVirtualObject, lead.LeadId).sync({
 								API_KEY: process.env.INTERNAL_API_TOKEN,
-							});
+							})));
+							for (let i = 0; i < leads.length; i++) {
+								if (!("LeadId" in results[i])) {
+									results[i] = {LeadId: leads[i].LeadId, Error: {...serializeError(results[i]), stack: undefined}}
+								}
+							}
+							result = parsed.data.Verbose ? results : leads.map(l => l.LeadId);
 						}
 						break;
+					}
 					case "FIND":
 						break;
 					default:
@@ -112,22 +142,14 @@ export const AdminService = restate.service({
 					`Executed admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`,
 					{
 						_meta: 1,
-						Operation: parsed.data.Operation,
+						...parsed.data,
 						LeadCount: leads.length,
-						Leads: leads.map((l) => l.LeadId),
+						Result: result,
 					},
 				);
-				if (parsed.data.Verbose) {
-					return {
-						Success: true,
-						Count: leads.length,
-						Leads: leads as Web2TextLead[],
-					};
-				}
 				return {
-					Success: true,
 					Count: leads.length,
-					Leads: leads.map((l) => l.LeadId),
+					Result: result,
 				};
 			},
 		),

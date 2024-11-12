@@ -14,6 +14,7 @@ import {
 	Web2TextLeadCreateRequestSchema,
 } from "../types";
 import type { LeadState } from "./common";
+import { logger } from "../logger";
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -213,20 +214,32 @@ export async function CheckPhoneNumberStatus(
 			Reason: "Phone number is opted-out from our text messaging pool",
 		};
 	}
-	const lookup = await twilioClient.lookups.v2.phoneNumbers
-		.get(phoneNumber)
-		.fetch({
-			fields: "line_type_intelligence",
-		});
+
+	const lookup = await twilioClient.lookups.v2
+		.phoneNumbers(phoneNumber)
+		.fetch({ fields: "line_type_intelligence" });
 	if (lookup.valid === false) {
 		return {
 			Status: "INVALID",
 			Reason: `Twilio lookup reported this number as invalid - [${lookup.validationErrors.join(", ")}]`,
 		};
 	}
-	const phoneType: string = lookup.lineTypeIntelligence.type;
+	const lineTypeError: number | null = lookup.lineTypeIntelligence?.error_code;
+	if (lineTypeError != null) {
+		logger
+			.child({ label: ["CheckPhoneNumberStatus", phoneNumber] })
+			.warn(
+				`Twilio line type intelligence responded with error code: ${lineTypeError}`,
+				{
+					PhoneNumber: phoneNumber,
+					TwilioErrorCode: lineTypeError,
+					TwilioLookup: lookup.toJSON(),
+				},
+			);
+	}
+	const phoneType: string = lookup.lineTypeIntelligence?.type;
 	const allowedValues = ["mobile"];
-	if (!allowedValues.includes(phoneType)) {
+	if (phoneType != null && !allowedValues.includes(phoneType)) {
 		return {
 			Status: "INVALID",
 			Reason: `Twilio lookup reported this number as type '${phoneType}' which is outside the allowed types of phone numbers: ${JSON.stringify(allowedValues)}`,

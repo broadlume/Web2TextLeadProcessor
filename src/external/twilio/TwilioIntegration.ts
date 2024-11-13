@@ -117,7 +117,7 @@ export class TwilioIntegration
 			);
 		});
 		await context.run("Send customer message", async () => {
-			const systemMessaging = SystemGreetingMessage(dealerInformation.name);
+			const systemMessaging = SystemGreetingMessage(dealerInformation.name, leadState.Lead.PreferredMethodOfContact);
 			await this.sendSystemMessage(
 				conversation.sid,
 				systemMessaging,

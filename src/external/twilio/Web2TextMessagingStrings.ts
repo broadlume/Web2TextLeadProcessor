@@ -1,7 +1,7 @@
 import type { Web2TextLead } from "../../types";
 
-export function SystemGreetingMessage(dealerName: string): string {
-	return `This messaging conversation is being facilitated by Broadlume, a flooring software company. We have connected you with ${dealerName}. Please text STOP to opt out of communication.`;
+export function SystemGreetingMessage(dealerName: string, contactPreference: string): string {
+	return `Broadlume, a flooring software company, is facilitating this messaging conversation. We have connected you with ${dealerName}, and they will respond via ${contactPreference} shortly. Please text STOP to opt out of communication.`;
 }
 export function DealerGreetMessage(
 	lead: Web2TextLead,

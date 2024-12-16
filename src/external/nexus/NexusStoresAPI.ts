@@ -1,7 +1,7 @@
 import type { UUID } from "node:crypto";
 import ky, { HTTPError } from "ky";
-import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 import { logger } from "../../logger";
+import { GetNexusAWSAuthToken } from "./NexusAWSAuth";
 
 export interface RetailerStore {
 	birdeye_account_id: string;
@@ -34,17 +34,25 @@ export async function GetAllRetailerStores(
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
 	nexusURL.pathname += "nexus/retailerLocations";
 	nexusURL.search = `?retailer_id=${universalId}`;
+	const authToken = await GetNexusAWSAuthToken();
 	try {
 		const retailerStores = await ky
 			.get(nexusURL.toString(), {
 				retry: 0,
-				headers: NEXUS_AUTHORIZATION_HEADERS(),
+				headers: {
+					"Authorization": Buffer.from(authToken).toString("base64")
+				},
 			})
 			.json<{ data?: RetailerStore[] }>();
 		return retailerStores.data ?? [];
 	} catch (e) {
-		if (e instanceof HTTPError && e.response.status === 404) {
-			return null;
+		if (e instanceof HTTPError) {
+			if (e.response?.status === 404) return null;
+			if (e.response?.status === 401) {
+				// Try refresh nexus auth token
+				await GetNexusAWSAuthToken(true);
+				return GetAllRetailerStores(universalId);
+			}
 		}
 		logger
 			.child({ label: "NexusStoresAPI:GetAllRetailerStores" })
@@ -61,20 +69,25 @@ export async function GetRetailerStoreByID(
 	const nexusURL = new URL(process.env.NEXUS_AWS_API_URL!);
 	nexusURL.pathname += "nexus/location";
 	nexusURL.search = `?location_id=${locationId}`;
+	const authToken = await GetNexusAWSAuthToken();
 	try {
 		const retailerStore = await ky
 			.get(nexusURL.toString(), {
 				retry: 0,
-				headers: NEXUS_AUTHORIZATION_HEADERS(),
+				headers: {
+					"Authorization": Buffer.from(authToken).toString("base64")
+				},
 			})
 			.json<{ data?: RetailerStore[] }>();
 		return retailerStore.data?.[0] ?? null;
 	} catch (e) {
-		if (
-			e instanceof HTTPError &&
-			(e.response.status === 404 || e.response.status === 400)
-		) {
-			return null;
+		if (e instanceof HTTPError) {
+			if (e.response?.status === 404 || e.response?.status === 400) return null;
+			if (e.response?.status === 401) {
+				// Try refresh nexus auth token
+				await GetNexusAWSAuthToken(true);
+				return GetRetailerStoreByID(locationId);
+			}
 		}
 		logger
 			.child({ label: "NexusStoresAPI:GetRetailerStoreByID" })
@@ -113,12 +126,15 @@ export async function GetHoursOfOperation(
 ): Promise<Record<string, HoursOfOperation> | null> {
 	const nexusURL = new URL(process.env.NEXUS_API_URL!);
 	nexusURL.pathname += `retailers/${universalRetailerId}/stores`;
+	const authToken = await GetNexusAWSAuthToken();
 	try {
 		const retailerStores = await ky
 			.get(nexusURL.toString(), {
 				retry: 0,
 				timeout: 20_000,
-				headers: NEXUS_AUTHORIZATION_HEADERS(),
+				headers: {
+					"Authorization": Buffer.from(authToken).toString("base64")
+				},
 			})
 			.json<OldNexusAPIStoreResponse | OldNexusAPIStoreResponse[]>();
 		const storeHours: Record<string, HoursOfOperation> = {};
@@ -141,11 +157,13 @@ export async function GetHoursOfOperation(
 		}
 		return storeHours;
 	} catch (e) {
-		if (
-			e instanceof HTTPError &&
-			(e.response.status === 404 || e.response.status === 400)
-		) {
-			return null;
+		if (e instanceof HTTPError) {
+			if (e.response?.status === 404 || e.response?.status === 400) return null;
+			if (e.response?.status === 401) {
+				// Try refresh nexus auth token
+				await GetNexusAWSAuthToken(true);
+				return GetHoursOfOperation(universalRetailerId);
+			}
 		}
 		logger
 			.child({ label: "NexusStoresAPI:GetHoursOfOperation" })

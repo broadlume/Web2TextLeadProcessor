@@ -25,6 +25,8 @@ declare global {
 			COPILOT_ENVIRONMENT_NAME: "development" | "production" | undefined;
 			NODE_ENV: string;
 			TWILIO_MESSAGING_SERVICE_SID: string;
+			VIZ_AWS_ACCESS_KEY_ID: string;
+			VIZ_AWS_SECRET_ACCESS_KEY: string;
 		}
 	}
 	var TWILIO_CLIENT: Twilio;

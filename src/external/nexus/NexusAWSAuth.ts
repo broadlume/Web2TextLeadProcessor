@@ -9,18 +9,21 @@ const secretName = "blx-shell-user-pool-stack-blx-api-client-secrets-dev-v1";
  * Cached auth token so we don't have to
  * fetch a new one from AWS every time we do a Nexus API call
  */
-let CachedAuthToken: string | null = null;
+let CachedAuthToken: {
+    access_token: string;
+    expires_in: number;
+    token_type: "Bearer";
+} | null = null;
 /**
  * Retrieve the AWS Cognito Auth token needed to authorize ourselves to Neuxs
  * @param refresh whether to force refresh the token in case the cached one has expired
- * @returns 
+
  */
 export async function GetNexusAWSAuthToken(refresh: boolean = false): Promise<string> {
     if (!refresh && CachedAuthToken) {
-        return CachedAuthToken;
+        return CachedAuthToken.access_token;
     }
-    console.log(process.env.AWS_ACCESS_KEY_ID);
-    console.log(process.env.AWS_SECRET_ACCESS_KEY)
+    console.log("getting auth from AWS");
     const client = new SecretsManagerClient({
         region: "us-east-1",
         "credentials": {
@@ -49,9 +52,8 @@ export async function GetNexusAWSAuthToken(refresh: boolean = false): Promise<st
 
     const authResponse = await ky.post(endpoint, {
         body: form
-    }).json<{access_token: string}>();
-    
-    CachedAuthToken = authResponse.access_token;
-    return CachedAuthToken;
+    }).json<NonNullable<typeof CachedAuthToken>>();
+    CachedAuthToken = authResponse;
+    return CachedAuthToken.access_token;
 
 }

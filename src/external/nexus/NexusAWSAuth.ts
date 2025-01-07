@@ -1,12 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import ky from "ky";
-
-/**
- * AWS Secret Manager secret that has the AWS Cognito auth information for Nexus API
- */
-const secretName = process.env.COPILOT_ENVIRONMENT_NAME === "production" ? 
-    "blx-shell-user-pool-stack-blx-api-client-secrets-prod-v1"
- :  "blx-shell-user-pool-stack-blx-api-client-secrets-dev-v1";
 /**
  * Cached auth token so we don't have to
  * fetch a new one from AWS every time we do a Nexus API call
@@ -32,6 +25,7 @@ export async function GetNexusAWSAuthToken(refresh: boolean = false): Promise<st
             "secretAccessKey": process.env.VIZ_AWS_SECRET_ACCESS_KEY
         }
     });
+    const secretName = process.env.NEXUS_AWS_API_SECRET_NAME!;
     const response = await client.send(new GetSecretValueCommand({
         "SecretId": secretName,
         VersionStage: 'AWSCURRENT'

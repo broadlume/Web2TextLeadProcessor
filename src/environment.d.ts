@@ -20,6 +20,8 @@ declare global {
 			NEXUS_API_URL: string;
 			/** New AWS Nexus API base URL */
 			NEXUS_AWS_API_URL: string;
+			/** AWS Secret Manager secret that has the AWS Cognito auth information for Nexus API */
+			NEXUS_AWS_API_SECRET_NAME: string;
 			/** Username for Nexus API authentication */
 			NEXUS_API_USERNAME: string;
 			/** Password for Nexus API authentication */

@@ -4,7 +4,9 @@ import ky from "ky";
 /**
  * AWS Secret Manager secret that has the AWS Cognito auth information for Nexus API
  */
-const secretName = "blx-shell-user-pool-stack-blx-api-client-secrets-dev-v1";
+const secretName = process.env.COPILOT_ENVIRONMENT_NAME === "production" ? 
+    "blx-shell-user-pool-stack-blx-api-client-secrets-prod-v1"
+ :  "blx-shell-user-pool-stack-blx-api-client-secrets-dev-v1";
 /**
  * Cached auth token so we don't have to
  * fetch a new one from AWS every time we do a Nexus API call

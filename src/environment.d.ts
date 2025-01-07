@@ -14,6 +14,8 @@ declare global {
 			TWILIO_API_SID: string;
 			/** Twilio API Secret for API access */
 			TWILIO_API_SECRET: string;
+			/** Twilio messaginging service SID to use */
+			TWILIO_MESSAGING_SERVICE_SID: string;
 			/** UUID token for internal service authentication. Auto-generated if not specified */
 			INTERNAL_API_TOKEN?: string;
 			/** Old Nexus API base URL */

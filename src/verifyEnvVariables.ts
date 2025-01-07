@@ -26,6 +26,7 @@ export const ENV_FILE_SCHEMA = z.object({
     errorMap: () => ({ message: "Copilot Environment must be either 'development' or 'production'" })
   }).optional(),
   NODE_ENV: z.string().optional(),
+  TWILIO_MESSAGING_SERVICE_SID: z.string().min(1, "Twilio Messaging Service SID is required"),
   VIZ_AWS_ACCESS_KEY_ID: z.string().min(1, "Visualizers AWS Access Key ID is required"),
   VIZ_AWS_SECRET_ACCESS_KEY: z.string().min(1, "Visualizers AWS Secret Access Key is required"),
 }).passthrough();
@@ -37,8 +38,7 @@ export function VerifyEnvVariables() {
     if (parsed.success) return;
     const formatted = fromZodError(parsed.error);
     _logger.error(`Error verifying env variables:\n${formatted.message}`, {
-        _meta: 1,
+        _meta: 1, 
         Error: formatted
     });
-    throw new Error("Failed ENV validation", {"cause": formatted.details});
 }

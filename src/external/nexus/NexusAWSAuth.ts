@@ -23,7 +23,6 @@ export async function GetNexusAWSAuthToken(refresh: boolean = false): Promise<st
     if (!refresh && CachedAuthToken) {
         return CachedAuthToken.access_token;
     }
-    console.log("getting auth from AWS");
     const client = new SecretsManagerClient({
         region: "us-east-1",
         "credentials": {

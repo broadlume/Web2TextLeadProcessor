@@ -15,14 +15,22 @@ import { logger as _logger } from "./logger";
 import { AdminService } from "./restate/AdminService";
 import { DealerVirtualObject } from "./restate/DealerVirtualObject";
 import { TwilioWebhooks } from "./restate/TwilioWebhooks";
-const RESTATE_PORT = 9080;
+import { VerifyEnvVariables } from "./verifyEnvVariables";
 
+
+// Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
+// Verify env variables and crash if any are invalid/missing
+VerifyEnvVariables();
+
+// Setup global twilio client
 globalThis.TWILIO_CLIENT = new Twilio(
 	process.env.TWILIO_ACCOUNT_SID,
 	process.env.TWILIO_AUTH_TOKEN,
 );
+
 // Create the Restate server to accept requests
+const RESTATE_PORT = 9080;
 const restateLogger = _logger.child({
 	label: "Restate",
 });

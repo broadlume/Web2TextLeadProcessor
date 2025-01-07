@@ -46,8 +46,6 @@ declare global {
 			COPILOT_ENVIRONMENT_NAME: "development" | "production" | undefined;
 			/** Node environment (development/production) */
 			NODE_ENV: string;
-			/** Twilio Messaging Service SID */
-			TWILIO_MESSAGING_SERVICE_SID: string;
 			/** AWS access key ID for Visualizers AWS account */
 			VIZ_AWS_ACCESS_KEY_ID: string;
 			/** AWS secret access key for Visualizers AWS account */

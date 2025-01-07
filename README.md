@@ -9,7 +9,6 @@ Web2Text is a service that will send and monitor SMS conversations between deale
     - A framework that allows you to run functions as services durably and reliably and orchestrate between them
 - [Bun](https://bun.sh/)
     - Used as a package manager
-    - As soon as HTTP2 support is landed, will also be used as a NodeJS replacement
 - [Vitest](https://vitest.dev/)
     - A super fast test runner
 - [NodeJS](https://nodejs.org/en)
@@ -44,11 +43,42 @@ Web2Text is a service that will send and monitor SMS conversations between deale
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
 
+## Commands
+    - `bun run format`
+        - Runs biome formatter and linter over the codebase
+    - `bun run check`
+        - Runs the typescript compiler over the codebase and reports any issues
+    - `bun run prebundle`
+        - Removes `dist` directory before bundling
+    - `bun run bundle`
+        - Packages and bundles the Web2Text service handler into one file in the `dist/` directory
+    - `bun run app`
+        - Runs the bundled service in production mode
+    - `bun run app-dev`
+        - Runs the service in development mode with file watching and debugging enabled
+    - `bun run reset`
+        - Convenience command that clears both restate and dynamodb data
+    - `bun run register-with-restate`
+        - Clears existing state and registers the service with restate server
+    - `bun run clear-restate`
+        - Clears all restate data for Lead, Dealer, Admin, and TwilioWebhooks services
+    - `bun run clear-restate-test`
+        - Clears restate data for test versions of Lead and Dealer services
+        - Ran by the integration tests
+    - `bun run clear-dynamodb`
+        - Clears all data from local DynamoDB development instance
+    - `bun run clear-dynamodb-test`
+        - Clears all data from local DynamoDB test instance
+        - Ran by the integration tests
+    - `bun run e2e`
+        - Runs end-to-end tests using Vitest
+
 ## Deployment
 
 1. Navigate to the root of the repository (outside of the dev container)
 2. Run `copilot deploy`
     - If you get an authorization error, run `aws sso login` first
+    - There are two environments, `development` and `production`
 3. Select the service to deploy
     - web2text-service
         - This is the service you will need to deploy if you make any code changes in this repository to the endpoints
@@ -56,8 +86,9 @@ Web2Text is a service that will send and monitor SMS conversations between deale
         - Deploy this service only if you make changes to the `/twilio_proxy` subrepository
     - restate-server
         - Deploy this only if you need to update the restate server - should be pretty infrequent.
-            - This can be dangerous to do so only do it if you know the update wont break anything
-            - See the [docs](https://docs.restate.dev/operate/upgrading/)
+            - This can be dangerous if breaking changes are introduced
+            - Also need to redeploy the Web2Text service after upgrading or the deployments won't be registered
+            - See the [docs](https://docs.restate.dev/operate/upgrading/) to see if there are any steps needed before safely upgrading
 4. Select the environment to deploy to
 5. Wait for the command to finish
     - This will also update the restate server with a new deployment automatically and (if possible and there are no inflight invocations) de-register the old deployment

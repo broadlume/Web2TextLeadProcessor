@@ -27,8 +27,9 @@ export const ENV_FILE_SCHEMA = z.object({
   }).optional(),
   NODE_ENV: z.string().optional(),
   TWILIO_MESSAGING_SERVICE_SID: z.string().min(1, "Twilio Messaging Service SID is required"),
-  VIZ_AWS_ACCESS_KEY_ID: z.string().min(1, "Visualizers AWS Access Key ID is required"),
-  VIZ_AWS_SECRET_ACCESS_KEY: z.string().min(1, "Visualizers AWS Secret Access Key is required"),
+  NEXUS_AUTH_AWS_ACCESS_KEY_ID: z.string().min(1, "Nexus Auth AWS Access Key ID is required"),
+  NEXUS_AUTH_AWS_SECRET_ACCESS_KEY: z.string().min(1, "Nexus Auth AWS Secret Access Key is required"),
+  NEXUS_AUTH_AWS_REGION: z.string().min(1, "Nexus Auth AWS secret region is required")
 }).passthrough();
 
 export type EnvConfig = z.infer<typeof ENV_FILE_SCHEMA>;

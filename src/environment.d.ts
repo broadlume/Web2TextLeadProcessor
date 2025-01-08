@@ -48,10 +48,12 @@ declare global {
 			COPILOT_ENVIRONMENT_NAME: "development" | "production" | undefined;
 			/** Node environment (development/production) */
 			NODE_ENV: string;
-			/** AWS access key ID for Visualizers AWS account */
-			VIZ_AWS_ACCESS_KEY_ID: string;
-			/** AWS secret access key for Visualizers AWS account */
-			VIZ_AWS_SECRET_ACCESS_KEY: string;
+			/** Nexus Auth AWS access key id for web2text IAM user */
+			NEXUS_AUTH_AWS_ACCESS_KEY_ID: string;
+			/** Nexus Auth AWS secret access key for web2text IAM user */
+			NEXUS_AUTH_AWS_SECRET_ACCESS_KEY: string;
+			/** Nexus Auth AWS secret region */
+			NEXUS_AUTH_AWS_REGION: string;
 		}
 	}
 	/** Global Twilio client instance */

@@ -23,6 +23,11 @@ network:
   connect:
     alias: web2text-service # Allows us to use service discovery to communicate with the other services
 
+secrets:
+  NEXUS_AUTH_AWS_ACCESS_KEY_ID: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/NEXUS_AUTH_AWS_ACCESS_KEY_ID
+  NEXUS_AUTH_AWS_SECRET_ACCESS_KEY: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/NEXUS_AUTH_AWS_SECRET_ACCESS_KEY
+  NEXUS_AUTH_AWS_REGION: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/NEXUS_AUTH_AWS_REGION
+
 environments:
   production:
     variables:

@@ -19,10 +19,10 @@ export async function GetNexusAWSAuthToken(refresh: boolean = false): Promise<st
         return CachedAuthToken.access_token;
     }
     const client = new SecretsManagerClient({
-        region: "us-east-1",
+        region: process.env.NEXUS_AUTH_AWS_REGION,
         "credentials": {
-            "accessKeyId": process.env.VIZ_AWS_ACCESS_KEY_ID,
-            "secretAccessKey": process.env.VIZ_AWS_SECRET_ACCESS_KEY
+            "accessKeyId": process.env.NEXUS_AUTH_AWS_ACCESS_KEY_ID,
+            "secretAccessKey": process.env.NEXUS_AUTH_AWS_SECRET_ACCESS_KEY
         }
     });
     const secretName = process.env.NEXUS_AWS_API_SECRET_NAME!;

@@ -238,7 +238,7 @@ export async function CheckPhoneNumberStatus(
 			);
 	}
 	const phoneType: string = lookup.lineTypeIntelligence?.type;
-	const allowedValues = ["mobile"];
+	const allowedValues = ["mobile", "nonFixedVoip", "fixedVoip", "personal"];
 	if (phoneType != null && !allowedValues.includes(phoneType)) {
 		return {
 			Status: "INVALID",

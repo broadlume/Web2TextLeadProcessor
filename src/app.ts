@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import type os from "node:os";
 import * as restate from "@restatedev/restate-sdk";
-import { LeadVirtualObject } from "./restate/LeadVirtualObject";
+import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
 import "./dynamodb/index";
 import util from "node:util";
 import { serializeError } from "serialize-error";
@@ -12,9 +12,9 @@ import {
 	RegisterThisServiceWithRestate,
 } from "./ServiceRegistrationHelper";
 import { logger as _logger } from "./logger";
-import { AdminService } from "./restate/AdminService";
-import { DealerVirtualObject } from "./restate/DealerVirtualObject";
-import { TwilioWebhooks } from "./restate/TwilioWebhooks";
+import { AdminService } from "./restate/services/AdminService";
+import { DealerVirtualObject } from "./restate/services/DealerVirtualObject";
+import { TwilioWebhooks } from "./restate/services/TwilioWebhooks";
 import { VerifyEnvVariables } from "./verifyEnvVariables";
 
 
@@ -81,7 +81,6 @@ let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 
 if (process.env.NODE_ENV === "production") {
 	const startupLogger = _logger.child({ label: "Startup" });
-	const shutdownLogger = _logger.child({ label: "Shutdown" });
 	startupLogger.info(`Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);
 	RegisterThisServiceWithRestate(RESTATE_PORT)
 		.then((ipAddr) => {
@@ -100,33 +99,4 @@ if (process.env.NODE_ENV === "production") {
 			);
 			process.exit(1);
 		});
-
-	process.once("SIGTERM", async () => {
-		if (registeredRestateAddress) {
-			await DeregisterThisServiceWithRestate(
-				registeredRestateAddress.address,
-				RESTATE_PORT,
-				// Try de-registering the service every 5 seconds for an hour (max time ECS will drain a task for)
-				{
-					maxAttempts: 720,
-					attemptDelayMs: 5000,
-				},
-			).catch((e) => shutdownLogger.error(e));
-		}
-		process.exit();
-	});
-	process.once("SIGINT", async () => {
-		if (registeredRestateAddress) {
-			await DeregisterThisServiceWithRestate(
-				registeredRestateAddress.address,
-				RESTATE_PORT,
-				// Try de-registering the service every 5 seconds for an hour (max time ECS will drain a task for)
-				{
-					maxAttempts: 720,
-					attemptDelayMs: 5000,
-				},
-			).catch((e) => shutdownLogger.error(e));
-		}
-		process.exit();
-	});
 }

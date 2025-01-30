@@ -3,17 +3,17 @@ import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { validateRequest } from "twilio";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
-import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
-import { RESTATE_INGRESS_URL } from "../external/restate";
-import { FindConversationsFor } from "../external/twilio/TwilioConversationHelpers";
+import { OptedOutNumberModel } from "../../dynamodb/OptedOutNumberModel";
+import { RESTATE_INGRESS_URL } from "../../external/restate";
+import { FindConversationsFor } from "../../external/twilio/TwilioConversationHelpers";
 import {
 	CustomerCloseMessage,
 	DealerCloseMessage,
-} from "../external/twilio/Web2TextMessagingStrings";
-import { FormUrlEncodedSerde } from "./FormUrlEncodedSerde";
+} from "../../external/twilio/Web2TextMessagingStrings";
+import { FormUrlEncodedSerde } from "../FormUrlEncodedSerde";
 import { LeadVirtualObject } from "./LeadVirtualObject";
-import { XMLSerde } from "./XMLSerde";
-import { CheckAuthorization } from "./validators";
+import { XMLSerde } from "../XMLSerde";
+import { CheckAuthorization } from "../validators";
 
 interface TwilioWebhookBody {
 	AccountSid: string;

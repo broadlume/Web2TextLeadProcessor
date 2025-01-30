@@ -3,12 +3,12 @@ import * as restate from "@restatedev/restate-sdk";
 import parsePhoneNumber from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { NexusStoresAPI } from "../external/nexus";
+import { NexusStoresAPI } from "../../external/nexus";
 import {
 	CheckAuthorization,
 	CheckClientStatus,
 	CheckLocationStatus,
-} from "./validators";
+} from "../validators";
 
 type LocationStatus = {
 	NexusLocationId: string;

@@ -3,8 +3,6 @@ import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import type { Jsonify } from "type-fest";
-import { LeadVirtualObject } from "../../restate/LeadVirtualObject";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
 import type { Web2TextLead } from "../../types";
 import {
@@ -22,6 +20,7 @@ import {
 	DealerGreetMessage,
 	SystemGreetingMessage,
 } from "./Web2TextMessagingStrings";
+import { LeadVirtualObject } from "../../restate/services/LeadVirtualObject";
 
 export interface TwilioIntegrationState extends ExternalIntegrationState {
 	Data?: {

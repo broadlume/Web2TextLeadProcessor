@@ -1,7 +1,7 @@
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { E164Number } from "libphonenumber-js";
-import type { TwilioMessagingServiceBody } from "../restate/TwilioWebhooks";
+import type { TwilioMessagingServiceBody } from "../restate/services/TwilioWebhooks";
 import { ENV_PREFIX } from "./Environment";
 
 class OptedOutNumberItem extends Item {

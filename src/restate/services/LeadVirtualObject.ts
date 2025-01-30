@@ -3,11 +3,11 @@ import * as restate from "@restatedev/restate-sdk";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { Web2TextIntegrations } from "../external";
-import type { ExternalIntegrationState } from "../external/types";
-import type { Web2TextLead } from "../types";
-import { type LeadState, SyncWithDB } from "./common";
-import { CheckAuthorization, ParseAndVerifyLeadCreation } from "./validators";
+import { Web2TextIntegrations } from "../../external";
+import type { ExternalIntegrationState } from "../../external/types";
+import type { Web2TextLead } from "../../types";
+import { type LeadState, SyncWithDB } from "../common";
+import { CheckAuthorization, ParseAndVerifyLeadCreation } from "../validators";
 
 /**
  * Helper function that runs before all of our exclusive handlers

@@ -3,10 +3,10 @@ import type { Scan } from "dynamoose/dist/ItemRetriever";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
-import { LeadStateModel } from "../dynamodb/LeadStateModel";
-import type { Web2TextLead } from "../types";
+import { LeadStateModel } from "../../dynamodb/LeadStateModel";
+import type { Web2TextLead } from "../../types";
 import { LeadVirtualObject } from "./LeadVirtualObject";
-import { CheckAuthorization } from "./validators";
+import { CheckAuthorization } from "../validators";
 import { serializeError } from "serialize-error";
 const NonEmptyObjectSchema = z
 	.object({})

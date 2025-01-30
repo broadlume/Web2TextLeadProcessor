@@ -5,12 +5,12 @@ import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
 import { APIKeyModel } from "../src/dynamodb/APIKeyModel";
-import { LeadVirtualObject } from "../src/restate/LeadVirtualObject";
+import { LeadVirtualObject } from "../src/restate/services/LeadVirtualObject";
 import "dotenv/config";
 import nock from "nock";
 import { RestateAdminDeploymentAPI } from "../src/external/restate";
-import { AdminService } from "../src/restate/AdminService";
-import { DealerVirtualObject } from "../src/restate/DealerVirtualObject";
+import { AdminService } from "../src/restate/services/AdminService";
+import { DealerVirtualObject } from "../src/restate/services/DealerVirtualObject";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,

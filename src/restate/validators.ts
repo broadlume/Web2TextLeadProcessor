@@ -15,6 +15,7 @@ import {
 } from "../types";
 import type { LeadState } from "./common";
 import { logger } from "../logger";
+import { TwilioLookupApi } from "../external/twilio";
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -215,9 +216,7 @@ export async function CheckPhoneNumberStatus(
 		};
 	}
 
-	const lookup = await twilioClient.lookups.v2
-		.phoneNumbers(phoneNumber)
-		.fetch({ fields: "line_type_intelligence" });
+	const lookup = await TwilioLookupApi.LookupPhoneNumber(twilioClient,phoneNumber);
 	if (lookup.valid === false) {
 		return {
 			Status: "INVALID",

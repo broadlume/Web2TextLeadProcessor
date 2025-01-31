@@ -8,4 +8,6 @@ export const TWILIO_PROXY_AUTHORIZATION_HEADERS = () => {
 	return headers;
 };
 export * as TwilioProxyAPI from "./TwilioProxyAPI";
+export * as TwilioLookupApi from "./TwilioLookupApi";
 export { TwilioIntegration } from "./TwilioIntegration";
+

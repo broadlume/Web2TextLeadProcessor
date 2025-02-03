@@ -10,7 +10,7 @@ type: Load Balanced Web Service
 
 # Configuration for your containers and service.
 image:
-  location: docker.io/restatedev/restate:1.1.0
+  location: docker.io/restatedev/restate:1.1.6
   port: 8080
 
 
@@ -41,8 +41,8 @@ storage:
 
 # Optional fields for more advanced use-cases.
 #
-#variables:                    # Pass environment variables as key value pairs.
-#  LOG_LEVEL: info
+variables:
+ RESTATE_NODE_NAME: web2text-restate-server # Restate Node Name (need to have this to keep services between restate server deployments/restarts)
 
 #secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
 #  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.

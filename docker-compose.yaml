@@ -18,7 +18,7 @@ services:
      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
   restate-server:
-    image: "docker.io/restatedev/restate:1.1.0"
+    image: "docker.io/restatedev/restate:1.1.6"
     container_name: web2text-restate-server
     networks:
       - restate-network

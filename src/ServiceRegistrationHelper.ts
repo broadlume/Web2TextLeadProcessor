@@ -1,28 +1,14 @@
-import os from "node:os";
 import { assert, is } from "tsafe";
 import { RestateAdminDeploymentAPI } from "./external/restate";
 import { logger as _logger } from "./logger";
 
 export async function RegisterThisServiceWithRestate(
 	port: number,
-): Promise<os.NetworkInterfaceInfo | null> {
+): Promise<boolean> {
 	const logger = _logger.child({ label: "Startup" });
-	const networkInterfaces = os.networkInterfaces();
-	const publicIPv4Networks = Object.keys(networkInterfaces)
-		.flatMap((i) => networkInterfaces[i])
-		.filter(
-			(net) =>
-				(net?.family === "IPv4" || (net?.family as unknown as number) === 4) &&
-				!net?.internal,
-		) as os.NetworkInterfaceInfo[];
-	for (const network of publicIPv4Networks) {
-		const restateServiceHost = `${network.address}:${port}`;
-		logger.info(
-			`Attempting to register this restate service deployment on '${restateServiceHost}'`,
-		);
 		try {
 			const registered = await RestateAdminDeploymentAPI.CreateDeployment(
-				`http://${restateServiceHost}`,
+				`http://web2text-service:${port}`,
 				{
 					retry: {
 						limit: 2,
@@ -30,18 +16,17 @@ export async function RegisterThisServiceWithRestate(
 				},
 			);
 			logger.info(
-				`Sucessfully registered this restate service deployment on '${restateServiceHost}'`,
+				`Sucessfully registered this restate service deployment'`,
 			);
 			logger.info(`Deployment ID: '${registered.id}'`);
-			return network;
+			return true;
 		} catch (e) {
 			logger.warn(
-				`Failed to register this restate service deployment on '${restateServiceHost}'`,
+				`Failed to register this restate service deployment'`,
 			);
 			logger.warn(e);
-		}
+			throw e;
 	}
-	return null;
 }
 
 export async function DeregisterThisServiceWithRestate(

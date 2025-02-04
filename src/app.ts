@@ -77,6 +77,7 @@ export const RESTATE_SERVER = restate
 	.bind(AdminService)
 	.bind(TwilioWebhooks);
 RESTATE_SERVER.listen(RESTATE_PORT);
+let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 
 if (process.env.NODE_ENV === "production") {
 	const startupLogger = _logger.child({ label: "Startup" });
@@ -89,6 +90,7 @@ if (process.env.NODE_ENV === "production") {
 				);
 				process.exit(1);
 			}
+			registeredRestateAddress = ipAddr;
 		})
 		.catch((e) => {
 			startupLogger.error(e);

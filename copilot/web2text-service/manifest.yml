@@ -40,8 +40,8 @@ environments:
   development:
     variables:
       RESTATE_ADMIN_URL: http://admin.web2text.web.dev.broadlume.com:9070
-      NEXUS_AWS_API_URL: https://q5su0yjmij.execute-api.us-west-2.amazonaws.com
-      NEXUS_AWS_API_SECRET_NAME: blx-shell-user-pool-stack-blx-api-client-secrets-dev-v1
+      NEXUS_AWS_API_URL: https://06a6q4ciml.execute-api.us-west-2.amazonaws.com
+      NEXUS_AWS_API_SECRET_NAME: blx-shell-user-pool-stack-blx-api-client-secrets-prod-v1
       RLM_API_URL: https://app.dev.retailleadmanagement.com
       TWILIO_MESSAGING_SERVICE_SID: MG4b8b54ec0a6b494ce7713ae21a596b91
 # storage:

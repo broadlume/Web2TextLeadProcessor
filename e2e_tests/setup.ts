@@ -4,18 +4,18 @@ import dynamoose from "dynamoose";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import { APIKeyModel } from "../src/dynamodb/APIKeyModel";
-import { LeadVirtualObject } from "../src/restate/services/LeadVirtualObject";
 import "dotenv/config";
 import nock from "nock";
-import { RestateAdminDeploymentAPI } from "../src/external/restate";
-import { AdminService } from "../src/restate/services/AdminService";
-import { DealerVirtualObject } from "../src/restate/services/DealerVirtualObject";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
 } from "./globalSetup";
+import { RestateAdminDeploymentAPI } from "../src/common/external/restate";
+import { DealerVirtualObject } from "../src/web2text/restate/services/DealerVirtualObject";
+import { APIKeyModel } from "../src/web2text/dynamodb/APIKeyModel";
+import { LeadVirtualObject } from "../src/web2text/restate/services/LeadVirtualObject";
+import { AdminService } from "../src/web2text/restate/services/AdminService";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -44,7 +44,7 @@ beforeAll(async () => {
 	Object.assign(AdminService, { name: ADMIN_SERVICE_NAME });
 
 	// Setup restate handler
-	TEST_SERVER = (await import("../src/app")).RESTATE_SERVER;
+	TEST_SERVER = (await import("../src/web2text/app")).RESTATE_SERVER;
 	await RestateAdminDeploymentAPI.CreateDeployment(
 		"http://web2text-devcontainer:9080",
 		{
@@ -52,7 +52,7 @@ beforeAll(async () => {
 		},
 	);
 	// Turn off DynamoDB sync when testing
-	vi.mock("../src/restate/common", () => ({
+	vi.mock("../src/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
 	vi.mock("../src/external", () => ({
@@ -91,7 +91,7 @@ beforeEach(async () => {
 			"127.0.0.11",
 			new URL(process.env.LOCAL_DYNAMODB_URL!).hostname,
 			new URL(process.env.RESTATE_ADMIN_URL!).hostname,
-			new URL(RESTATE_INGRESS_URL),
+			new URL(RESTATE_INGRESS_URL).hostname,
 		];
 		return (
 			allowedHosts.find((allowedHost) =>

@@ -1,7 +1,7 @@
 import type * as restate from "@restatedev/restate-sdk";
 import type { TypedState } from "@restatedev/restate-sdk/dist/cjs/src/context";
 import type { Twilio } from "twilio";
-import { LeadState } from "./restate/common";
+import { LeadState } from "./web2text/restate/db";
 
 declare global {
 	namespace NodeJS {

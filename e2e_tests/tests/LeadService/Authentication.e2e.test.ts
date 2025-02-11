@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { describe, test } from "vitest";
-import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { supertest } from "../../setup";
 import { TEST_API_KEY } from "../../setup";
+import { APIKeyModel } from "../../../src/web2text/dynamodb/APIKeyModel";
 
 describe("Lead Service Authentication", () => {
 	for (const endpoint of ["status", "create", "sync", "close"]) {

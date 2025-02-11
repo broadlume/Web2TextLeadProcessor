@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import nock from "nock";
 import { describe, test } from "vitest";
-import { APIKeyModel } from "../../../src/dynamodb/APIKeyModel";
 import { DEALER_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
+import { APIKeyModel } from "../../../src/web2text/dynamodb/APIKeyModel";
 describe("Dealer Service Authentication", () => {
 	for (const endpoint of ["status"]) {
 		test(`${endpoint} should require authentication header`, async () => {

@@ -16,57 +16,57 @@ services:
     environment:
      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
-  restate-server:
-    image: "docker.io/restatedev/restate:1.1.6"
-    container_name: web2text-restate-server
-    networks:
-      - restate-network
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    ports:
-    - "5122:5122"
-    - "5123:5123"
-    - "8080:8080"
-    - "9070:9070"
-    - "9071:9071"
-    environment:
-      RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
-    restart: always
-  dynamodb-local:
-   command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
-   image: "amazon/dynamodb-local:latest"
-   container_name: web2text-dynamodb-local
-   ports:
-     - "8000:8000"
-   volumes:
-     - "./docker/dynamodb:/home/dynamodblocal/data"
-   working_dir: /home/dynamodblocal
-   networks:
-      - restate-network
-  twilio_proxy:
-    container_name: web2text-twilio-proxy
-    build: 
-      context: ./twilio_proxy
-      args:
-        - NUMBER_POOL=development
-    networks:
-      - restate-network
-    ports:
-    # Proxy service port
-      - "3000:3000"
-    volumes:
-      - ./twilio_proxy/:/app
-    restart: always
-  jaeger:
-    container_name: web2text-jaeger
-    image: jaegertracing/all-in-one:1.46
-    networks:
-      - restate-network
-    ports:
-      - "4317:4317"
-      - "16686:16686"
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
-    restart: always
+  # restate-server:
+  #   image: "docker.io/restatedev/restate:1.1.6"
+  #   container_name: web2text-restate-server
+  #   networks:
+  #     - restate-network
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   ports:
+  #   - "5122:5122"
+  #   - "5123:5123"
+  #   - "8080:8080"
+  #   - "9070:9070"
+  #   - "9071:9071"
+  #   environment:
+  #     RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
+  #   restart: always
+  # dynamodb-local:
+  #  command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+  #  image: "amazon/dynamodb-local:latest"
+  #  container_name: web2text-dynamodb-local
+  #  ports:
+  #    - "8000:8000"
+  #  volumes:
+  #    - "./docker/dynamodb:/home/dynamodblocal/data"
+  #  working_dir: /home/dynamodblocal
+  #  networks:
+  #     - restate-network
+  # twilio_proxy:
+  #   container_name: web2text-twilio-proxy
+  #   build: 
+  #     context: ./twilio_proxy
+  #     args:
+  #       - NUMBER_POOL=development
+  #   networks:
+  #     - restate-network
+  #   ports:
+  #   # Proxy service port
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./twilio_proxy/:/app
+  #   restart: always
+  # jaeger:
+    # container_name: web2text-jaeger
+    # image: jaegertracing/all-in-one:1.46
+    # networks:
+    #   - restate-network
+    # ports:
+    #   - "4317:4317"
+    #   - "16686:16686"
+    # environment:
+    #   COLLECTOR_OTLP_ENABLED: true
+    # restart: always
 networks:
   restate-network:

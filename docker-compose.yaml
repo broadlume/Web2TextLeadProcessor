@@ -47,7 +47,6 @@ services:
     container_name: web2text-twilio-proxy
     build: 
       context: "./twilio_proxy"
-      dockerfile: "./twilio_proxy/Dockerfile"
       args:
         - NUMBER_POOL=development
     networks:

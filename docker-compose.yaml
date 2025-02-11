@@ -43,20 +43,20 @@ services:
    working_dir: /home/dynamodblocal
    networks:
       - restate-network
-  # twilio_proxy:
-  #   container_name: web2text-twilio-proxy
-  #   build: 
-  #     context: ./twilio_proxy
-  #     args:
-  #       - NUMBER_POOL=development
-  #   networks:
-  #     - restate-network
-  #   ports:
-  #   # Proxy service port
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./twilio_proxy/:/app
-  #   restart: always
+  twilio_proxy:
+    container_name: web2text-twilio-proxy
+    build: 
+      context: ./twilio_proxy
+      args:
+        - NUMBER_POOL=development
+    networks:
+      - restate-network
+    ports:
+    # Proxy service port
+      - "3000:3000"
+    volumes:
+      - ./twilio_proxy/:/app
+    restart: always
   # jaeger:
     # container_name: web2text-jaeger
     # image: jaegertracing/all-in-one:1.46

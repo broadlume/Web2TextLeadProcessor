@@ -32,17 +32,17 @@ services:
     environment:
       RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
     restart: always
-  # dynamodb-local:
-  #  command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
-  #  image: "amazon/dynamodb-local:latest"
-  #  container_name: web2text-dynamodb-local
-  #  ports:
-  #    - "8000:8000"
-  #  volumes:
-  #    - "./docker/dynamodb:/home/dynamodblocal/data"
-  #  working_dir: /home/dynamodblocal
-  #  networks:
-  #     - restate-network
+  dynamodb-local:
+   command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+   image: "amazon/dynamodb-local:latest"
+   container_name: web2text-dynamodb-local
+   ports:
+     - "8000:8000"
+   volumes:
+     - "./docker/dynamodb:/home/dynamodblocal/data"
+   working_dir: /home/dynamodblocal
+   networks:
+      - restate-network
   # twilio_proxy:
   #   container_name: web2text-twilio-proxy
   #   build: 

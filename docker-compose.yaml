@@ -16,22 +16,22 @@ services:
     environment:
      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
-  # restate-server:
-  #   image: "docker.io/restatedev/restate:1.1.6"
-  #   container_name: web2text-restate-server
-  #   networks:
-  #     - restate-network
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   ports:
-  #   - "5122:5122"
-  #   - "5123:5123"
-  #   - "8080:8080"
-  #   - "9070:9070"
-  #   - "9071:9071"
-  #   environment:
-  #     RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
-  #   restart: always
+  restate-server:
+    image: "docker.io/restatedev/restate:1.1.6"
+    container_name: web2text-restate-server
+    networks:
+      - restate-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+    - "5122:5122"
+    - "5123:5123"
+    - "8080:8080"
+    - "9070:9070"
+    - "9071:9071"
+    environment:
+      RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
+    restart: always
   # dynamodb-local:
   #  command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
   #  image: "amazon/dynamodb-local:latest"

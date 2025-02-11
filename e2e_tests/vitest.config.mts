@@ -1,6 +1,7 @@
 import path from "node:path";
 import { config } from "dotenv";
 import { defineConfig } from "vitest/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 config({ path: path.resolve(__dirname, ".env.test") });
 export default defineConfig({
 	test: {
@@ -32,4 +33,5 @@ export default defineConfig({
 		environment: "node",
 		fileParallelism: false,
 	},
+	plugins: [tsconfigPaths()]
 });

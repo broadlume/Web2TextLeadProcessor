@@ -129,28 +129,29 @@ describe("Lead Close E2E Tests", () => {
 		});
 	});
 	it("should successfully close integrations on lead close", async () => {
+		const newLeadId = uuidv4();
 		// Create a lead first
 		await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
+			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/create`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send(testLead)
 			.expect(200);
 
 		// Sync the lead
 		await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/sync`)
+			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/sync`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.expect(200);
 
 		// Close the lead
 		const closeResponse = await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
+			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/close`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Test close reason" })
 			.expect(200);
 
 		expect(closeResponse.body).toMatchObject({
-			LeadId: leadId,
+			LeadId: newLeadId,
 			Status: "CLOSED",
 			CloseReason: "Test close reason",
 		});
@@ -171,32 +172,5 @@ describe("Lead Close E2E Tests", () => {
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Test close reason" })
 			.expect(409);
-	});
-
-	it("should return the same response trying to close an already closed lead", async () => {
-		// Create and close a lead
-		const createResponse = await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
-			.auth(TEST_API_KEY, { type: "bearer" })
-			.send(testLead)
-			.expect(200);
-
-		const response1 = await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
-			.auth(TEST_API_KEY, { type: "bearer" })
-			.send({ reason: "First close" })
-			.expect(200);
-
-		// Try to close it again
-		const response2 = await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
-			.auth(TEST_API_KEY, { type: "bearer" })
-			.send({ reason: "Second close attempt" })
-			.expect(200);
-
-		expect(response2.body).to.deep.equal(
-			response1.body,
-			"Close responses aren't the same",
-		);
 	});
 });

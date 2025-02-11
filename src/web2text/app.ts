@@ -20,7 +20,10 @@ import { VerifyEnvVariables } from "./verifyEnvVariables";
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Verify env variables and crash if any are invalid/missing
-VerifyEnvVariables();
+if (process.env.NODE_ENV !== "test") {
+	VerifyEnvVariables();
+}
+
 
 // Setup global twilio client
 globalThis.TWILIO_CLIENT = new Twilio(

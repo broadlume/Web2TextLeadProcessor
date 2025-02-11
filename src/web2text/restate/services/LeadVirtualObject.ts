@@ -7,7 +7,7 @@ import type { ExternalIntegrationState } from "@common/external";
 import type { LeadState, Web2TextLead } from "../../types";
 import { SyncWithDB } from "../db";
 import { CheckAuthorization, ParseAndVerifyLeadCreation } from "../validators";
-import { Web2TextIntegrations } from "web2text/external";
+import { Web2TextIntegrations } from "src/web2text/external";
 
 /**
  * Helper function that runs before all of our exclusive handlers

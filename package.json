@@ -17,7 +17,7 @@
     "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
     "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
     "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
-    "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.ts'"
+    "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.mts'"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.712.0",
@@ -35,6 +35,7 @@
     "tsafe": "^1.7.2",
     "twilio": "^5.3.5",
     "type-fest": "^4.26.1",
+    "vite-tsconfig-paths": "^5.1.4",
     "winston": "^3.14.2",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.3.0"

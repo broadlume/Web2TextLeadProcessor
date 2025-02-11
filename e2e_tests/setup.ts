@@ -16,12 +16,14 @@ import { DealerVirtualObject } from "../src/web2text/restate/services/DealerVirt
 import { APIKeyModel } from "../src/web2text/dynamodb/APIKeyModel";
 import { LeadVirtualObject } from "../src/web2text/restate/services/LeadVirtualObject";
 import { AdminService } from "../src/web2text/restate/services/AdminService";
+import { LeadState } from "src/web2text/types";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
 export let TEST_SERVER: restate.RestateEndpoint;
 
 beforeAll(async () => {
+	//@ts-expect-error
 	if (globalThis.ranSetup) return;
 	process.env.INTERNAL_API_TOKEN = randomUUID();
 	// Point dynamoose to our local DynamoDB for testing
@@ -55,16 +57,20 @@ beforeAll(async () => {
 	vi.mock("../src/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
-	vi.mock("../src/external", () => ({
+	vi.mock("../src/web2text/external", () => ({
 		Web2TextIntegrations: [
 			{
 				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
-				create: (state) => ({ ...state, SyncStatus: "SYNCED" }),
-				sync: (state) => ({ ...state, SyncStatus: "SYNCED" }),
-				close: (state) => ({ ...state, SyncStatus: "CLOSED" }),
+				create: (state: LeadState) => ({ ...state, SyncStatus: "SYNCED" }),
+				sync: (state: LeadState) => ({ ...state, SyncStatus: "SYNCED" }),
+				close: (state: LeadState) => ({ ...state, SyncStatus: "CLOSED" }),
 			},
 		],
 	}));
+	vi.mock("../src/common/external/nexus/NexusAWSAuth", () => ({
+		GetNexusAWSAuthToken: () => Promise.resolve("fake-token")
+	}));
+	//@ts-expect-error
 	globalThis.ranSetup = true;
 });
 

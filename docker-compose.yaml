@@ -4,7 +4,6 @@ services:
     container_name: web2text-devcontainer
     build: 
       context: .
-      dockerfile: ./Dockerfile
     networks:
       - restate-network
     ports:
@@ -47,8 +46,7 @@ services:
   twilio_proxy:
     container_name: web2text-twilio-proxy
     build: 
-      context: ./twilio_proxy/
-      dockerfile: ./Dockerfile
+      context: ./twilio_proxy
       args:
         - NUMBER_POOL=development
     networks:

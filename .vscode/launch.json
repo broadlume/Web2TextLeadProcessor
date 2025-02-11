@@ -17,7 +17,7 @@
             "name": "Debug Web2Text Service",
             "type": "node-terminal",
             "request": "launch",
-            "command": "bun run app-dev",
+            "command": "cd ./src/web2text && bun run app-dev",
             "autoAttachChildProcesses": true,
             "skipFiles": [
                 "<node_internals>/**"

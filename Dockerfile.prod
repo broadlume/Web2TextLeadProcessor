@@ -10,7 +10,6 @@ FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lockb /temp/dev/
 COPY patches/ /temp/dev/patches/
-RUN 
 RUN ls /temp/dev && cd /temp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)

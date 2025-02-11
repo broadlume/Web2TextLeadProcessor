@@ -1,5 +1,5 @@
 import shelljs from "shelljs";
-import { RestateAdminDeploymentAPI } from "@common/external/restate";
+import { RestateAdminDeploymentAPI } from "common/external";
 export const LEAD_SERVICE_NAME = "Lead-test";
 export const DEALER_SERVICE_NAME = "Dealer-test";
 export const ADMIN_SERVICE_NAME = "Admin-test";

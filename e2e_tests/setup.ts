@@ -11,7 +11,7 @@ import {
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
 } from "./globalSetup";
-import { RestateAdminDeploymentAPI } from "../src/common/external/restate";
+import { RestateAdminDeploymentAPI } from "../src/common/src/external/restate";
 import { DealerVirtualObject } from "../src/web2text/restate/services/DealerVirtualObject";
 import { APIKeyModel } from "../src/web2text/dynamodb/APIKeyModel";
 import { LeadVirtualObject } from "../src/web2text/restate/services/LeadVirtualObject";

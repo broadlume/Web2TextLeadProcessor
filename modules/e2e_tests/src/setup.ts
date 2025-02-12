@@ -4,19 +4,20 @@ import dynamoose from "dynamoose";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import "dotenv/config";
 import nock from "nock";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
+	TWILIO_WEBHOOKS_SERVICE_NAME,
 } from "./globalSetup";
-import { RestateAdminDeploymentAPI } from "../src/common/src/external/restate";
-import { DealerVirtualObject } from "../src/web2text/restate/services/DealerVirtualObject";
-import { APIKeyModel } from "../src/web2text/dynamodb/APIKeyModel";
-import { LeadVirtualObject } from "../src/web2text/restate/services/LeadVirtualObject";
-import { AdminService } from "../src/web2text/restate/services/AdminService";
-import { LeadState } from "src/web2text/types";
+import { RestateAdminDeploymentAPI } from "common/external/restate";
+import {DealerVirtualObject} from "web2text-service/restate/services/DealerVirtualObject"
+import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
+import { LeadVirtualObject } from "web2text-service/restate/services/LeadVirtualObject";
+import { AdminService } from "web2text-service/restate/services/AdminService";
+import { LeadState } from "web2text-service/types";
+import { TwilioWebhooks } from "web2text-service/restate/services/TwilioWebhooks";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -44,20 +45,21 @@ beforeAll(async () => {
 	Object.assign(LeadVirtualObject, { name: LEAD_SERVICE_NAME });
 	Object.assign(DealerVirtualObject, { name: DEALER_SERVICE_NAME });
 	Object.assign(AdminService, { name: ADMIN_SERVICE_NAME });
+	Object.assign(TwilioWebhooks, {name: TWILIO_WEBHOOKS_SERVICE_NAME})
 
 	// Setup restate handler
-	TEST_SERVER = (await import("../src/web2text/app")).RESTATE_SERVER;
-	await RestateAdminDeploymentAPI.CreateDeployment(
+	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
+	const response = await RestateAdminDeploymentAPI.CreateDeployment(
 		"http://web2text-devcontainer:9080",
 		{
 			force: true,
 		},
 	);
 	// Turn off DynamoDB sync when testing
-	vi.mock("../src/restate/db", () => ({
+	vi.mock("web2text-service/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
-	vi.mock("../src/web2text/external", () => ({
+	vi.mock("web2text-service/external", () => ({
 		Web2TextIntegrations: [
 			{
 				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
@@ -66,9 +68,6 @@ beforeAll(async () => {
 				close: (state: LeadState) => ({ ...state, SyncStatus: "CLOSED" }),
 			},
 		],
-	}));
-	vi.mock("../src/common/external/nexus/NexusAWSAuth", () => ({
-		GetNexusAWSAuthToken: () => Promise.resolve("fake-token")
 	}));
 	//@ts-expect-error
 	globalThis.ranSetup = true;

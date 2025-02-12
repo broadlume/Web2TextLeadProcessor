@@ -5,9 +5,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 config({ path: path.resolve(__dirname, ".env.test") });
 export default defineConfig({
 	test: {
-		include: ["./tests/**/*"],
-		setupFiles: ["dotenv/config", "./setup.ts"],
-		globalSetup: "./globalSetup.ts",
+		include: ["./src/tests/**/*"],
+		setupFiles: ["dotenv/config", "./src/setup.ts"],
+		globalSetup: "./src/globalSetup.ts",
 		pool: "forks",
 		poolOptions: {
 			forks: {

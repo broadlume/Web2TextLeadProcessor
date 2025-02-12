@@ -17,7 +17,7 @@
             "name": "Debug Web2Text Service",
             "type": "node-terminal",
             "request": "launch",
-            "command": "cd ./src/web2text && bun run app-dev",
+            "command": "cd ./modules/web2text && bun run app-dev",
             "autoAttachChildProcesses": true,
             "skipFiles": [
                 "<node_internals>/**"
@@ -27,7 +27,7 @@
             "name": "Debug E2E Tests",
             "type": "node-terminal",
             "request": "launch",
-            "command": "bun run e2e",
+            "command": "cd ./modules/e2e_tests && bun run e2e --test-timeout=0",
             "autoAttachChildProcesses": true,
             "skipFiles": [
                 "<node_internals>/**"

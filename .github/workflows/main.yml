@@ -10,6 +10,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Copy test env vars
+        run: cp ./e2e_tests/.env.test ./.env
       - name: Build the stack
         run: docker compose -f docker-compose.yaml up --build --force-recreate -d
       - name: Execute tests in the running services

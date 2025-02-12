@@ -46,7 +46,7 @@ services:
   twilio_proxy:
     container_name: web2text-twilio-proxy
     build: 
-      context: "./twilio_proxy"
+      context: "./modules/twilio_proxy"
       args:
         - NUMBER_POOL=development
     networks:
@@ -54,19 +54,19 @@ services:
     ports:
     # Proxy service port
       - "3000:3000"
-    volumes:
-      - ./twilio_proxy/:/app
     restart: always
-  # jaeger:
-    # container_name: web2text-jaeger
-    # image: jaegertracing/all-in-one:1.46
-    # networks:
-    #   - restate-network
-    # ports:
-    #   - "4317:4317"
-    #   - "16686:16686"
-    # environment:
-    #   COLLECTOR_OTLP_ENABLED: true
-    # restart: always
+  web2text-jaeger:
+    container_name: web2text-jaeger
+    image: jaegertracing/all-in-one:1.46
+    networks:
+      - restate-network
+    ports:
+      - "4317:4317"
+      - "16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    restart: always
+version: '3.9'
+
 networks:
   restate-network:

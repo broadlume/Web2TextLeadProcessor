@@ -3,8 +3,8 @@
     "private": true,
     "scripts": {
         "format": "biome check --write",
-        "check": "tsc --noEmitOnError",
-        "build": "bun run check && esbuild ./src/**.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outdir=./dist"
+        "check": "tsc --noEmit",
+        "build": "tsc --noEmitOnError"
     },
     "dependencies": {
         "@restatedev/restate-sdk": "^1.4.0",
@@ -23,8 +23,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",
-        "typescript": "^5.4.5",
-        "esbuild": "^0.18.12"
+        "typescript": "^5.4.5"
     },
     "patchedDependencies": {
         "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"

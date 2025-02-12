@@ -1,3 +1,3 @@
-[submodule "twilio_proxy"]
-	path = twilio_proxy
-	url = https://github.com/broadlume/masked-communications-app.git
+[submodule "modules/twilio_proxy"]
+	path = modules/twilio_proxy
+	url = https://github.com/broadlume/masked-communications-app

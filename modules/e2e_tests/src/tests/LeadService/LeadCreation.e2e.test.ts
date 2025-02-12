@@ -27,6 +27,7 @@ const testLead = {
 describe("Lead Creation", () => {
 	test("Successful lead creation", async () => {
 		const rlm_api_key = randomUUID();
+		console.log(process.env.NEXUS_AWS_API_URL);
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${testLead.UniversalRetailerId}`)
 			.reply(200, {

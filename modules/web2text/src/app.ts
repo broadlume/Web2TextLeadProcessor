@@ -24,7 +24,7 @@ if (process.env.NODE_ENV !== "test") {
 // Setup global twilio client
 globalThis.TWILIO_CLIENT = new Twilio(
 	process.env.TWILIO_ACCOUNT_SID,
-	process.env.TWILIO_AUTH_TOKEN,
+	process.env.TWILIO_AUTH_TOKEN
 );
 
 // Create the Restate server to accept requests

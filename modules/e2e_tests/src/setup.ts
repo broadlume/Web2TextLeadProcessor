@@ -8,18 +8,10 @@ import nock from "nock";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
-	LEAD_SERVICE_NAME,
-	TWILIO_WEBHOOKS_SERVICE_NAME,
+	LEAD_SERVICE_NAME
 } from "./globalSetup";
 import { RestateAdminDeploymentAPI } from "common/external/restate";
-import {DealerVirtualObject} from "web2text-service/restate/services/DealerVirtualObject"
 import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
-import { LeadVirtualObject } from "web2text-service/restate/services/LeadVirtualObject";
-import { AdminService } from "web2text-service/restate/services/AdminService";
-import { LeadState } from "web2text-service/types";
-import { TwilioWebhooks } from "web2text-service/restate/services/TwilioWebhooks";
-import { Twilio } from "twilio";
-import { NockableTwilioClient } from "./NockableTwilioClient";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -43,15 +35,9 @@ beforeAll(async () => {
 		{ overwrite: true },
 	);
 
-	// Overwrite the service name with our own testing service name so we don't interfere with any other services running
-	Object.assign(LeadVirtualObject, { name: LEAD_SERVICE_NAME });
-	Object.assign(DealerVirtualObject, { name: DEALER_SERVICE_NAME });
-	Object.assign(AdminService, { name: ADMIN_SERVICE_NAME });
-	Object.assign(TwilioWebhooks, {name: TWILIO_WEBHOOKS_SERVICE_NAME})
-
 	// Setup restate handler
 	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
-	const response = await RestateAdminDeploymentAPI.CreateDeployment(
+	await RestateAdminDeploymentAPI.CreateDeployment(
 		"http://web2text-devcontainer:9080",
 		{
 			force: true,
@@ -65,9 +51,9 @@ beforeAll(async () => {
 		Web2TextIntegrations: [
 			{
 				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
-				create: (state: LeadState) => ({ ...state, SyncStatus: "SYNCED" }),
-				sync: (state: LeadState) => ({ ...state, SyncStatus: "SYNCED" }),
-				close: (state: LeadState) => ({ ...state, SyncStatus: "CLOSED" }),
+				create: (state:any) => ({ ...state, SyncStatus: "SYNCED" }),
+				sync: (state:any) => ({ ...state, SyncStatus: "SYNCED" }),
+				close: (state:any) => ({ ...state, SyncStatus: "CLOSED" }),
 			},
 		],
 	}));

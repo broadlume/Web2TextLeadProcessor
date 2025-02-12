@@ -32,12 +32,7 @@
     "serialize-error": "^11.0.3"
   },
   "devDependencies": {
-    "@types/memoizee": "^0.4.11",
-    "@biomejs/biome": "1.8.2",
-    "@types/node": "^20.12.7",
-    "esbuild": "^0.18.12",
-    "tsx": "4.16.2",
-    "typescript": "^5.4.5"
+    "@types/memoizee": "^0.4.11"
   },
   "patchedDependencies": {
     "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"

@@ -28,7 +28,6 @@
         "vitest": "^2.1.1"
     },
     "patchedDependencies": {
-        "shelljs@0.8.5": "patches/shelljs@0.8.5.patch",
-        "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"
+        "shelljs@0.8.5": "patches/shelljs@0.8.5.patch"
     }
 }

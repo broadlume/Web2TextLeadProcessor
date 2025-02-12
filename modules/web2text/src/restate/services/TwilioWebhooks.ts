@@ -4,7 +4,6 @@ import { TwilioConversationHelpers } from "common/external/twilio";
 import { FormUrlEncodedSerde, XMLSerde } from "common/restate";
 import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import { assert, is } from "tsafe";
-import { validateRequest } from "twilio";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
 import { OptedOutNumberModel } from "../../dynamodb/OptedOutNumberModel";
 import {
@@ -13,6 +12,7 @@ import {
 } from "../../external/twilio/Web2TextMessagingStrings";
 import { CheckAuthorization } from "../validators";
 import { LeadVirtualObject } from "./LeadVirtualObject";
+import { validateRequest } from "twilio/lib/webhooks/webhooks";
 
 interface TwilioWebhookBody {
 	AccountSid: string;

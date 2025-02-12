@@ -1,5 +1,4 @@
 import type { Twilio } from "twilio";
-
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {

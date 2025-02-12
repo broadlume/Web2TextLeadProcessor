@@ -5,6 +5,7 @@
       "name": "monorepo-root",
       "dependencies": {
         "@elastic/ecs-winston-format": "^1.5.3",
+        "@restatedev/restate": "^1.1.6",
         "@restatedev/restate-sdk": "1.4.0",
         "@twilio/conversations": "^2.5.0",
         "ky": "^1.7.2",
@@ -15,6 +16,13 @@
         "winston": "^3.14.2",
         "zod": "^3.23.8",
         "zod-validation-error": "^3.3.0",
+      },
+      "devDependencies": {
+        "@biomejs/biome": "1.8.2",
+        "@types/node": "^20.12.7",
+        "esbuild": "^0.18.12",
+        "tsx": "4.16.2",
+        "typescript": "^5.4.5",
       },
     },
     "modules/common": {
@@ -96,12 +104,7 @@
         "serialize-error": "^11.0.3",
       },
       "devDependencies": {
-        "@biomejs/biome": "1.8.2",
         "@types/memoizee": "^0.4.11",
-        "@types/node": "^20.12.7",
-        "esbuild": "^0.18.12",
-        "tsx": "4.16.2",
-        "typescript": "^5.4.5",
       },
     },
   },
@@ -368,6 +371,16 @@
     "@open-draft/logger": ["@open-draft/logger@0.3.0", "", { "dependencies": { "is-node-process": "^1.2.0", "outvariant": "^1.4.0" } }, "sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ=="],
 
     "@open-draft/until": ["@open-draft/until@2.1.0", "", {}, "sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg=="],
+
+    "@restatedev/restate": ["@restatedev/restate@1.1.6", "", { "optionalDependencies": { "@restatedev/restate-darwin-arm64": "1.1.6", "@restatedev/restate-darwin-x64": "1.1.6", "@restatedev/restate-linux-arm64": "1.1.6", "@restatedev/restate-linux-x64": "1.1.6" }, "bin": { "restate": "lib/index.js" } }, "sha512-t/fhQFdc0gtNjZo7DwIpbblbVt1FXQ11t9D5frEnWvFgiCnrL1E6Bu3v5ziNmTBRTyowlrpLjxz1Bq1+wWbeyQ=="],
+
+    "@restatedev/restate-darwin-arm64": ["@restatedev/restate-darwin-arm64@1.1.6", "", { "os": "darwin", "cpu": "arm64" }, "sha512-hKRUIkbAGCa3wDsEs6F+zcmhicC+pcfrAyI7sPVOcT6G8jRiCNYsIv3w6IJJfSZOb5OI+5223qczSCaFrSN46g=="],
+
+    "@restatedev/restate-darwin-x64": ["@restatedev/restate-darwin-x64@1.1.6", "", { "os": "darwin", "cpu": "x64" }, "sha512-wPwTJN72aaK0Bg3FRQAgUWLxTW0taZ1ZrJBdwmA93c+pRynHJhY0so9Bwv5jsxEjggUpoCUvuBjoaIV6wISyiA=="],
+
+    "@restatedev/restate-linux-arm64": ["@restatedev/restate-linux-arm64@1.1.6", "", { "os": "linux", "cpu": "arm64" }, "sha512-HXIjcfnbKbNbvEsuhmKLOwa32fugS2rVePvPp1HuoL4ldtJpUNQtYFDwGBPhW64nxlvxbfh5eZlgchY/LmLSIA=="],
+
+    "@restatedev/restate-linux-x64": ["@restatedev/restate-linux-x64@1.1.6", "", { "os": "linux", "cpu": "x64" }, "sha512-FCSiyJowXlPKFzyHsGjjnU7K97KR2I6tj6+fOTzq3pQNAJDOAm+Vnt+tveIS0yoxdHsUbkx1F+P6BfINOaGKzQ=="],
 
     "@restatedev/restate-sdk": ["@restatedev/restate-sdk@1.4.0", "", { "dependencies": { "@restatedev/restate-sdk-core": "^1.4.0" } }, "sha512-rNiK6eoDWf6S1WIB1WEODGr0QZ3aI95/gdvZ+Lst8XqN4NKuz6vNZvGvID/SI/v2/gXMpq2XaYzYAp+BtimqDQ=="],
 

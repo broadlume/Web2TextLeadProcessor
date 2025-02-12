@@ -1,7 +1,9 @@
 name: Docker Compose Action
 
 on: [push]
-
+env: # Or as an environment variable
+  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,7 +13,7 @@ jobs:
         with:
           submodules: recursive
       - name: Copy test env vars
-        run: cp ./modules/e2e_tests/.env.test ./.env
+        run: cp modules/e2e_tests/.env.test ./.env
       - name: Build the stack
         run: docker compose -f docker-compose.yaml up --build --force-recreate -d
       - name: Execute tests in the running services

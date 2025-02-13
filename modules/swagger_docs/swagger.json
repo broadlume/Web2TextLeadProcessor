@@ -1,0 +1,956 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Web2Text API",
+      "description": "Web2Text API Documentation\n\nWeb2Text uses [Restate](https://restate.dev/) behind the scenes for its durable execution capabilities. \nSo Web2Text supports all of the features Restate offers for its endpoints (idempotency, calling from the restate client, etc.)\n\nRestate offers [three types](https://docs.restate.dev/concepts/services) of endpoints:\n  - Services\n  - Virtual Objects\n  - Workflows"
+    },
+    "servers": [
+    {
+      "url": "http://localhost:9080",
+      "description": "Local development"
+    },
+    {
+      "url": "http://web2text.web.dev.broadlume.com",
+      "description": "Development environment"
+    },
+    {
+      "url": "https://web2text.web.broadlume.com",
+      "description": "Production environment"
+    }
+  ],
+    "paths": {
+      "/Lead/{leadId}/status": {
+        "get": {
+          "summary": "Get lead status",
+          "description": "Returns the status of a lead and all of its state",
+          "operationId": "getLeadStatus",
+          "tags": ["Lead Virtual Object"],
+          "parameters": [
+            {
+              "name": "leadId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Lead status retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/SubmittedLeadState"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/Lead/{leadId}/create": {
+        "post": {
+          "summary": "Create a new lead",
+          "description": "Creates a new lead in the database",
+          "operationId": "createLead",
+          "tags": ["Lead Virtual Object"],
+          "parameters": [
+            {
+              "name": "leadId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadCreationRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Lead created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/SubmittedLeadState"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/Lead/{leadId}/sync": {
+        "post": {
+          "summary": "Sync lead with external services",
+          "description": "Syncs a lead with external integrations/APIs/services",
+          "operationId": "syncLead",
+          "tags": ["Lead Virtual Object"],
+          "parameters": [
+            {
+              "name": "leadId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Lead synced successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/SubmittedLeadState"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/Lead/{leadId}/close": {
+        "post": {
+          "summary": "Close a lead",
+          "description": "Marks the lead as closed and notifies external integrations",
+          "operationId": "closeLead",
+          "tags": ["Lead Virtual Object"],
+          "parameters": [
+            {
+              "name": "leadId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["reason"],
+                  "properties": {
+                    "reason": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Lead closed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "Status": {
+                            "example": "CLOSED"
+                          }
+                        }
+                      },
+                      {
+                        "$ref": "#/components/schemas/SubmittedLeadState"
+                      }
+                    ]
+                    
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/Dealer/{dealerId}/status": {
+        "get": {
+          "summary": "Get dealer status",
+          "description": "Returns the status of a dealer and their locations",
+          "operationId": "getDealerStatus",
+          "tags": ["Dealer Virtual Object"],
+          "parameters": [
+            {
+              "name": "dealerId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          ],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Dealer status retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/DealerStatusResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/Admin/bulk": {
+        "post": {
+          "summary": "Perform bulk operations",
+          "description": "Run bulk operations against many leads in the database",
+          "operationId": "adminBulk",
+          "tags": ["Admin Service"],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkEndpointRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Bulk operation completed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/BulkEndpointResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
+      "/TwilioWebhooks/sync": {
+        "post": {
+          "summary": "Twilio sync webhook",
+          "description": "Webhook for Twilio conversation sync events",
+          "operationId": "twilioSync",
+          "tags": ["Twilio Webhooks Service"],
+          "security": [
+            {
+              "TwilioAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwilioWebhookBody"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Webhook processed successfully"
+            }
+          }
+        }
+      },
+      "/TwilioWebhooks/close": {
+        "post": {
+          "summary": "Twilio close webhook",
+          "description": "Webhook for Twilio conversation close events",
+          "operationId": "twilioClose",
+          "tags": ["Twilio Webhooks Service"],
+          "security": [
+            {
+              "TwilioAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwilioConversationStateUpdatedWebhookBody"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Webhook processed successfully"
+            }
+          }
+        }
+      },
+      "/TwilioWebhooks/onIncomingMessage": {
+        "post": {
+          "summary": "Twilio incoming message webhook",
+          "description": "Webhook for handling incoming Twilio messages",
+          "operationId": "twilioIncomingMessage",
+          "tags": ["Twilio Webhooks Service"],
+          "security": [
+            {
+              "TwilioAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwilioMessagingServiceBody"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Message processed successfully",
+              "content": {
+                "application/xml": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/TwilioWebhooks/checkOptInStatus": {
+        "post": {
+          "summary": "Check opt-in status",
+          "description": "Check if a phone number is opted in or out",
+          "operationId": "checkOptInStatus",
+          "tags": ["Twilio Webhooks Service"],
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "PhoneNumber": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["PhoneNumber"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Opt-in status retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OptInStatusResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "ExternalIntegrationState": {
+          "type": "object",
+          "properties": {
+            "SyncStatus": {
+              "type": "string",
+              "enum": ["NOT SYNCED", "SYNCING", "SYNCED", "ERROR", "CLOSED"]
+            },
+            "Data": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "LastSynced": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "ErrorInfo": {
+              "type": "object",
+              "properties": {
+                "Message": {
+                  "type": "string"
+                },
+                "Details": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "ErrorDate": {
+                  "type": "string"
+                }
+              },
+              "required": ["Message"]
+            }
+          },
+          "required": ["SyncStatus"]
+        },
+        "LeadState": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Status": {
+                  "type": "string",
+                  "enum": ["NONEXISTANT"]
+                }
+              },
+              "required": ["Status"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Status": {
+                  "type": "string",
+                  "enum": ["VALIDATING"]
+                },
+                "Request": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "required": ["Status", "Request"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Status": {
+                  "type": "string",
+                  "enum": ["ERROR"]
+                },
+                "Error": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "Request": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "required": ["Status", "Error", "Request"]
+            },
+            {
+              "$ref": "#/components/schemas/SubmittedLeadState"
+            }
+          ]
+        },
+        "LeadCreationRequest": {
+          "type": "object",
+          "properties": {
+            "SchemaVersion": {
+              "type": "string",
+              "enum": ["1.0.0"],
+              "default": "1.0.0",
+              "description": "Version of the Web2Text schema. Intended for DB migrations"
+            },
+            "UniversalRetailerId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The retailer this lead is associated with"
+            },
+            "LocationId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The location this lead is associated with"
+            },
+            "Lead": {
+              "type": "object",
+              "properties": {
+                "PageUrl": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The page the customer was on when submitting this lead"
+                },
+                "IPAddress": {
+                  "type": "string",
+                  "format": "ipv4",
+                  "description": "The IP address of the customer if it was able to be grabbed"
+                },
+                "Name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The name of the customer"
+                },
+                "PhoneNumber": {
+                  "type": "string",
+                  "description": "The phone number of the customer (E.164 formatted phone number)"
+                },
+                "PreferredMethodOfContact": {
+                  "type": "string",
+                  "enum": ["phone", "text"],
+                  "default": "text",
+                  "description": "The customer's preferred method of contact"
+                },
+                "CustomerMessage": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The customer's initial message for the dealer"
+                },
+                "AssociatedProductInfo": {
+                  "type": "object",
+                  "description": "If the customer was looking at a product - the details of that product",
+                  "properties": {
+                    "Brand": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "Product": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "Variant": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["Brand", "Product", "Variant"]
+                },
+                "Traffic": {
+                  "type": "object",
+                  "description": "The Customer's Google Analytic traffic data at time of submission",
+                  "properties": {
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Medium": {
+                      "type": "string"
+                    },
+                    "Campaign": {
+                      "type": "string"
+                    },
+                    "Content": {
+                      "type": "string"
+                    },
+                    "Term": {
+                      "type": "string"
+                    },
+                    "Type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": ["PageUrl", "Name", "PhoneNumber", "CustomerMessage"]
+            },
+            "SyncImmediately": {
+              "type": "boolean",
+              "description": "Whether to sync the lead immediately after creation"
+            }
+          },
+          "required": ["UniversalRetailerId", "LocationId", "Lead"]
+        },
+        "DealerStatusResponse": {
+          "type": "object",
+          "properties": {
+            "Status": {
+              "type": "string",
+              "enum": ["VALID", "INVALID", "NONEXISTANT"]
+            },
+            "Locations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/LocationStatus"
+              }
+            }
+          }
+        },
+        "LocationStatus": {
+          "type": "object",
+          "properties": {
+            "NexusLocationId": {
+              "type": "string"
+            },
+            "UniversalLocationId": {
+              "type": "string"
+            },
+            "Name": {
+              "type": "string"
+            },
+            "City": {
+              "type": "string"
+            },
+            "State": {
+              "type": "string"
+            },
+            "ZipCode": {
+              "type": "string"
+            },
+            "StreetAddress": {
+              "type": "string"
+            },
+            "Web2TextPhoneNumber": {
+              "type": "string"
+            },
+            "StorePhoneNumber": {
+              "type": "string"
+            },
+            "CallTrackingPhoneNumber": {
+              "type": "string"
+            },
+            "Status": {
+              "type": "string",
+              "enum": ["VALID", "INVALID", "NONEXISTANT"]
+            },
+            "Reason": {
+              "type": "string"
+            }
+          }
+        },
+        "BulkEndpointRequest": {
+          "type": "object",
+          "properties": {
+            "Operation": {
+              "type": "string",
+              "enum": ["SYNC", "CLOSE", "FIND"]
+            },
+            "Reason": {
+              "type": "string"
+            },
+            "Filter": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["*"]
+                },
+                {
+                  "type": "object",
+                  "minProperties": 1
+                }
+              ]
+            },
+            "Verbose": {
+              "type": "boolean",
+              "default": false
+            },
+            "Async": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "required": ["Operation", "Filter"]
+        },
+        "BulkEndpointResponse": {
+          "type": "object",
+          "properties": {
+            "Count": {
+              "type": "integer"
+            },
+            "Result": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "TwilioWebhookBody": {
+          "type": "object",
+          "properties": {
+            "AccountSid": {
+              "type": "string"
+            },
+            "EventType": {
+              "type": "string"
+            },
+            "Source": {
+              "type": "string"
+            },
+            "ClientIdentity": {
+              "type": "string"
+            }
+          },
+          "required": ["AccountSid", "EventType", "Source", "ClientIdentity"]
+        },
+        "TwilioConversationStateUpdatedWebhookBody": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/TwilioWebhookBody"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "StateFrom": {
+                  "type": "string",
+                  "enum": ["active", "inactive", "closed"]
+                },
+                "StateTo": {
+                  "type": "string",
+                  "enum": ["active", "inactive", "closed"]
+                },
+                "Reason": {
+                  "type": "string"
+                },
+                "ConversationSid": {
+                  "type": "string"
+                }
+              },
+              "required": ["StateFrom", "StateTo", "ConversationSid"]
+            }
+          ]
+        },
+        "TwilioMessagingServiceBody": {
+          "type": "object",
+          "properties": {
+            "MessageSid": {
+              "type": "string"
+            },
+            "From": {
+              "type": "string"
+            },
+            "To": {
+              "type": "string"
+            },
+            "Body": {
+              "type": "string"
+            },
+            "OptOutType": {
+              "type": "string",
+              "enum": ["START", "STOP", "HELP"]
+            }
+          },
+          "required": ["MessageSid", "From", "To", "Body"]
+        },
+        "OptInStatusResponse": {
+          "type": "object",
+          "properties": {
+            "Status": {
+              "type": "string",
+              "enum": ["OPTED-IN", "OPTED-OUT"]
+            },
+            "OptInNumbers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["Status"]
+        },
+        "SubmittedLeadState": {
+          "type": "object",
+          "properties": {
+            "SchemaVersion": {
+              "type": "string",
+              "enum": ["1.0.0"],
+              "default": "1.0.0",
+              "description": "Version of the Web2Text schema. Intended for DB migrations"
+            },
+            "LeadId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The ID of the Lead"
+            },
+            "Status": {
+              "type": "string",
+              "enum": ["ACTIVE", "SYNCING", "CLOSED"],
+              "description": "The status of the lead. ACTIVE - The lead is active and has been synced to all its integrations"
+            },
+            "UniversalRetailerId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The retailer this lead is associated with"
+            },
+            "LocationId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The location this lead is associated with"
+            },
+            "Lead": {
+              "type": "object",
+              "properties": {
+                "PageUrl": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The page the customer was on when submitting this lead"
+                },
+                "IPAddress": {
+                  "type": "string",
+                  "format": "ipv4",
+                  "description": "The IP address of the customer if it was able to be grabbed"
+                },
+                "Name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The name of the customer"
+                },
+                "PhoneNumber": {
+                  "type": "string",
+                  "description": "The phone number of the customer (E.164 formatted phone number)"
+                },
+                "PreferredMethodOfContact": {
+                  "type": "string",
+                  "enum": ["phone", "text"],
+                  "default": "text",
+                  "description": "The customer's preferred method of contact"
+                },
+                "CustomerMessage": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The customer's initial message for the dealer"
+                },
+                "AssociatedProductInfo": {
+                  "type": "object",
+                  "description": "If the customer was looking at a product - the details of that product",
+                  "properties": {
+                    "Brand": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "Product": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "Variant": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": ["Brand", "Product", "Variant"]
+                },
+                "Traffic": {
+                  "type": "object",
+                  "description": "The Customer's Google Analytic traffic data at time of submission",
+                  "properties": {
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Medium": {
+                      "type": "string"
+                    },
+                    "Campaign": {
+                      "type": "string"
+                    },
+                    "Content": {
+                      "type": "string"
+                    },
+                    "Term": {
+                      "type": "string"
+                    },
+                    "Type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": ["PageUrl", "Name", "PhoneNumber", "CustomerMessage"]
+            },
+            "DateSubmitted": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the lead was submitted"
+            },
+            "Integrations": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/ExternalIntegrationState"
+              },
+              "description": "External integrations to sync this lead to. These are external systems that we can notify and sync leads with"
+            }
+          },
+          "required": [
+            "SchemaVersion",
+            "LeadId",
+            "Status",
+            "UniversalRetailerId",
+            "LocationId",
+            "Lead",
+            "DateSubmitted",
+            "Integrations"
+          ]
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "API Key",
+          "description": "API Key as Bearer token"
+        },
+        "TwilioAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "x-twilio-signature",
+          "description": "Twilio signature for webhook validation"
+        }
+      }
+    }
+  }

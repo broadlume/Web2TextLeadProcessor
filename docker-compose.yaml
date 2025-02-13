@@ -71,6 +71,15 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: true
     restart: always
+  web2text-swagger:
+    container_name: web2text-swagger
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8001:8080"
+    volumes:
+      - ./modules/swagger_docs/:/swagger_docs
+    environment:
+      SWAGGER_JSON: /swagger_docs/swagger.json
 version: '3.9'
 networks:
   restate-network:

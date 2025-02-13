@@ -26,12 +26,13 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
 5. Wait for the dev container to spin up
-    - This will provision six containers:
+    - This will provision seven containers:
         - The Web2Text dev container where your VSCode window will open in
         - The restate admin server which will handle taking in requests, durable execution & retries and dispatching them to the service
         - A local DynamoDB database that Web2Text uses for development
         - A twilio proxy application that allows assigning numbers from our pool intelligently to create two way Twilio conversations
         - A local Jaeger instance that collects telemetry from the restate server
+        - A swagger UI instance that displays the documentation
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
     - Verify the DynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
 6. Open a new terminal within the dev container
@@ -46,6 +47,12 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
+
+## API Docs
+There is a Swagger instance hosted at
+- Local: `localhost:8001`
+- Dev: `https://docs.web2text.web.dev.broadlume.com`
+- Prod: `https://docs.web2text.web.broadlume.com`
 
 ## Web2Text Commands
 > Must be within `web2text` module

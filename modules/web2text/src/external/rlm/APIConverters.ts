@@ -44,9 +44,23 @@ export class Web2TextMessageIntoRLMNote extends Into<RLMLeadsAPI.RLMAttachNoteRe
 
 export class Web2TextLeadIntoRLMLead extends Into<RLMLeadsAPI.RLMCreateLeadRequest> {
 	private web2TextLead: Web2TextLead;
-	constructor(web2TextLead: Web2TextLead) {
+	/**
+	 * The name of the location - RLM uses this to associated the lead with the correct location
+	 *
+	 * Defaults to the default location for the retailer in RLM
+	 *
+	 * Usually follows the format: "City, State Abbreviation"
+	 * @example "Gastonia, NC"
+	 * @default "Per Pipeline configuration"
+	 */
+	private rlmLocationName: string;
+	constructor(
+		web2TextLead: Web2TextLead,
+		rlmLocationName: string = "Per Pipeline configuration",
+	) {
 		super();
 		this.web2TextLead = web2TextLead;
+		this.rlmLocationName = rlmLocationName;
 	}
 	private static formatLeadIntoMessage(lead: Web2TextLead): string {
 		let message = `--------------------
@@ -72,7 +86,7 @@ export class Web2TextLeadIntoRLMLead extends Into<RLMLeadsAPI.RLMCreateLeadReque
 	}
 	into(): RLMLeadsAPI.RLMCreateLeadRequest {
 		const rlmLead: RLMLeadsAPI.RLMCreateLeadRequest["lead"] = {
-			location_name: "Per Pipeline configuration",
+			location_name: this.rlmLocationName,
 			divison_name: "Per Pipeline configuration",
 			source_name: "Web2Text",
 		};

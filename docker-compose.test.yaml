@@ -53,16 +53,6 @@ services:
       - TWILIO_ACCOUNT_SID
       - TWILIO_AUTH_TOKEN
       - NUMBER_POOL=development
-    container_name: web2text-jaeger
-    image: jaegertracing/all-in-one:1.46
-    networks:
-      - restate-network
-    ports:
-      - "4317:4317"
-      - "16686:16686"
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
-    restart: always
 version: '3.9'
 networks:
   restate-network:

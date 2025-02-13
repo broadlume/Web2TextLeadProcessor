@@ -38,21 +38,21 @@ services:
    restart: always
    networks:
       - restate-network
-  twilio_proxy:
-    container_name: web2text-twilio-proxy
-    env_file: "./.env.test"
-    build: 
-      context: "./modules/twilio_proxy"
-    networks:
-      - restate-network
-    ports:
-    # Proxy service port
-      - "3000:3000"
-    restart: always
-    environment:
-      - TWILIO_ACCOUNT_SID
-      - TWILIO_AUTH_TOKEN
-      - NUMBER_POOL=development
+  # twilio_proxy:
+  #   container_name: web2text-twilio-proxy
+  #   env_file: "./.env.test"
+  #   build: 
+  #     context: "./modules/twilio_proxy"
+  #   networks:
+  #     - restate-network
+  #   ports:
+  #   # Proxy service port
+  #     - "3000:3000"
+  #   restart: always
+  #   environment:
+  #     - TWILIO_ACCOUNT_SID
+  #     - TWILIO_AUTH_TOKEN
+  #     - NUMBER_POOL=development
 version: '3.9'
 networks:
   restate-network:

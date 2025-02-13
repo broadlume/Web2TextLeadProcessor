@@ -45,11 +45,9 @@ services:
       - restate-network
   twilio_proxy:
     container_name: web2text-twilio-proxy
-    env_file: ".env"
+    env_file: "./.env"
     build: 
       context: "./modules/twilio_proxy"
-      args:
-        - NUMBER_POOL=development
     networks:
       - restate-network
     ports:
@@ -59,6 +57,7 @@ services:
     environment:
       - TWILIO_ACCOUNT_SID
       - TWILIO_AUTH_TOKEN
+      - NUMBER_POOL=development
   web2text-jaeger:
     container_name: web2text-jaeger
     image: jaegertracing/all-in-one:1.46

@@ -22,6 +22,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 
 1. Pull down the repository
 2. **Get the .env file from a senior developer and place it in the root of the repository**
+3. **Within the `twilio_proxy` module - update its ENV file to include TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN**
 3. Within VSCode, ensure you have the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command

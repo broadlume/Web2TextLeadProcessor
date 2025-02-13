@@ -23,10 +23,10 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 1. Pull down the repository
 2. **Get the .env file from a senior developer and place it in the root of the repository**
 3. **Within the `twilio_proxy` module - update its ENV file to include TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN**
-3. Within VSCode, ensure you have the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
-4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
+4. Within VSCode, ensure you have the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
+5. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
-5. Wait for the dev container to spin up
+6. Wait for the dev container to spin up
     - This will provision six containers:
         - The Web2Text dev container where your VSCode window will open in
         - The restate admin server which will handle taking in requests, durable execution & retries and dispatching them to the service
@@ -35,16 +35,16 @@ Web2Text is a service that will send and monitor SMS conversations between deale
         - A local Jaeger instance that collects telemetry from the restate server
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
     - Verify the DynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
-6. Open a new terminal within the dev container
-7. Navigate to the web2text module
+7. Open a new terminal within the dev container
+8. Navigate to the web2text module
     - `cd modules/web2text`
-8. Start the Web2Text service by running `bun run app-dev`
+9. Start the Web2Text service by running `bun run app-dev`
     - This will start the Web2Text service and will watch for changes to the files
     - **ALTERNATIVELY**: Run the `Debug Web2Text Service` launch configuration in VSCode to run and attach the NodeJS debugger (allows you to use breakpoints and inspect variables)
-7. Open another new terminal and run the command `bun run register-with-restate`
+10. Open another new terminal and run the command `bun run register-with-restate`
     - This will register the Web2Text service with the restate server
     - This also clears any existing state, in-flight invocations, and re-registers the service with restate. So you can run it whenever you need to remove/rename/create a handler, reset the KV store of the service or stop any in-flight invocations.
-8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
+11. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
   

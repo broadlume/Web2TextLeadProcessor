@@ -3,7 +3,7 @@
     "private": true,
     "type": "commonjs",
     "scripts": {
-        "e2e": "bun --env-file=../../.env.test run vitest --config './vitest.config.mts'",
+        "e2e": "bun --env-file=.env.test run vitest --config './vitest.config.mts'",
         "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
         "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
     },

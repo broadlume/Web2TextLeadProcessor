@@ -7,13 +7,13 @@ import { DHQStoreInquiryAPI } from "common/external/dhq";
 import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
+import type { Twilio } from "twilio";
 import type { LeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoDHQStoreInquiry,
 	Web2TextMessageIntoDhqComment,
 } from "./APIConverters";
-import { Twilio } from "twilio";
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;

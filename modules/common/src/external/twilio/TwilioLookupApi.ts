@@ -1,7 +1,7 @@
 import type { E164Number } from "libphonenumber-js";
 import memoizee from "memoizee";
 import type { Twilio } from "twilio";
-import { PhoneNumberInstance } from "twilio/lib/rest/lookups/v2/phoneNumber";
+import type { PhoneNumberInstance } from "twilio/lib/rest/lookups/v2/phoneNumber";
 
 async function _lookupPhoneNumber(
 	twilioClient: Twilio,

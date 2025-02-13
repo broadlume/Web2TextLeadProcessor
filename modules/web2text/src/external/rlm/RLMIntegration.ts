@@ -7,13 +7,13 @@ import { NexusRetailerAPI } from "common/external/nexus";
 import { RLMLeadsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
+import type { Twilio } from "twilio";
 import type { LeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
 	Web2TextMessageIntoRLMNote,
 } from "./APIConverters";
-import { Twilio } from "twilio";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {

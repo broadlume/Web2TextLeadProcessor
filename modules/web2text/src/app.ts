@@ -11,18 +11,20 @@ import { serializeError } from "serialize-error";
 import { AdminService } from "./restate/services/AdminService";
 import { DealerVirtualObject } from "./restate/services/DealerVirtualObject";
 import { TwilioWebhooks } from "./restate/services/TwilioWebhooks";
-import { VerifyEnvVariables } from "./verifyEnvVariables";
 import { TWILIO_CLIENT } from "./twilio";
+import { VerifyEnvVariables } from "./verifyEnvVariables";
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Verify env variables and crash if any are invalid/missing
 if (process.env.NODE_ENV !== "test") {
 	VerifyEnvVariables();
 } else {
-	Object.assign(LeadVirtualObject, { name: LeadVirtualObject.name + "-test" });
-	Object.assign(DealerVirtualObject, { name: DealerVirtualObject.name + "-test" });
-	Object.assign(AdminService, { name: AdminService.name + "-test" });
-	Object.assign(TwilioWebhooks, {name: TwilioWebhooks.name + "-test"});
+	Object.assign(LeadVirtualObject, { name: `${LeadVirtualObject.name}-test` });
+	Object.assign(DealerVirtualObject, {
+		name: `${DealerVirtualObject.name}-test`,
+	});
+	Object.assign(AdminService, { name: `${AdminService.name}-test` });
+	Object.assign(TwilioWebhooks, { name: `${TwilioWebhooks.name}-test` });
 }
 globalThis.TWILIO_CLIENT = TWILIO_CLIENT;
 

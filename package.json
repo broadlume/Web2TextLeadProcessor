@@ -25,7 +25,9 @@
 
   },
   "scripts": {
-    "e2e": "cd modules/e2e_tests && DEBUG=vitest bun run e2e"
+    "e2e": "cd modules/e2e_tests && DEBUG=vitest bun run e2e",
+    "check": "bun run --filter '*' check",
+    "format": "bun run --filter '*' format"
   },
   "patchedDependencies": {
     "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"

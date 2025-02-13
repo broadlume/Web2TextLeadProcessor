@@ -4,10 +4,10 @@
 		"enabled": true
 	},
 	"files": {
-		"include": ["app/src/**/*.ts"]
+		"include": ["app/modules/*/src/**/*.ts"]
 	},
 	"linter": {
-		"include": ["app/src/**/*.ts"],
+		"include": ["app/modules/*/src/**/*.ts"],
 		"enabled": true,
 		"rules": {
 			"recommended": true,

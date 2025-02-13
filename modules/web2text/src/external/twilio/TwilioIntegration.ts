@@ -16,7 +16,7 @@ import {
 } from "common/external/twilio";
 import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
-import { Twilio } from "twilio"
+import type { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/services/LeadVirtualObject";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";

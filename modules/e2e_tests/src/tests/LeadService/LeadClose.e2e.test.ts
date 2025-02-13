@@ -160,7 +160,6 @@ describe("Lead Close E2E Tests", () => {
 		for (const [integration, state] of Object.entries(
 			closeResponse.body.Integrations,
 		)) {
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			expect((state as any).SyncStatus === "CLOSED");
 		}
 	});

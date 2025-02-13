@@ -1,29 +1,26 @@
 import { randomUUID } from "node:crypto";
 import type * as restate from "@restatedev/restate-sdk";
+import { RestateAdminDeploymentAPI } from "common/external/restate";
 import dynamoose from "dynamoose";
+import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import nock from "nock";
+import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
-	LEAD_SERVICE_NAME
+	LEAD_SERVICE_NAME,
 } from "./globalSetup";
-import { RestateAdminDeploymentAPI } from "common/external/restate";
-import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
 export let TEST_SERVER: restate.RestateEndpoint;
-console.log('setup');
 beforeAll(async () => {
 	//@ts-expect-error
 	if (globalThis.ranSetup) return;
-	console.log("Running setup...");
 	process.env.INTERNAL_API_TOKEN = randomUUID();
 	// Point dynamoose to our local DynamoDB for testing
-	console.log("DynamoDB...");
 	dynamoose.aws.ddb.local(process.env.LOCAL_DYNAMODB_URL);
 	// Create a testing API key in the DynamoDB
 	await APIKeyModel.create(
@@ -36,9 +33,6 @@ beforeAll(async () => {
 		},
 		{ overwrite: true },
 	);
-	console.log("DynamoDB done.");
-
-	console.log("mocking");
 	// Turn off DynamoDB sync when testing
 	vi.mock("web2text-service/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
@@ -47,14 +41,12 @@ beforeAll(async () => {
 		Web2TextIntegrations: [
 			{
 				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
-				create: (state:any) => ({ ...state, SyncStatus: "SYNCED" }),
-				sync: (state:any) => ({ ...state, SyncStatus: "SYNCED" }),
-				close: (state:any) => ({ ...state, SyncStatus: "CLOSED" }),
+				create: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
+				sync: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
+				close: (state: any) => ({ ...state, SyncStatus: "CLOSED" }),
 			},
 		],
 	}));
-	console.log("mocking done");
-	console.log("Restate");
 	// Setup restate handler
 	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
 	await RestateAdminDeploymentAPI.CreateDeployment(
@@ -63,10 +55,8 @@ beforeAll(async () => {
 			force: true,
 		},
 	);
-	console.log("Restate done");
 	//@ts-expect-error
 	globalThis.ranSetup = true;
-	console.log("Finished setup...");
 });
 
 beforeEach(async () => {

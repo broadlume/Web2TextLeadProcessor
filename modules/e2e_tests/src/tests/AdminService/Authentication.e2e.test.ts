@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, test } from "vitest";
+import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 import { ADMIN_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
-import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 describe("Admin Service Authentication", () => {
 	for (const endpoint of ["bulk"]) {
 		test(`${endpoint} should require authentication header`, async () => {

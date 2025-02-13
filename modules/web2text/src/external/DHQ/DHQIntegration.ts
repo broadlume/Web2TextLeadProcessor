@@ -7,13 +7,13 @@ import { DHQStoreInquiryAPI } from "common/external/dhq";
 import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
-import { Twilio } from "twilio";
 import type { LeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoDHQStoreInquiry,
 	Web2TextMessageIntoDhqComment,
 } from "./APIConverters";
+import { Twilio } from "twilio";
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
@@ -33,10 +33,7 @@ export class DHQIntegration extends IExternalIntegration<
 	private twilioClient: Twilio;
 	public constructor(client?: Twilio) {
 		super();
-		client ??= new Twilio(
-			process.env.TWILIO_ACCOUNT_SID,
-			process.env.TWILIO_AUTH_TOKEN,
-		);
+		client ??= globalThis.TWILIO_CLIENT;
 		this.twilioClient = client;
 	}
 	async create(

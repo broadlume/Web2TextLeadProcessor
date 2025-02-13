@@ -1,13 +1,18 @@
-import path from "node:path";
-import { config } from "dotenv";
 import { defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
-config({ path: path.resolve(__dirname, ".env.test") });
+import { resolve } from "path";
 export default defineConfig({
+	resolve: {
+		alias: [
+			{ find: "common", replacement: resolve(__dirname, "../common/src") },
+			{ find: "web2text", replacement: resolve(__dirname, "../web2text/src") }
+		]
+	},
+
 	test: {
-		include: ["./tests/**/*"],
-		setupFiles: ["dotenv/config", "./setup.ts"],
-		globalSetup: "./globalSetup.ts",
+		include: ["./src/tests/**/*"],
+		setupFiles: ["dotenv/config", "./src/setup.ts"],
+		globalSetup: "./src/globalSetup.ts",
 		pool: "forks",
 		poolOptions: {
 			forks: {
@@ -32,6 +37,12 @@ export default defineConfig({
 		isolate: false,
 		environment: "node",
 		fileParallelism: false,
+		coverage: {
+			"enabled": false
+		}
 	},
-	plugins: [tsconfigPaths()]
+	plugins: [tsconfigPaths({
+		loose: true,
+		root: "/app"
+	})],
 });

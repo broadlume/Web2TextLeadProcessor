@@ -7,13 +7,13 @@ import { NexusRetailerAPI } from "common/external/nexus";
 import { RLMLeadsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
-import { Twilio } from "twilio";
 import type { LeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
 	Web2TextMessageIntoRLMNote,
 } from "./APIConverters";
+import { Twilio } from "twilio";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -36,10 +36,7 @@ export class RLMIntegration extends IExternalIntegration<
 	private twilioClient: Twilio;
 	public constructor(client?: Twilio) {
 		super();
-		client ??= new Twilio(
-			process.env.TWILIO_ACCOUNT_SID,
-			process.env.TWILIO_AUTH_TOKEN,
-		);
+		client ??= globalThis.TWILIO_CLIENT;
 		this.twilioClient = client;
 	}
 	async create(

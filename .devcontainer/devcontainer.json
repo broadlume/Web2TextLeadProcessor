@@ -21,7 +21,6 @@
 			"upgradePackages": true,
 			"nonFreePackages": false
 		},
-		"ghcr.io/devcontainers/features/node:1": {},
 		"ghcr.io/devcontainers/features/aws-cli:1": {}
 	},
 	"forwardPorts": [9080],

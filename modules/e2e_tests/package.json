@@ -1,0 +1,30 @@
+{
+    "name": "e2e-tests",
+    "private": true,
+    "type": "commonjs",
+    "scripts": {
+        "e2e": "bun --env-file=../../.env.test run vitest --config './vitest.config.mts'",
+        "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
+        "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
+    },
+    "dependencies": {
+        "common": "workspace:*",
+        "web2text-service": "workspace:*",
+        "vitest": "3.0.5",
+        "dotenv": "^16.4.5",
+        "vite-tsconfig-paths": "^5.1.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.8.2",
+        "@types/node": "^20.12.7",
+        "@types/shelljs": "^0.8.15",
+        "@types/supertest": "^6.0.2",
+        "nock": "^14.0.1",
+        "shelljs": "0.8.5",
+        "supertest": "^7.0.0",
+        "vitest": "^2.1.1"
+    },
+    "patchedDependencies": {
+        "shelljs@0.8.5": "patches/shelljs@0.8.5.patch"
+    }
+}

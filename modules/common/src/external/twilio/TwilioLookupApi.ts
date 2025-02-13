@@ -1,11 +1,12 @@
 import type { E164Number } from "libphonenumber-js";
 import memoizee from "memoizee";
 import type { Twilio } from "twilio";
+import { PhoneNumberInstance } from "twilio/lib/rest/lookups/v2/phoneNumber";
 
 async function _lookupPhoneNumber(
 	twilioClient: Twilio,
 	phoneNumber: E164Number,
-) {
+): Promise<PhoneNumberInstance> {
 	const lookup = await twilioClient.lookups.v2
 		.phoneNumbers(phoneNumber)
 		.fetch({ fields: "line_type_intelligence" });

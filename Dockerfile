@@ -1,10 +1,15 @@
 ARG TARGETPLATFORM
-# use the official Bun image
-# see all versions at https://hub.docker.com/r/oven/bun/tags
+
+FROM node:20 AS node_base
+# Install Bun
 FROM oven/bun:1.2 AS base
+
+# Install NodeJS 
+COPY --from=node_base /usr/local/bin /usr/local/bin
+COPY --from=node_base /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+
 RUN mkdir -p /app
-WORKDIR /app
 COPY . /app
+WORKDIR /app
+RUN bun install
 RUN apt-get update
-
-

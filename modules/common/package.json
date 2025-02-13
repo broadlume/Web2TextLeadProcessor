@@ -1,30 +1,18 @@
 {
     "name": "common",
     "private": true,
+    "type": "module",
     "scripts": {
         "format": "biome check --write",
-        "check": "tsc --noEmitOnError",
-        "build": "bun run check && esbuild ./src/**.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outdir=./dist"
+        "check": "tsc --noEmit"
     },
     "dependencies": {
-        "@restatedev/restate-sdk": "^1.4.0",
-        "@twilio/conversations": "^2.5.0",
-        "twilio": "^5.3.5",
-        "tsafe": "^1.7.2",
-        "type-fest": "^4.26.1",
-        "winston": "^3.14.2",
-        "@elastic/ecs-winston-format": "^1.5.3",
-        "zod": "^3.23.8",
-        "zod-validation-error": "^3.3.0",
-        "ky": "^1.7.2",
-        "libphonenumber-js": "^1.11.4",
         "@aws-sdk/client-secrets-manager": "^3.712.0",
         "serialize-error": "^11.0.3"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",
-        "typescript": "^5.4.5",
-        "esbuild": "^0.18.12"
+        "typescript": "^5.4.5"
     },
     "patchedDependencies": {
         "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"
@@ -32,36 +20,36 @@
     "trustedDependencies": ["@biomejs/biome", "core-js", "esbuild"],
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
+            "types": "./src/index.ts",
+            "default": "./src/index.ts"
         },
         "./restate": {
-            "types": "./dist/restate/index.d.ts",
-            "default": "./dist/restate/index.js"
+            "types": "./src/restate/index.ts",
+            "default": "./src/restate/index.ts"
         },
         "./external": {
-            "types": "./dist/external/index.d.ts",
-            "default": "./dist/external/index.js"
+            "types": "./src/external/index.ts",
+            "default": "./src/external/index.ts"
         },
         "./external/nexus": {
-            "types": "./dist/external/nexus/index.d.ts",
-            "default": "./dist/external/nexus/index.js"
+            "types": "./src/external/nexus/index.ts",
+            "default": "./src/external/nexus/index.ts"
         },
         "./external/dhq": {
-            "types": "./dist/external/dhq/index.d.ts",
-            "default": "./dist/external/dhq/index.js"
+            "types": "./src/external/dhq/index.ts",
+            "default": "./src/external/dhq/index.ts"
         },
         "./external/rlm": {
-            "types": "./dist/external/rlm/index.d.ts",
-            "default": "./dist/external/rlm/index.js"
+            "types": "./src/external/rlm/index.ts",
+            "default": "./src/external/rlm/index.ts"
         },
         "./external/twilio": {
-            "types": "./dist/external/twilio/index.d.ts",
-            "default": "./dist/external/twilio/index.js"
+            "types": "./src/external/twilio/index.ts",
+            "default": "./src/external/twilio/index.ts"
         },
         "./external/restate": {
-            "types": "./dist/external/restate/index.d.ts",
-            "default": "./dist/external/restate/index.js"
+            "types": "./src/external/restate/index.ts",
+            "default": "./src/external/restate/index.ts"
         }
     }
 }

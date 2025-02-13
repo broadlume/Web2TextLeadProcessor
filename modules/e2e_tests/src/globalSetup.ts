@@ -1,11 +1,14 @@
 import shelljs from "shelljs";
-import { RestateAdminDeploymentAPI } from "common/external";
+import { RestateAdminDeploymentAPI } from "common/external/restate";
 export const LEAD_SERVICE_NAME = "Lead-test";
 export const DEALER_SERVICE_NAME = "Dealer-test";
 export const ADMIN_SERVICE_NAME = "Admin-test";
+export const TWILIO_WEBHOOKS_SERVICE_NAME = "TwilioWebhooks-test"
+console.log("globalsetup");
+console.log(RestateAdminDeploymentAPI);
 export async function teardown() {
+	console.log("running teardown");
 	shelljs.exec("bun run clear-restate-test", { silent: true });
-
 	const deployments = await RestateAdminDeploymentAPI.ListDeployments();
 	for (const dep of deployments) {
 		if (

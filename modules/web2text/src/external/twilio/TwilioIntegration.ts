@@ -16,7 +16,7 @@ import {
 } from "common/external/twilio";
 import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
-import { Twilio } from "twilio";
+import { Twilio } from "twilio"
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
 import { LeadVirtualObject } from "../../restate/services/LeadVirtualObject";
 import { IsPhoneNumberOptedOut } from "../../restate/validators";
@@ -52,10 +52,7 @@ export class TwilioIntegration
 	}
 	private twilioClient: Twilio;
 	constructor(client?: Twilio) {
-		client ??= new Twilio(
-			process.env.TWILIO_ACCOUNT_SID,
-			process.env.TWILIO_AUTH_TOKEN,
-		);
+		client ??= globalThis.TWILIO_CLIENT;
 		this.twilioClient = client;
 	}
 	async create(

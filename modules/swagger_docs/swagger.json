@@ -54,7 +54,25 @@
               }
             },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -102,8 +120,68 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request - Invalid request body, location ID, or phone number validation failed",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Request could not be parsed - Invalid phone number format"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict - Lead already exists or is in incorrect status",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 409
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lead ID doesn't exist or is in incorrect status 'CLOSED'"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -141,8 +219,68 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request - Invalid lead ID",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lead ID is not a valid UUIDv4"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict - Lead doesn't exist or is in incorrect status",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 409
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lead ID doesn't exist or is in incorrect status 'ERROR'"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -203,13 +341,72 @@
                         "$ref": "#/components/schemas/SubmittedLeadState"
                       }
                     ]
-                    
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - Invalid lead ID",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lead ID is not a valid UUIDv4"
+                      }
+                    }
                   }
                 }
               }
             },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict - Lead doesn't exist or is in incorrect status",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 409
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Lead ID doesn't exist or is in incorrect status 'ERROR'"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -247,8 +444,47 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request - Invalid dealer ID",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Invalid UniversalRetailerId: not a valid UUIDv4"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -285,8 +521,47 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request - Invalid request body or filter parameter",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Error parsing Filter parameter - Invalid filter expression"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -315,6 +590,27 @@
           "responses": {
             "200": {
               "description": "Webhook processed successfully"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid or missing Twilio signature",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Twilio request validation failed"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -343,6 +639,27 @@
           "responses": {
             "200": {
               "description": "Webhook processed successfully"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid or missing Twilio signature",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Twilio request validation failed"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -375,6 +692,27 @@
                 "application/xml": {
                   "schema": {
                     "type": "string"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Invalid or missing Twilio signature",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Twilio request validation failed"
+                      }
+                    }
                   }
                 }
               }
@@ -420,8 +758,47 @@
                 }
               }
             },
+            "400": {
+              "description": "Bad Request - Missing or invalid phone number",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "'PhoneNumber' in POST body is missing or invalid"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "401": {
-              "description": "Unauthorized"
+              "description": "Unauthorized - Invalid or missing API key",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["code", "message"],
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "example": 401
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "API Key doesn't exist or has been marked inactive"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

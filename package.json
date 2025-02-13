@@ -31,7 +31,8 @@
   "scripts": {
     "e2e": "cd modules/e2e_tests && DEBUG=vitest bun run e2e",
     "check": "bun run --filter '*' check",
-    "format": "bun run --filter '*' format",
+    "format": "bun biome check --write",
+    "husky-precommit": "bun biome check && bun run check",
     "prepare": "bun run .husky/install.mjs"
   },
   "patchedDependencies": {

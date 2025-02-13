@@ -97,13 +97,15 @@ There is a Swagger instance hosted at
     - There are two environments, `development` and `production`
 3. Select the service to deploy
     - web2text-service
-        - This is the service you will need to deploy if you make any code changes in the `web2text` module or any of its dependent modules (e.g. `common`)
+        - Deploy this service only if you make any changes in the `web2text` module or any of its dependent modules (e.g. `common`)
     - twilio-proxy
         - Deploy this service only if you make changes to the `twilio_proxy` module
+   - swagger-docs
+        - Deploy this service only if you make changes to the `swagger_docs` module
     - restate-server
         - Deploy this only if you need to update the restate server - should be pretty infrequent.
             - **WARNING** Currently deploying the restate server causes downtime since two instances of the restate server cannot be running at the same time, so ECS will deprovision the server first, then deploy the new one
-            - See the [docs](https://docs.restate.dev/operate/upgrading/) to see if there are any steps needed before safely upgrading
+            - See the [docs](https://docs.restate.dev/operate/upgrading/) to see if there are any steps needed before safely upgrading 
 4. Select the environment to deploy to
 5. Wait for the command to finish
     - This will also update the restate server with a new deployment automatically and (if possible and there are no inflight invocations) de-register the old deployment

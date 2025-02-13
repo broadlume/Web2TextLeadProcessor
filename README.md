@@ -49,6 +49,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 
 ## Web2Text Commands
 > Must be within `web2text` module
+
     - `bun run format`
         - Runs biome formatter and linter over the codebase
     - `bun run check`

@@ -4,6 +4,7 @@ on: [push]
 env: # Or as an environment variable
   TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
   TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+  HUSKY: 0
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -53,6 +53,8 @@ services:
     ports:
     # Proxy service port
       - "3000:3000"
+    volumes:
+      - ./modules/twilio_proxy/:/app
     restart: always
     environment:
       - TWILIO_ACCOUNT_SID

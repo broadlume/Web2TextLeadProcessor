@@ -26,30 +26,33 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 4. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command
 5. Wait for the dev container to spin up
-    - This will provision five containers:
+    - This will provision six containers:
         - The Web2Text dev container where your VSCode window will open in
         - The restate admin server which will handle taking in requests, durable execution & retries and dispatching them to the service
         - A local DynamoDB database that Web2Text uses for development
         - A twilio proxy application that allows assigning numbers from our pool intelligently to create two way Twilio conversations
+        - A local Jaeger instance that collects telemetry from the restate server
     - Verify the restate-server is running correctly by running the command `restate whoami` in the dev container
-    - Verify the dynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
-6. Open a new terminal within the dev container and run `bun run app-dev`
-    - This will start the Web2Text service, and will watch for changes to the files
-    - **ALTERNATIVELY**: Run the `Debug Service` launch configuration in VSCode to run and attach the NodeJS debugger (allows you to use breakpoints and inspect variables)
+    - Verify the DynamoDB server is running correctly by running the command `dynamodb describe-limits --endpoint-url http://web2text-dynamodb-local:8000` in the dev container
+6. Open a new terminal within the dev container
+7. Navigate to the web2text module
+    - `cd modules/web2text`
+8. Start the Web2Text service by running `bun run app-dev`
+    - This will start the Web2Text service and will watch for changes to the files
+    - **ALTERNATIVELY**: Run the `Debug Web2Text Service` launch configuration in VSCode to run and attach the NodeJS debugger (allows you to use breakpoints and inspect variables)
 7. Open another new terminal and run the command `bun run register-with-restate`
     - This will register the Web2Text service with the restate server
     - This also clears any existing state, in-flight invocations, and re-registers the service with restate. So you can run it whenever you need to remove/rename/create a handler, reset the KV store of the service or stop any in-flight invocations.
-8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/Lead/{endpoint}`
+8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
 
-## Commands
+## Web2Text Commands
+> Must be within `web2text` module
     - `bun run format`
         - Runs biome formatter and linter over the codebase
     - `bun run check`
         - Runs the typescript compiler over the codebase and reports any issues
-    - `bun run prebundle`
-        - Removes `dist` directory before bundling
     - `bun run bundle`
         - Packages and bundles the Web2Text service handler into one file in the `dist/` directory
     - `bun run app`
@@ -62,16 +65,8 @@ Web2Text is a service that will send and monitor SMS conversations between deale
         - Clears existing state and registers the service with restate server
     - `bun run clear-restate`
         - Clears all restate data for Lead, Dealer, Admin, and TwilioWebhooks services
-    - `bun run clear-restate-test`
-        - Clears restate data for test versions of Lead and Dealer services
-        - Ran by the integration tests
     - `bun run clear-dynamodb`
         - Clears all data from local DynamoDB development instance
-    - `bun run clear-dynamodb-test`
-        - Clears all data from local DynamoDB test instance
-        - Ran by the integration tests
-    - `bun run e2e`
-        - Runs end-to-end tests using Vitest
 
 ## Deployment
 
@@ -81,13 +76,12 @@ Web2Text is a service that will send and monitor SMS conversations between deale
     - There are two environments, `development` and `production`
 3. Select the service to deploy
     - web2text-service
-        - This is the service you will need to deploy if you make any code changes in this repository to the endpoints
+        - This is the service you will need to deploy if you make any code changes in the `web2text` module or any of its dependent modules (e.g. `common`)
     - twilio-proxy
-        - Deploy this service only if you make changes to the `/twilio_proxy` subrepository
+        - Deploy this service only if you make changes to the `twilio_proxy` module
     - restate-server
         - Deploy this only if you need to update the restate server - should be pretty infrequent.
-            - This can be dangerous if breaking changes are introduced
-            - Also need to redeploy the Web2Text service after upgrading or the deployments won't be registered
+            - **WARNING** Currently deploying the restate server causes downtime since two instances of the restate server cannot be running at the same time, so ECS will deprovision the server first, then deploy the new one
             - See the [docs](https://docs.restate.dev/operate/upgrading/) to see if there are any steps needed before safely upgrading
 4. Select the environment to deploy to
 5. Wait for the command to finish
@@ -104,7 +98,7 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 
 I **heavily recommend** a read through the [Concepts](https://docs.restate.dev/concepts/durable_building_blocks) page in their documentation to understand how Restate works
 
-## Edge Cases
+## Web2Text Edge Cases
 Q. User submits two leads with the same phone number, dealer ID, and location ID
 
 A. Web2Text will prompt the user that a lead is already open on the frontend side and ask if they want to resubmit.

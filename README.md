@@ -46,8 +46,20 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 8. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
+  
 
-## Web2Text Commands
+## Commands
+### Global
+> Must be at root of repo
+
+    - `bun run format`
+        - Runs biome formatter and linter over the codebase (every module)
+    - `bun run check`
+        - Runs the typescript compiler over the codebase (every module) and reports any issues
+    - `bun run e2e`
+        - Runs the e2e_tests module
+
+### Web2Text
 > Must be within `web2text` module
 
     - `bun run format`

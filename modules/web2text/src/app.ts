@@ -78,7 +78,6 @@ export const RESTATE_SERVER = restate
 	.bind(TwilioWebhooks);
 RESTATE_SERVER.listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
-
 if (process.env.NODE_ENV === "production") {
 	const startupLogger = _logger.child({ label: "Startup" });
 	startupLogger.info(`Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);

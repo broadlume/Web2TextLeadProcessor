@@ -15,7 +15,7 @@
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outdir=./dist",
     "app": "NODE_ENV=production node ./dist/app.js",
-    "app-dev": "tsx watch ./src/app.ts --inspect=9229",
+    "app-dev": "bun --inspect=127.0.0.1:9229/web2text run ./src/app.ts ",
     "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
     "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9080 --force --yes --quiet",
     "clear-restate": "/app/scripts/clearRestate.sh Lead; /app/scripts/clearRestate.sh Dealer; /app/scripts/clearRestate.sh Admin; /app/scripts/clearRestate.sh TwilioWebhooks",

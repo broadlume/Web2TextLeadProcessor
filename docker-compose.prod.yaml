@@ -6,8 +6,8 @@ services:
   web2text:
     container_name: web2text-service
     build: 
-      context: ./
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: ./modules/web2text/Dockerfile
     networks:
       - restate-network
     ports:
@@ -39,15 +39,16 @@ services:
   twilio_proxy:
     container_name: web2text-twilio-proxy
     build: 
-      context: ./twilio_proxy/
-      dockerfile: Dockerfile
-      args:
-        - NUMBER_POOL=development
+      context: ./modules/twilio_proxy
     networks:
       - restate-network
     ports:
     # Proxy service port
       - "3000:3000"
+    environment:
+      - TWILIO_ACCOUNT_SID
+      - TWILIO_AUTH_TOKEN
+      - NUMBER_POOL=development
     restart: always
   jaeger:
     container_name: web2text-jaeger

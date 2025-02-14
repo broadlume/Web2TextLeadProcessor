@@ -1,6 +1,6 @@
 ARG TARGETPLATFORM
 
-FROM node:20 AS node_base
+FROM node:23 AS node_base
 # Install Bun
 FROM oven/bun:1.2 AS base
 

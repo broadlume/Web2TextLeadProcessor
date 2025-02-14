@@ -33,7 +33,7 @@
     "check": "bun run --filter '*' check",
     "format": "bun biome check --write",
     "husky-precommit": "bun biome check && bun run check",
-    "prepare": "bun run .husky/install.mjs"
+    "prepare": "husky || true"
   },
   "patchedDependencies": {
     "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"

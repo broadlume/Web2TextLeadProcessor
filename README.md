@@ -52,8 +52,8 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 ## API Docs
 There is a Swagger instance hosted at
 - Local: http://localhost:8001
-- Dev: https://docs.web2text.web.dev.broadlume.com
-- Prod: https://docs.web2text.web.broadlume.com
+- Dev: http://docs.web2text.web.dev.broadlume.com
+- Prod: http://docs.web2text.web.broadlume.com
 
 
 ## Commands

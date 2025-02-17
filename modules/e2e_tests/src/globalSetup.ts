@@ -5,7 +5,6 @@ export const DEALER_SERVICE_NAME = "Dealer-test";
 export const ADMIN_SERVICE_NAME = "Admin-test";
 export const TWILIO_WEBHOOKS_SERVICE_NAME = "TwilioWebhooks-test";
 export async function teardown() {
-	console.log("running teardown");
 	shelljs.exec("bun run clear-restate-test", { silent: true });
 	const deployments = await RestateAdminDeploymentAPI.ListDeployments();
 	for (const dep of deployments) {

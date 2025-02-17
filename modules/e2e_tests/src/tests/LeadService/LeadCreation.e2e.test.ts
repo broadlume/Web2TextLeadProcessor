@@ -1,7 +1,7 @@
+import { describe, test } from "bun:test";
 import { randomUUID } from "node:crypto";
 import { findNumbers } from "libphonenumber-js";
 import nock from "nock";
-import { describe, test } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { supertest } from "../../setup";
 import { TEST_API_KEY } from "../../setup";

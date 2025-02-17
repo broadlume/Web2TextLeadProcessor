@@ -1,5 +1,5 @@
+import { describe, test } from "bun:test";
 import { randomUUID } from "node:crypto";
-import { describe, test } from "vitest";
 import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 import { ADMIN_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";

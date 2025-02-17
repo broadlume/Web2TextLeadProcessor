@@ -1,7 +1,7 @@
+import { beforeEach, describe, expect, it } from "bun:test";
 import { findNumbers } from "libphonenumber-js";
 import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
 const leadId = uuidv4();
@@ -155,7 +155,7 @@ describe("Lead Close E2E Tests", () => {
 			Status: "CLOSED",
 			CloseReason: "Test close reason",
 		});
-		expect(closeResponse.body).to.have.property("Integrations");
+		expect(closeResponse.body).toHaveProperty("Integrations");
 		expect(Object.keys(closeResponse.body.Integrations).length === 1);
 		for (const [integration, state] of Object.entries(
 			closeResponse.body.Integrations,

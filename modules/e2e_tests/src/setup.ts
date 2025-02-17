@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, beforeEach, mock } from "bun:test";
 import { randomUUID } from "node:crypto";
 import type * as restate from "@restatedev/restate-sdk";
 import { RestateAdminDeploymentAPI } from "common/external/restate";
@@ -5,12 +6,12 @@ import dynamoose from "dynamoose";
 import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
-import { beforeAll, beforeEach, vi } from "vitest";
 import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
+	teardown,
 } from "./globalSetup";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
@@ -34,10 +35,10 @@ beforeAll(async () => {
 		{ overwrite: true },
 	);
 	// Turn off DynamoDB sync when testing
-	vi.mock("web2text-service/restate/db", () => ({
-		SyncWithDB: vi.fn().mockImplementation(() => {}),
+	mock.module("web2text-service/restate/db", () => ({
+		SyncWithDB: () => {},
 	}));
-	vi.mock("web2text-service/external", () => ({
+	mock.module("web2text-service/external", () => ({
 		Web2TextIntegrations: [
 			{
 				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
@@ -91,3 +92,5 @@ beforeEach(async () => {
 		);
 	});
 });
+
+afterAll(async () => await teardown());

@@ -18,7 +18,9 @@ import { VerifyEnvVariables } from "./verifyEnvVariables";
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Verify env variables and crash if any are invalid/missing
 if (process.env.NODE_ENV !== "test") {
-	VerifyEnvVariables();
+	if (!VerifyEnvVariables()) {
+		process.exit(1);
+	}
 } else {
 	Object.assign(LeadVirtualObject, { name: `${LeadVirtualObject.name}-test` });
 	Object.assign(DealerVirtualObject, {

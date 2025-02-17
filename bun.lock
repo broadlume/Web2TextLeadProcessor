@@ -5,7 +5,7 @@
       "name": "monorepo-root",
       "dependencies": {
         "@elastic/ecs-winston-format": "^1.5.3",
-        "@restatedev/restate": "^1.1.6",
+        "@restatedev/restate": "1.1.6",
         "@restatedev/restate-sdk": "1.4.0",
         "@twilio/conversations": "^2.5.0",
         "ky": "^1.7.2",

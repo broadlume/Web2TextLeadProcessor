@@ -39,7 +39,7 @@ export class TwilioIntegration
 	implements IExternalIntegration<LeadState, TwilioIntegrationState>
 {
 	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
-		? "P14D"
+		? "P30D"
 		: "P1D";
 	readonly CONVERSATION_INACTIVE_TIMER = isProductionAndDeployed()
 		? "P7D"

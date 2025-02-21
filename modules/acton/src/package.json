@@ -1,0 +1,11 @@
+{
+    "name": "ActonLead",
+    "version": "1.0.0",
+    "description": "Acton Lead Processor",
+    "type": "commonjs",
+    "scripts": {
+      "app-dev": "tsx watch ./src/app.ts --inspect=9229"
+    },
+    "dependencies": {},
+    "devDependencies": {}
+  }

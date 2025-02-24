@@ -1,26 +1,20 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
-import type { IExternalIntegration } from "common/external";
+import type { ExternalIntegrationState, IExternalIntegration } from "common/external";
 import { FfWebAPI } from "../../../../common/src/external/floorforce";
 import type { LeadState, WebLead } from "../../types";
-import { WebFormLeadIntoFf } from "./ApiConverters";
 
-type ActOnIntegrationState = {
-	SyncStatus: "NOT SYNCED" | "SYNCING" | "SYNCED" | "ERROR" | "CLOSED";
-	Data?: any;
-	LastSynced?: string | undefined;
-	ErrorInfo?:
-		| {
-				Message: string;
-				Details?: any;
-				ErrorDate?: string | undefined;
-		  }
-		| undefined;
-};
+
+interface ActOnIntegrationState extends ExternalIntegrationState {
+	Data?: {
+		LeadId: string;
+		SyncedMessageIds: string[];
+	}
+}
 
 export class ActOnIntegration
 	implements IExternalIntegration<LeadState, ActOnIntegrationState>
 {
-	Name: "ActOn";
+	Name!: "ActOn";
 	defaultState(): ActOnIntegrationState {
 		return {
 			SyncStatus: "NOT SYNCED",

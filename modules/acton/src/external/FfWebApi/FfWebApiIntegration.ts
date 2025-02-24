@@ -1,24 +1,22 @@
-import { IExternalIntegration } from "common/external";
-import { LeadState } from "../../types";
+import { ExternalIntegrationState, IExternalIntegration } from "common/external";
+import { LeadState, WebLead } from '../../types';
 import { ObjectSharedContext } from "@restatedev/restate-sdk";
 import { serializeError } from 'serialize-error';
+import { FfWebAPI } from "../../../../common/src/external/floorforce";
 
-type FfWebApiIntegrationState = {
-    SyncStatus: "NOT SYNCED" | "SYNCING" | "SYNCED" | "ERROR" | "CLOSED";
-    Data?: any;
-    LastSynced?: string | undefined;
-    ErrorInfo?: {
-        Message: string;
-        Details?: any;
-        ErrorDate?: string | undefined;
-    } | undefined;
+
+interface FfWebApiIntegrationState extends ExternalIntegrationState{
+    Data?: {
+        LeadId: string;
+        SyncedMessageIds: string[];
+    }
 }
 
 export class FfWebApiIntegration implements IExternalIntegration<
     LeadState, 
     FfWebApiIntegrationState
 >{
-    Name: "FFWebApi";
+    Name!: "FFWebApi";
     defaultState() : FfWebApiIntegrationState{
         return {
             SyncStatus: "NOT SYNCED",
@@ -26,14 +24,14 @@ export class FfWebApiIntegration implements IExternalIntegration<
     }
     async create(
         state: FfWebApiIntegrationState, 
-        context: ObjectSharedContext<LeadState>
+        context: ObjectSharedContext<WebLead>
     ): Promise<FfWebApiIntegrationState> {
         const leadState = await context.getAll();
         const response = await context.run("Create FfWebApi Lead", async () => {
-          await FfWebAPI.CreateLead({}).catch((e) => (({
+          await FfWebAPI.CreateLead(leadState?.Lead).catch((e) => (({
             status: "failure",
             Error: serializeError(e),
-        }) as FfWebAPI.StoreInquiryResponse));  
+        }) as FfWebAPI.FfLeadResponse));  
         });
         return {
             ...state,

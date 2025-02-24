@@ -4,7 +4,8 @@
     "description": "Acton Lead Processor",
     "type": "commonjs",
     "scripts": {
-      "app-dev": "tsx watch ./src/app.ts --inspect=9229"
+      "app-dev": "tsx watch ./src/app.ts --inspect=9229",
+      "register-with-restate": "bun run clear-restate; restate deployments reg leadService-devcontainer:9080 --force --yes --quiet"
     },
     "dependencies": {},
     "devDependencies": {}

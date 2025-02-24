@@ -5,8 +5,8 @@ import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { SyncWithDB } from "../../db";
+import { ActOnLeadSchema, type LeadState, type WebFormLead, type WebLead } from "../../types";
 import { WebLeadIntegrations } from "../../external/index";
-import type { LeadState } from "../../types";
 
 /**
  * Helper function that runs before all of our exclusive handlers
@@ -54,12 +54,18 @@ export const LeadVirtualObject = restate.object({
 			async (
 				ctx: restate.ObjectSharedContext<LeadState>,
 				req: Record<string, any>,
-			) => {
+			): Promise<LeadState> => {
 				//await CheckAuthorization(ctx);
 				const state = await ctx.getAll();
-				return state?.["E-mail Address"];
+				if (state.Status == null) {
+					return { Status: "NONEXISTANT" };
+				}
+				return state;
 			},
 		),
+		/**
+		 * Creates a new lead in the database
+		 */
 		create: restate.handlers.object.exclusive(
 			async (
 				ctx: restate.ObjectContext<LeadState>,
@@ -71,7 +77,7 @@ export const LeadVirtualObject = restate.object({
 						Request: req ?? {},
 					}));
 					// Validate the submitted lead
-					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
+					const Lead = ActOnLeadSchema.parse(req);
 
 					const currentDate = new Date(await ctx.date.now());
 					await ctx.update((_) => ({
@@ -92,6 +98,10 @@ export const LeadVirtualObject = restate.object({
 				} catch (e) {
 					console.log(e);
 				}
+				// Return the status of the lead
+				return await ctx
+					.objectClient(LeadVirtualObject, ctx.key)
+					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
 			},
 		),
 		sync: restate.handlers.object.exclusive(
@@ -99,6 +109,12 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
+				await setup(ctx, ["ACTIVE", "SYNCING"]);
+				ctx.console.log(`Starting 'sync' for Lead ID : '${ctx.key}'`);
+				assert(is<restate.ObjectContext<WebLead>>(ctx));
+				ctx.set("Status", "SYNCING");
+				await SyncWithDB(ctx, "SEND");
+
 				const integrations = WebLeadIntegrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
 

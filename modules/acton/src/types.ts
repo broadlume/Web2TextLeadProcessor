@@ -64,7 +64,7 @@ export const WebFormLeadSchema = z.object({
 	optin: z.string(),
 	ao_form_neg_cap: z.string().optional(),
 });
-const ActOnLeadSchema = z.object({
+export const ActOnLeadSchema = z.object({
 	SchemaVersion: z.enum(["1.0.0"]).default("1.0.0"),
 	LeadID: UUID(),
 	Lead: WebFormLeadSchema,

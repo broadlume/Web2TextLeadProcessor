@@ -62,7 +62,7 @@ export const RESTATE_SERVER = restate
 			errors: separated.errors.map((e: Error) => serializeError(e)),
 		});
 	})
-	.bind(LeadVirtualObject)
+	.bind(LeadVirtualObject);
 
 RESTATE_SERVER.listen(RESTATE_PORT);
 let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;

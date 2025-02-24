@@ -1,12 +1,12 @@
 import ky from "ky";
-import { logger } from "../../logger";
 import type { z } from "zod";
 import { FF_AUTHORIZATION_HEADERS } from ".";
 import { Into } from "..";
 import type { WebFormLeadSchema } from "../../../../acton/src/types";
+import { logger } from "../../logger";
 
 export type FfLeadRequest = z.infer<typeof WebFormLeadSchema>;
-export type FfLeadResponse = {}
+export type FfLeadResponse = z.infer<any>;
 
 export async function CreateLead(request: Into<FfLeadRequest> | FfLeadRequest) {
 	const ffLead = request instanceof Into ? request.into() : request;

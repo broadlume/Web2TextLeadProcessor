@@ -1,14 +1,16 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
-import type { ExternalIntegrationState, IExternalIntegration } from "common/external";
+import type {
+	ExternalIntegrationState,
+	IExternalIntegration,
+} from "common/external";
 import { FfWebAPI } from "../../../../common/src/external/floorforce";
 import type { LeadState, WebLead } from "../../types";
-
 
 interface ActOnIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
 		SyncedMessageIds: string[];
-	}
+	};
 }
 
 export class ActOnIntegration

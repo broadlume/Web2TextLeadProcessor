@@ -3,7 +3,7 @@
 {
 	"name": "Web2Text Lead Processor DevContainer",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"dockerComposeFile": ["../docker-compose.yaml"],
+	"dockerComposeFile": ["../docker-compose.devcontainer.yaml"],
 
 	"service": "web2text",
 	"workspaceFolder": "/app",

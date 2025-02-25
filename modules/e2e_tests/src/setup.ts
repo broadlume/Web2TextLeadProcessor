@@ -12,6 +12,7 @@ import {
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
 } from "./globalSetup";
+import { Web2TextIntegrations } from "web2text-service/external/index";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -37,16 +38,17 @@ beforeAll(async () => {
 	vi.mock("web2text-service/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
-	vi.mock("web2text-service/external", () => ({
-		Web2TextIntegrations: [
-			{
-				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
-				create: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
-				sync: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
-				close: (state: any) => ({ ...state, SyncStatus: "CLOSED" }),
-			},
-		],
-	}));
+
+	// Clear the Web2TextIntegrations and replace with a mocked one
+	Web2TextIntegrations.splice(0,Number.POSITIVE_INFINITY);
+	Web2TextIntegrations.push({
+		Name: "Test Integration",
+		defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
+		create: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),
+		sync: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),
+		close: (state: any, context: any) => ({ ...state, SyncStatus: "CLOSED" }),
+	});
+
 	// Setup restate handler
 	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
 	await RestateAdminDeploymentAPI.CreateDeployment(

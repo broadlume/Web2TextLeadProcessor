@@ -35,10 +35,6 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 			type: String,
 			required: true,
 		},
-		LocationId: {
-			type: String,
-			required: true,
-		},
 		Lead: {
 			type: Object,
 			required: true,

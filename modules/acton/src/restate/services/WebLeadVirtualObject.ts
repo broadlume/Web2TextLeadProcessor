@@ -7,9 +7,9 @@ import { z } from "zod";
 import { SyncWithDB } from "../../db";
 import { WebLeadIntegrations } from "../../external/index";
 import {
-	ActOnLeadSchema,
 	type LeadState,
 	type WebFormLead,
+	WebFormLeadCreateRequestSchema,
 	type WebLead,
 } from "../../types";
 
@@ -53,7 +53,7 @@ async function setup(
 }
 
 export const LeadVirtualObject = restate.object({
-	name: "Lead",
+	name: "WebLead",
 	handlers: {
 		status: restate.handlers.object.shared(
 			async (
@@ -65,6 +65,7 @@ export const LeadVirtualObject = restate.object({
 				if (state.Status == null) {
 					return { Status: "NONEXISTANT" };
 				}
+				console.log("state", state);
 				return state;
 			},
 		),
@@ -82,8 +83,9 @@ export const LeadVirtualObject = restate.object({
 						Request: req ?? {},
 					}));
 					// Validate the submitted lead
-					const Lead = ActOnLeadSchema.parse(req);
 
+					const Lead = WebFormLeadCreateRequestSchema.parse(req);
+					console.log("Lead", Lead);
 					const currentDate = new Date(await ctx.date.now());
 					await ctx.update((_) => ({
 						...Lead,
@@ -114,7 +116,14 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				await setup(ctx, ["ACTIVE", "SYNCING"]);
+				await setup(ctx, [
+					"ACTIVE",
+					"SYNCING",
+					"CLOSED",
+					"ERROR",
+					"NONEXISTANT",
+					"VALIDATING",
+				]);
 				ctx.console.log(`Starting 'sync' for Lead ID : '${ctx.key}'`);
 				assert(is<restate.ObjectContext<WebLead>>(ctx));
 				ctx.set("Status", "SYNCING");
@@ -167,6 +176,28 @@ export const LeadVirtualObject = restate.object({
 						};
 					}
 				}
+				return await ctx
+					.objectClient(LeadVirtualObject, ctx.key)
+					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
+			},
+		),
+		close: restate.handlers.object.exclusive(
+			async (
+				ctx: restate.ObjectContext<LeadState>,
+				req: Record<string, any>,
+			): Promise<LeadState> => {
+				ctx.console.info("CLOSING LEAD");
+				await setup(ctx, [
+					"ACTIVE",
+					"SYNCING",
+					"CLOSED",
+					"ERROR",
+					"NONEXISTANT",
+					"VALIDATING",
+				]);
+				ctx.console.log(`Starting 'close' for Lead ID : '${ctx.key}'`);
+				ctx.set("Status", "CLOSED");
+				//await SyncWithDB(ctx, "SEND");
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });

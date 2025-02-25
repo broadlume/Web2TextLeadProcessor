@@ -9,14 +9,14 @@ const UUID = () =>
 		.uuid()
 		.refine<UUIDType>((x): x is UUIDType => true);
 export const WebFormLeadSchema = z.object({
-	ao_a: z.string(),
-	ao_f: z.string(),
-	ao_d: z.string(),
-	ao_p: z.string(),
-	ao_jstzo: z.string(),
+	ao_a: z.string().optional(),
+	ao_f: z.string().optional(),
+	ao_d: z.string().optional(),
+	ao_p: z.string().optional(),
+	ao_jstzo: z.string().optional(),
 	ao_cuid: z.string().optional(),
 	ao_srcid: z.string().optional(),
-	ao_bot: z.string(),
+	ao_bot: z.string().optional(),
 	ao_camp: z.string().optional(),
 	"First Name": z.string(),
 	"Last Name": z.string(),
@@ -63,14 +63,24 @@ export const WebFormLeadSchema = z.object({
 	comments: z.string(),
 	optin: z.string(),
 	ao_form_neg_cap: z.string().optional(),
+	listId: z.string().optional(),
 });
+
 export const ActOnLeadSchema = z.object({
 	SchemaVersion: z.enum(["1.0.0"]).default("1.0.0"),
-	LeadID: UUID(),
+	LeadId: UUID(),
 	Lead: WebFormLeadSchema,
 	Status: z.enum(["ACTIVE", "SYNCING", "CLOSED"]),
 	UniversalRetailerId: UUID(),
+	DateSubmitted: z.coerce.string().datetime(),
 	Integrations: z.record(z.string(), ExternalIntegrationStateSchema),
+});
+
+export const WebFormLeadCreateRequestSchema = ActOnLeadSchema.omit({
+	Status: true,
+	LeadId: true,
+	DateSubmitted: true,
+	Integrations: true,
 });
 
 const LeadStateSchema = z.discriminatedUnion("Status", [

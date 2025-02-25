@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import type os from "node:os";
 import * as restate from "@restatedev/restate-sdk";
-import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
+import { LeadVirtualObject } from "./restate/services/WebLeadVirtualObject";
 import "./dynamodb/index";
 import util from "node:util";
 import { logger as _logger } from "common";

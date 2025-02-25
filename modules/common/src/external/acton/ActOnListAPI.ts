@@ -18,10 +18,10 @@ export async function CreateContactAPI(
 	request: Into<ActOnRequest> | ActOnRequest,
 ) {
 	const actOnLead = request instanceof Into ? request.into() : request;
-	const actonUrl = new URL(process.env.ACTON_API_URL);
-	actonUrl.pathname += `/api/1/lists/${listId}/record`;
-
+	const actonUrl = new URL(process.env.ACTON_BASE_URL);
+	actonUrl.pathname += `api/1/list/${listId}/record`;
 	const headers = ACTON_AUTHORIZE_HEADERS();
+
 	try {
 		const response = await ky
 			.post(actonUrl.toString(), {
@@ -33,7 +33,7 @@ export async function CreateContactAPI(
 	} catch (e) {
 		logger
 			.child({ label: "ActOnListAPI:CreateContactAPI" })
-			.warn("Failed to post lead to ActOn", { _meta: 1, DHQLead: actOnLead });
+			.warn("Failed to post lead to ActOn", { _meta: 1 });
 		logger.child({ label: "ActOnListAPI:CreateContactAPI" }).error(e);
 		throw e;
 	}

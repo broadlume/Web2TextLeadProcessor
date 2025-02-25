@@ -3,13 +3,12 @@ import type {
 	ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
-import { FfWebAPI } from "../../../../common/src/external/floorforce";
+import { ActOnListAPI } from "../../../../common/src/external/acton";
 import type { LeadState, WebLead } from "../../types";
 
 interface ActOnIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
-		SyncedMessageIds: string[];
 	};
 }
 
@@ -28,7 +27,10 @@ export class ActOnIntegration
 	): Promise<ActOnIntegrationState> {
 		const leadState = await context.getAll();
 		const response = await context.run("Create ActOn Lead", async () => {
-			await FfWebAPI.CreateLead(leadState.Lead);
+			const listId = leadState?.Lead?.listId!;
+			delete leadState?.Lead?.listId;
+
+			await ActOnListAPI.CreateContactAPI(listId, leadState?.Lead);
 		});
 		return {
 			...state,

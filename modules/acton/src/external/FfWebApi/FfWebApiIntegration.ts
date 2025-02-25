@@ -27,6 +27,7 @@ export class FfWebApiIntegration
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<WebLead>,
 	): Promise<FfWebApiIntegrationState> {
+		context.console.debug("Creating FFWebApi Lead");
 		const leadState = await context.getAll();
 		const response = await context.run("Create FfWebApi Lead", async () => {
 			await FfWebAPI.CreateLead(leadState?.Lead).catch(

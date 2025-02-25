@@ -11,22 +11,27 @@ export type FfLeadResponse = z.infer<any>;
 export async function CreateLead(request: Into<FfLeadRequest> | FfLeadRequest) {
 	const ffLead = request instanceof Into ? request.into() : request;
 	const ffUrl = new URL(process.env.FF_API_URL);
-	ffUrl.pathname += "/external/postactonformdata";
+	ffUrl.pathname += "external/postactonformdata";
 
 	const headers = FF_AUTHORIZATION_HEADERS();
+
+	//FF WEB API expects the data to be urlencoded
+	const urlEncodedData = new URLSearchParams(
+		ffLead as Record<string, string>,
+	).toString();
 	try {
 		const response = await ky
 			.post(ffUrl.toString(), {
 				headers: headers,
-				json: ffLead,
+				body: urlEncodedData,
 			})
 			.json();
 		return response;
 	} catch (e) {
 		logger
-			.child({ label: "DHQStoreInquiryAPI:SubmitStoreInquiry" })
-			.warn("Failed to post lead to DHQ", { _meta: 1, FfLead: ffLead });
-		logger.child({ label: "DHQStoreInquiryAPI:SubmitStoreInquiry" }).error(e);
+			.child({ label: "FfWebAPI.CreateLead" })
+			.warn("Failed to post lead to FfWebAPI", { _meta: 1, FfLead: ffLead });
+		logger.child({ label: "FfWebAPI.CreateLead" }).error(e);
 		throw e;
 	}
 }

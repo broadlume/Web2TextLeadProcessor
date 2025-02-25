@@ -11,7 +11,7 @@ type: Load Balanced Web Service
 # Configuration for your containers and service.
 image:
   location: docker.restate.dev/restatedev/restate:1.2.0
-  port: 8080
+  port: 9070
 
 
 cpu: 2048       # Number of CPU units for the task.
@@ -30,7 +30,7 @@ nlb:
 http: false
 network:
   connect:
-    alias: web2text-restate-server # Allows us to use service discovery to communicate with the other services
+    alias: restate-server # Allows us to use service discovery to communicate with the other services
 storage:
   volumes:
     restate-data:

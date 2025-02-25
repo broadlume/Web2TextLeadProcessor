@@ -4,6 +4,7 @@ services:
     container_name: web2text-devcontainer
     build: 
       context: .
+      dockerfile: DevContainer.dockerfile
     networks:
       - restate-network
     ports:
@@ -17,7 +18,7 @@ services:
       - CI
       - GITHUB_ACTIONS
   restate-server:
-    image: "docker.io/restatedev/restate:1.1.6"
+    image: "docker.restate.dev/restatedev/restate:1.2.0"
     container_name: web2text-restate-server
     networks:
       - restate-network

@@ -21,7 +21,7 @@ services:
     environment:
       RESTATE_ADMIN_URL: "http://web2text-restate-server:9070"
   restate-server:
-    image: "docker.io/restatedev/restate:1.1.6"
+    image: "docker.restate.dev/restatedev/restate:1.2.0"
     container_name: web2text-restate-server
     networks:
       - restate-network

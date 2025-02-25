@@ -31,14 +31,6 @@ COPY patches/ /temp/prod/patches/
 COPY --parents modules/*/patches/ /temp/prod/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
-# Install Restate CLI globally
-RUN apt-get -y update; apt-get -y install curl
-RUN BIN=/usr/local/bin && RESTATE_PLATFORM=aarch64-unknown-linux-musl && \
-curl -LO https://github.com/restatedev/restate/releases/download/v1.1.6/restate.$RESTATE_PLATFORM.tar.gz && \
-tar -xvf restate.$RESTATE_PLATFORM.tar.gz && \
-chmod +x restate && \
-mv restate $BIN
-
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS prerelease

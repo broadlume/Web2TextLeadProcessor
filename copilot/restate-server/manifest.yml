@@ -26,8 +26,6 @@ nlb:
     - port: 5122/tcp
     - port: 5123/tcp  
     - port: 9070/tcp
-  healthcheck:
-    port: 9070
 http: false
 network:
   connect:

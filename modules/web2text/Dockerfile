@@ -46,7 +46,6 @@ RUN bun run check && cd modules/web2text && bun run bundle
 FROM node:slim AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=install /temp/prod/modules/ modules/
-COPY --from=install /usr/local/bin/restate /usr/local/bin/restate
 COPY --from=prerelease /app/modules/web2text/dist modules/web2text/dist
 
 COPY --from=prerelease /app/package.json .

@@ -54,7 +54,8 @@ declare global {
 			ACTON_BASE_URL: string;
 			ACTON_CLIENT_ID: string;
 			ACTON_CLIENT_SECRET: string;
-			ACTON_AUTH_TOKEN: string;
+			ACTON_USERNAME: string;
+			ACTON_PASSWORD: string;
 			/** FF Web API base URL */
 			FF_API_URL: string;
 			FF_API_USERNAME: string;

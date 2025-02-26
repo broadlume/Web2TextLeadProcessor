@@ -2,19 +2,20 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import type os from "node:os";
 import * as restate from "@restatedev/restate-sdk";
-import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
-import util from "node:util";
-import { logger as _logger, GetRunningEnvironment } from "common";
-import { RegisterThisServiceWithRestate } from "common/restate";
-import { serializeError } from "serialize-error";
+import { GetRunningEnvironment, logger as _logger } from "common";
+import { InitLocalDynamoDb } from "common/dynamodb";
+import {
+	CreateNewRestateLogger,
+	RegisterThisServiceWithRestate,
+} from "common/restate";
+import { LeadStateModel } from "./dynamodb/LeadStateModel";
+import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
 import { AdminService } from "./restate/services/AdminService";
 import { DealerVirtualObject } from "./restate/services/DealerVirtualObject";
+import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
 import { TwilioWebhooks } from "./restate/services/TwilioWebhooks";
 import { TWILIO_CLIENT } from "./twilio";
 import { VerifyEnvVariables } from "./verifyEnvVariables";
-import { InitLocalDynamoDb } from "common/dynamodb";
-import { LeadStateModel } from "./dynamodb/LeadStateModel";
-import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
 
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -45,42 +46,7 @@ const restateLogger = _logger.child({
 });
 export const RESTATE_SERVER = restate
 	.endpoint()
-	.setLogger((params, message, ...o) => {
-		const separated: { messages: string[]; errors: Error[]; meta: any } = [
-			message,
-			...o,
-		].reduce(
-			(acc, m) => {
-				if (m instanceof Error) {
-					acc.errors.push(m);
-				} else {
-					if (typeof m === "string") {
-						acc.messages.push(m);
-					} else {
-						if (typeof m === "object" && m["_meta"] != null) {
-							delete m["_meta"];
-							acc.meta = m;
-						} else {
-							acc.messages.push(util.inspect(m, false, null, true));
-						}
-					}
-				}
-				return acc;
-			},
-			{ messages: [], errors: [], meta: {} },
-		);
-		restateLogger.log(params.level, separated.messages.join(" "), {
-			...params,
-			...separated.meta,
-			label: [
-				"Restate",
-				params.context?.invocationTarget,
-				params.context?.invocationId,
-				...[separated.meta.label].flat().filter((x) => x != null),
-			],
-			errors: separated.errors.map((e: Error) => serializeError(e)),
-		});
-	})
+	.setLogger(CreateNewRestateLogger(restateLogger))
 	.bind(LeadVirtualObject)
 	.bind(DealerVirtualObject)
 	.bind(AdminService)

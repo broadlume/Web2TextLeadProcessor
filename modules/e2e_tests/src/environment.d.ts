@@ -50,6 +50,11 @@ declare global {
 			NEXUS_AUTH_AWS_SECRET_ACCESS_KEY: string;
 			/** Nexus Auth AWS secret region */
 			NEXUS_AUTH_AWS_REGION: string;
+			/** FF API URL */
+			FF_API_URL: string;
+			FF_USERNAME: string;
+			FF_PASSWORD: string;
+			ACTON_BASE_URL: string;
 		}
 	}
 	/** Global Twilio client instance */

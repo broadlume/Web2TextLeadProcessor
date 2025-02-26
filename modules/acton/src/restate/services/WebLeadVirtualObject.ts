@@ -84,7 +84,9 @@ export const LeadVirtualObject = restate.object({
 						Request: req ?? {},
 					}));
 					// Validate the submitted lead
+					console.log("E2E test", req);
 					const parsedRequest = WebFormLeadCreateRequestSchema.safeParse(req);
+					console.log("E2E test", parsedRequest);
 					if (!parsedRequest?.success) {
 						const formattedError = fromError(parsedRequest.error);
 						throw new restate.TerminalError(

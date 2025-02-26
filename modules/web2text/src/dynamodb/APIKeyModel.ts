@@ -1,6 +1,6 @@
+import { ENV_PREFIX } from "common";
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
-import { ENV_PREFIX } from "./Environment";
 
 class APIKeyItem extends Item {
 	API_Key!: string;

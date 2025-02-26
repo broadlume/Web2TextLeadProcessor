@@ -25,3 +25,14 @@ export function isProductionAndDeployed(): boolean {
 export function isDeployed(): boolean {
 	return GetRunningEnvironment().local === false;
 }
+
+export const ENV_PREFIX = (() => {
+	const env = GetRunningEnvironment();
+	if (env.environment === "test") {
+		return "TEST";
+	}
+	if (env.environment === "production") {
+		return "PROD";
+	}
+	return "DEV";
+})();

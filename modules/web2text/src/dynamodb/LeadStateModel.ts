@@ -3,7 +3,7 @@ import type { ExternalIntegrationState } from "common/external";
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { Web2TextLead } from "../types";
-import { ENV_PREFIX } from "./Environment";
+import { ENV_PREFIX } from "common";
 class LeadStateItem extends Item {
 	SchemaVersion!: string;
 	LeadId!: string;

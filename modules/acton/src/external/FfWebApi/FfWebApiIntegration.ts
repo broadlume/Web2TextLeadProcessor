@@ -1,16 +1,17 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
+import * as restate from "@restatedev/restate-sdk";
 import type {
 	ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
 import { serializeError } from "serialize-error";
 import { FfWebAPI } from "../../../../common/src/external/floorforce";
+import type { FfLeadResponse } from "../../../../common/src/external/floorforce/FfWebAPI";
 import type { LeadState, WebLead } from "../../types";
 
 interface FfWebApiIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
-		SyncedMessageIds: string[];
 	};
 }
 
@@ -27,33 +28,48 @@ export class FfWebApiIntegration
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<WebLead>,
 	): Promise<FfWebApiIntegrationState> {
-		context.console.debug("Creating FFWebApi Lead");
+		context.console.log(`Starting 'create' for FFWebApi Integration`);
 		const leadState = await context.getAll();
 		const response = await context.run("Create FfWebApi Lead", async () => {
-			await FfWebAPI.CreateLead(leadState?.Lead).catch(
+			const res = await FfWebAPI.CreateLead(leadState?.Lead?.Lead).catch(
 				(e) =>
 					({
 						status: "failure",
-						Error: serializeError(e),
-					}) as FfWebAPI.FfLeadResponse,
+						message: serializeError(e),
+					}) as FfLeadResponse,
 			);
+			return res;
 		});
+
+		if (response.status !== "success") {
+			return {
+				...state,
+				SyncStatus: "ERROR",
+				ErrorInfo: {
+					Message: response.message,
+					ErrorDate: new Date(await context.date.now()).toISOString(),
+				},
+			};
+		}
 		return {
 			...state,
 			SyncStatus: "SYNCED",
-			Data: response,
 		};
 	}
 	sync(
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<FfWebApiIntegrationState> {
-		throw new Error("Method not implemented.");
+		throw new restate.TerminalError("Lead Syncing not allowed.", {
+			errorCode: 400,
+		});
 	}
 	close(
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<FfWebApiIntegrationState> {
-		throw new Error("Method not implemented.");
+		throw new restate.TerminalError("Lead Closing not allowed.", {
+			errorCode: 400,
+		});
 	}
 }

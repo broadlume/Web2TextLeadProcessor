@@ -6,13 +6,17 @@ import type { WebFormLeadSchema } from "../../../../acton/src/types";
 import { logger } from "../../logger";
 
 export type FfLeadRequest = z.infer<typeof WebFormLeadSchema>;
-export type FfLeadResponse = z.infer<any>;
+export type FfLeadResponse = {
+	status: string;
+	message: string;
+};
 
-export async function CreateLead(request: Into<FfLeadRequest> | FfLeadRequest) {
+export async function CreateLead(
+	request: Into<FfLeadRequest> | FfLeadRequest,
+): Promise<FfLeadResponse> {
 	const ffLead = request instanceof Into ? request.into() : request;
 	const ffUrl = new URL(process.env.FF_API_URL);
 	ffUrl.pathname += "external/postactonformdata";
-
 	const headers = FF_AUTHORIZATION_HEADERS();
 
 	//FF WEB API expects the data to be urlencoded
@@ -20,13 +24,21 @@ export async function CreateLead(request: Into<FfLeadRequest> | FfLeadRequest) {
 		ffLead as Record<string, string>,
 	).toString();
 	try {
-		const response = await ky
-			.post(ffUrl.toString(), {
-				headers: headers,
-				body: urlEncodedData,
-			})
-			.json();
-		return response;
+		const response = await ky.post(ffUrl.toString(), {
+			headers: headers,
+			body: urlEncodedData,
+		});
+
+		if (response?.ok)
+			return {
+				status: "success",
+				message: "Lead created successfully",
+			};
+
+		return {
+			status: "failure",
+			message: "Failed to create lead",
+		};
 	} catch (e) {
 		logger
 			.child({ label: "FfWebAPI.CreateLead" })

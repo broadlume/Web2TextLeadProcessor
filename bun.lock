@@ -30,6 +30,7 @@
       "name": "common",
       "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.712.0",
+        "@restatedev/restate-sdk": "1.4.0",
         "serialize-error": "^11.0.3",
       },
       "devDependencies": {

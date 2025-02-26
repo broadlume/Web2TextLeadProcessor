@@ -1,7 +1,7 @@
 import * as restate from "@restatedev/restate-sdk";
 import { RESTATE_INGRESS_URL } from "common/external/restate";
 import { TwilioConversationHelpers } from "common/external/twilio";
-import { FormUrlEncodedSerde, XMLSerde } from "common/restate";
+import { Authorization, FormUrlEncodedSerde, XMLSerde } from "common/restate";
 import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
@@ -11,7 +11,6 @@ import {
 	CustomerCloseMessage,
 	DealerCloseMessage,
 } from "../../external/twilio/Web2TextMessagingStrings";
-import { CheckAuthorization } from "../validators";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 
 interface TwilioWebhookBody {
@@ -184,7 +183,7 @@ export const TwilioWebhooks = restate.service({
 				Status: "OPTED-IN" | "OPTED-OUT";
 				OptInNumbers?: E164Number[];
 			}> => {
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${TwilioWebhooks.name}/getOptInNumber`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],

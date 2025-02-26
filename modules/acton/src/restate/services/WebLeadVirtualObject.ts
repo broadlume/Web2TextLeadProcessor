@@ -2,6 +2,7 @@ import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
 import type { ExternalIntegrationState } from "common/external";
 import { serializeError } from "serialize-error";
+import { CheckAuthorization } from "src/validators";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
@@ -53,7 +54,7 @@ async function setup(
 	}
 }
 
-export const LeadVirtualObject = restate.object({
+export const WebLeadVirtualObject = restate.object({
 	name: "WebLead",
 	handlers: {
 		status: restate.handlers.object.shared(
@@ -78,15 +79,19 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
+				await CheckAuthorization(
+					ctx as unknown as restate.ObjectSharedContext,
+					`${WebLeadVirtualObject.name}/create`,
+					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+				);
+				await setup(ctx, ["NONEXISTANT"]);
 				try {
 					await ctx.update((_) => ({
 						Status: "VALIDATING",
 						Request: req ?? {},
 					}));
 					// Validate the submitted lead
-					console.log("E2E test", req);
 					const parsedRequest = WebFormLeadCreateRequestSchema.safeParse(req);
-					console.log("E2E test", parsedRequest);
 					if (!parsedRequest?.success) {
 						const formattedError = fromError(parsedRequest.error);
 						throw new restate.TerminalError(
@@ -116,7 +121,7 @@ export const LeadVirtualObject = restate.object({
 				}
 				// Return the status of the lead
 				return await ctx
-					.objectClient(LeadVirtualObject, ctx.key)
+					.objectClient(WebLeadVirtualObject, ctx.key)
 					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
 			},
 		),
@@ -125,14 +130,13 @@ export const LeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				await setup(ctx, [
-					"ACTIVE",
-					"SYNCING",
-					"CLOSED",
-					"ERROR",
-					"NONEXISTANT",
-					"VALIDATING",
-				]);
+				await CheckAuthorization(
+					ctx as unknown as restate.ObjectSharedContext,
+					`${WebLeadVirtualObject.name}/sync`,
+					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+				);
+				// Run pre-handler setup
+				await setup(ctx, ["ACTIVE", "SYNCING"]);
 				ctx.console.log(`Starting 'sync' for Lead ID : '${ctx.key}'`);
 				assert(is<restate.ObjectContext<WebLead>>(ctx));
 				ctx.set("Status", "SYNCING");
@@ -186,7 +190,7 @@ export const LeadVirtualObject = restate.object({
 					}
 				}
 				return await ctx
-					.objectClient(LeadVirtualObject, ctx.key)
+					.objectClient(WebLeadVirtualObject, ctx.key)
 					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
 			},
 		),

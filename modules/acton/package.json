@@ -1,5 +1,5 @@
 {
-    "name": "ActonLead",
+    "name": "acton-lead-service",
     "version": "1.0.0",
     "description": "Acton Lead Processor",
     "type": "commonjs",

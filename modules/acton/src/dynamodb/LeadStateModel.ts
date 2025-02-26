@@ -4,7 +4,7 @@ import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { WebFormLead } from "../types";
 import { ENV_PREFIX } from "./Environment";
-class LeadStateItem extends Item {
+class WebLeadStateItem extends Item {
 	SchemaVersion!: string;
 	LeadId!: string;
 	Status!: string;
@@ -14,8 +14,8 @@ class LeadStateItem extends Item {
 	DateSubmitted!: Date;
 	Integrations!: Record<string, ExternalIntegrationState>;
 }
-const LeadStateModelTableName = `${ENV_PREFIX}_WebLead_LeadStates`;
-const DynamoDBLeadStateSchema = new dynamoose.Schema(
+const WebLeadStateModelTableName = `${ENV_PREFIX}_WebLead_LeadStates`;
+const DynamoDBWebLeadStateSchema = new dynamoose.Schema(
 	{
 		SchemaVersion: {
 			type: String,
@@ -50,7 +50,7 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 	},
 	{ saveUnknown: true },
 );
-export const LeadStateModel = dynamoose.model<LeadStateItem>(
+export const LeadStateModel = dynamoose.model<WebLeadStateItem>(
 	LeadStateModelTableName,
 	DynamoDBLeadStateSchema,
 );

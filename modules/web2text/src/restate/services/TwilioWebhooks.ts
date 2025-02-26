@@ -60,7 +60,13 @@ function ValidateTwilioRequest(
 			data,
 		)
 	) {
-		throw new restate.TerminalError("Twilio request validation failed");
+		throw new restate.TerminalError("Twilio request validation failed", {
+			cause: {
+				twilioHeader: twilioHeader,
+				thisUrl: thisUrl.toString(),
+				data: data,
+			},
+		});
 	}
 }
 export const TwilioWebhooks = restate.service({

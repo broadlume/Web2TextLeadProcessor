@@ -1,4 +1,5 @@
 import * as restate from "@restatedev/restate-sdk";
+import { Authorization } from "common/restate";
 import type { Scan } from "dynamoose/dist/ItemRetriever";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
@@ -6,7 +7,6 @@ import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../../dynamodb/LeadStateModel";
 import type { Web2TextLead } from "../../types";
-import { CheckAuthorization } from "../validators";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 const NonEmptyObjectSchema = z
 	.object({})
@@ -51,7 +51,7 @@ export const AdminService = restate.service({
 					);
 				}
 				// Validate the API key
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${AdminService.name}/bulk/${parsed.data.Operation}`,
 					ctx.request().headers.get("authorization") ?? request?.["API_KEY"],

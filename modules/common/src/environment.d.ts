@@ -26,6 +26,10 @@ declare global {
 			NEXUS_API_PASSWORD: string;
 			/** Retail Lead Management API base URL */
 			RLM_API_URL: string;
+			/** God mode API key for RLM */
+			RLM_GOD_API_KEY: string;
+			/** God mode email for RLM */
+			RLM_GOD_EMAIL: string;
 			/** Restate admin interface URL */
 			RESTATE_ADMIN_URL: string;
 			/** Local DynamoDB instance URL for development */

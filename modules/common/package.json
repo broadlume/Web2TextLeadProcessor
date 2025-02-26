@@ -8,7 +8,8 @@
     },
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.712.0",
-        "serialize-error": "^11.0.3"
+        "serialize-error": "^11.0.3",
+        "@restatedev/restate-sdk": "1.4.0"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",
@@ -50,6 +51,10 @@
         "./external/restate": {
             "types": "./src/external/restate/index.ts",
             "default": "./src/external/restate/index.ts"
+        },
+        "./dynamodb": {
+            "types": "./src/dynamodb/index.ts",
+            "default": "./src/dynamodb/index.ts"
         }
     }
 }

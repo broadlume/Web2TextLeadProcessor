@@ -48,7 +48,14 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 11. Everything should be set up, you should be able to reach the endpoints at `localhost:8080/{service-name}/{object-key}/{endpoint}`
     - The API endpoints require an `Authorization` header of `Bearer <API TOKEN>`
     - I recommend using [Bruno](https://www.usebruno.com/), but Postman will do as well
-  
+
+## Admin UI
+Restate has an admin UI that allows you to inspect the state of the services, in-flight invocations, and other metrics.
+
+- Local: http://localhost:9070
+- Dev: https://admin.web2text.web.dev.broadlume.com:9070
+- Prod: https://admin.web2text.web.broadlume.com:9070
+
 ## API Docs
 There is a Swagger instance hosted at
 - Local: http://localhost:8001

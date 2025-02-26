@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import type * as restate from "@restatedev/restate-sdk";
+import { APIKeyModel } from "common/dynamodb";
 import { RestateAdminDeploymentAPI } from "common/external/restate";
 import dynamoose from "dynamoose";
 import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
+import { Web2TextIntegrations } from "web2text-service/external/index";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
@@ -37,16 +38,17 @@ beforeAll(async () => {
 	vi.mock("web2text-service/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
-	vi.mock("web2text-service/external", () => ({
-		Web2TextIntegrations: [
-			{
-				defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
-				create: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
-				sync: (state: any) => ({ ...state, SyncStatus: "SYNCED" }),
-				close: (state: any) => ({ ...state, SyncStatus: "CLOSED" }),
-			},
-		],
-	}));
+
+	// Clear the Web2TextIntegrations and replace with a mocked one
+	Web2TextIntegrations.splice(0, Number.POSITIVE_INFINITY);
+	Web2TextIntegrations.push({
+		Name: "Test Integration",
+		defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
+		create: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),
+		sync: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),
+		close: (state: any, context: any) => ({ ...state, SyncStatus: "CLOSED" }),
+	});
+
 	// Setup restate handler
 	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
 	await RestateAdminDeploymentAPI.CreateDeployment(

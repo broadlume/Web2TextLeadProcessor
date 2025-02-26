@@ -37,6 +37,7 @@ environments:
   production:
     variables:
       RESTATE_ADMIN_URL: http://restate-server:9070
+      PUBLIC_RESTATE_INGRESS_URL: http://web2text.web.broadlume.com
       RLM_API_URL: https://app.retailleadmanagement.com
       NEXUS_AWS_API_URL: https://06a6q4ciml.execute-api.us-west-2.amazonaws.com
       NEXUS_AWS_API_SECRET_NAME: blx-shell-user-pool-stack-blx-api-client-secrets-prod-v1
@@ -45,6 +46,7 @@ environments:
   development:
     variables:
       RESTATE_ADMIN_URL: http://restate-server:9070
+      PUBLIC_RESTATE_INGRESS_URL: http://web2text.web.dev.broadlume.com
       NEXUS_AWS_API_URL: https://06a6q4ciml.execute-api.us-west-2.amazonaws.com
       NEXUS_AWS_API_SECRET_NAME: blx-shell-user-pool-stack-blx-api-client-secrets-prod-v1
       RLM_API_URL: https://app.dev.retailleadmanagement.com

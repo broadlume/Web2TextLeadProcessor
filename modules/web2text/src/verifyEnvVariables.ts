@@ -54,6 +54,10 @@ export const ENV_FILE_SCHEMA = z
 		NEXUS_AUTH_AWS_REGION: z
 			.string()
 			.min(1, "Nexus Auth AWS secret region is required"),
+		PUBLIC_RESTATE_INGRESS_URL: z
+			.string()
+			.url("Public Restate Ingress URL must be a valid URL")
+			.optional(),
 	})
 	.passthrough();
 

@@ -9,7 +9,6 @@ import type {
 	IExternalIntegration,
 } from "common/external";
 import { NexusRetailerAPI, NexusStoresAPI } from "common/external/nexus";
-import { RESTATE_INGRESS_URL } from "common/external/restate";
 import {
 	TwilioConversationHelpers,
 	TwilioProxyAPI,
@@ -416,11 +415,12 @@ export class TwilioIntegration
 
 		// Attach Twilio webhooks only when deployed
 		if (isDeployed()) {
-			const syncEndpoint = new URL("TwilioWebhooks/sync", RESTATE_INGRESS_URL);
+			const ingressUrl = process.env.PUBLIC_RESTATE_INGRESS_URL;
+			const syncEndpoint = new URL("TwilioWebhooks/sync", ingressUrl);
 			syncEndpoint.port = "";
 			const closeEndpoint = new URL(
 				"TwilioWebhooks/close",
-				RESTATE_INGRESS_URL,
+				ingressUrl,
 			);
 			closeEndpoint.port = "";
 			const activeWebhooks = await this.twilioClient.conversations.v1

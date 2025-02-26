@@ -1,5 +1,4 @@
 import * as restate from "@restatedev/restate-sdk";
-import { RESTATE_INGRESS_URL } from "common/external/restate";
 import { TwilioConversationHelpers } from "common/external/twilio";
 import { Authorization, FormUrlEncodedSerde, XMLSerde } from "common/restate";
 import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
@@ -50,7 +49,7 @@ function ValidateTwilioRequest(
 	}
 	const thisUrl = new URL(
 		`${TwilioWebhooks.name}/${endpoint}`,
-		RESTATE_INGRESS_URL,
+		process.env.PUBLIC_RESTATE_INGRESS_URL,
 	);
 	thisUrl.port = "";
 	if (

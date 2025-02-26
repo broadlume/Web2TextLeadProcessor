@@ -3,9 +3,8 @@ import { randomUUID } from "node:crypto";
 import type os from "node:os";
 import * as restate from "@restatedev/restate-sdk";
 import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
-import "./dynamodb/index";
 import util from "node:util";
-import { logger as _logger } from "common";
+import { logger as _logger, GetRunningEnvironment } from "common";
 import { RegisterThisServiceWithRestate } from "common/restate";
 import { serializeError } from "serialize-error";
 import { AdminService } from "./restate/services/AdminService";
@@ -13,6 +12,9 @@ import { DealerVirtualObject } from "./restate/services/DealerVirtualObject";
 import { TwilioWebhooks } from "./restate/services/TwilioWebhooks";
 import { TWILIO_CLIENT } from "./twilio";
 import { VerifyEnvVariables } from "./verifyEnvVariables";
+import { InitLocalDynamoDb } from "common/dynamodb";
+import { LeadStateModel } from "./dynamodb/LeadStateModel";
+import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
 
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -30,6 +32,11 @@ if (process.env.NODE_ENV !== "test") {
 	Object.assign(TwilioWebhooks, { name: `${TwilioWebhooks.name}-test` });
 }
 globalThis.TWILIO_CLIENT = TWILIO_CLIENT;
+
+// Initialize the local DynamoDB instance and create the necessary tables
+if (GetRunningEnvironment().local) {
+	InitLocalDynamoDb([LeadStateModel, OptedOutNumberModel]);
+}
 
 // Create the Restate server to accept requests
 const RESTATE_PORT = 9080;

@@ -9,6 +9,7 @@ class APIKeyItem extends Item {
 	AuthorizedEndpoints!: string[];
 	Description?: string;
 }
+// TODO: Rename this table name to something more generic once we figure out what to call this monorepo
 const APIKeyModelTableName = `${ENV_PREFIX}_Web2Text_APIKeys`;
 export const APIKeyModel = dynamoose.model<APIKeyItem>(APIKeyModelTableName, {
 	API_Key: {

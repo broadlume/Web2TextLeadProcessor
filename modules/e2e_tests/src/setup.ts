@@ -6,7 +6,7 @@ import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import { APIKeyModel } from "web2text-service/dynamodb/APIKeyModel";
+import { APIKeyModel } from "common/dynamodb";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,

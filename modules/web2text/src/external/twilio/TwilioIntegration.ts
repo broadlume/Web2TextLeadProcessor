@@ -418,10 +418,7 @@ export class TwilioIntegration
 			const ingressUrl = process.env.PUBLIC_RESTATE_INGRESS_URL;
 			const syncEndpoint = new URL("TwilioWebhooks/sync", ingressUrl);
 			syncEndpoint.port = "";
-			const closeEndpoint = new URL(
-				"TwilioWebhooks/close",
-				ingressUrl,
-			);
+			const closeEndpoint = new URL("TwilioWebhooks/close", ingressUrl);
 			closeEndpoint.port = "";
 			const activeWebhooks = await this.twilioClient.conversations.v1
 				.conversations(conversation.sid)

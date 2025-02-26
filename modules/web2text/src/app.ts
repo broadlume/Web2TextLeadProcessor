@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import type os from "node:os";
 import * as restate from "@restatedev/restate-sdk";
-import { GetRunningEnvironment, logger as _logger } from "common";
+import { GetRunningEnvironment, logger as _logger, isDeployed } from "common";
 import { InitLocalDynamoDb } from "common/dynamodb";
 import {
 	CreateNewRestateLogger,
@@ -20,7 +20,7 @@ import { VerifyEnvVariables } from "./verifyEnvVariables";
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
 // Verify env variables and crash if any are invalid/missing
-if (process.env.NODE_ENV !== "test") {
+if (GetRunningEnvironment().environment !== "test") {
 	if (!VerifyEnvVariables()) {
 		process.exit(1);
 	}
@@ -52,9 +52,8 @@ export const RESTATE_SERVER = restate
 	.bind(AdminService)
 	.bind(TwilioWebhooks);
 RESTATE_SERVER.listen(RESTATE_PORT);
-let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
-
-if (process.env.NODE_ENV === "production") {
+if (isDeployed()) {
+	let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
 	const startupLogger = _logger.child({ label: "Startup" });
 	startupLogger.info(`Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);
 	RegisterThisServiceWithRestate(RESTATE_PORT)

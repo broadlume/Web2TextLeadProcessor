@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { describe, test } from "vitest";
 import { APIKeyModel } from "common/dynamodb";
+import { describe, test } from "vitest";
 import { ADMIN_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
 describe("Admin Service Authentication", () => {

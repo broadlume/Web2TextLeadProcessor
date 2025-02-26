@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { describe, test } from "vitest";
 import { APIKeyModel } from "common/dynamodb";
+import { describe, test } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { supertest } from "../../setup";
 import { TEST_API_KEY } from "../../setup";

@@ -1,14 +1,11 @@
 import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
 import { NexusStoresAPI } from "common/external/nexus";
+import { Authorization } from "common/restate";
 import parsePhoneNumber from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import {
-	CheckClientStatus,
-	CheckLocationStatus,
-} from "../validators";
-import { Authorization } from "common/restate";
+import { CheckClientStatus, CheckLocationStatus } from "../validators";
 
 type LocationStatus = {
 	NexusLocationId: string;

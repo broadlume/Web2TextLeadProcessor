@@ -1,4 +1,5 @@
 import * as restate from "@restatedev/restate-sdk";
+import { Authorization } from "common/restate";
 import type { Scan } from "dynamoose/dist/ItemRetriever";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
@@ -6,7 +7,6 @@ import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../../dynamodb/LeadStateModel";
 import type { Web2TextLead } from "../../types";
-import { Authorization } from "common/restate";
 import { LeadVirtualObject } from "./LeadVirtualObject";
 const NonEmptyObjectSchema = z
 	.object({})

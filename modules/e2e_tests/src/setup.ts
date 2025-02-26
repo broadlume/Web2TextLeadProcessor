@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
 import type * as restate from "@restatedev/restate-sdk";
+import { APIKeyModel } from "common/dynamodb";
 import { RestateAdminDeploymentAPI } from "common/external/restate";
 import dynamoose from "dynamoose";
 import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import { APIKeyModel } from "common/dynamodb";
+import { Web2TextIntegrations } from "web2text-service/external/index";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
 	LEAD_SERVICE_NAME,
 } from "./globalSetup";
-import { Web2TextIntegrations } from "web2text-service/external/index";
 export const RESTATE_INGRESS_URL = `http://${new URL(process.env.RESTATE_ADMIN_URL!.replace("admin.", "")).hostname}:8080/`;
 export const supertest = request(RESTATE_INGRESS_URL);
 export const TEST_API_KEY: string = "8695e2fa-3bf7-4949-ba2b-2605ace32b85";
@@ -40,7 +40,7 @@ beforeAll(async () => {
 	}));
 
 	// Clear the Web2TextIntegrations and replace with a mocked one
-	Web2TextIntegrations.splice(0,Number.POSITIVE_INFINITY);
+	Web2TextIntegrations.splice(0, Number.POSITIVE_INFINITY);
 	Web2TextIntegrations.push({
 		Name: "Test Integration",
 		defaultState: () => ({ SyncStatus: "NOT SYNCED" }),

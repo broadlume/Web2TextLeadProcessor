@@ -1,6 +1,6 @@
 import * as restate from "@restatedev/restate-sdk";
-import { APIKeyModel } from "../dynamodb";
 import { z } from "zod";
+import { APIKeyModel } from "../dynamodb";
 type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;

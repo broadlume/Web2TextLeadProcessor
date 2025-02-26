@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { APIKeyModel } from "common/dynamodb";
 import nock from "nock";
 import { describe, test } from "vitest";
-import { APIKeyModel } from "common/dynamodb";
 import { DEALER_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
 describe("Dealer Service Authentication", () => {

@@ -1,6 +1,7 @@
 import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
 import type { ExternalIntegrationState } from "common/external";
+import { Authorization } from "common/restate";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
@@ -8,7 +9,6 @@ import { Web2TextIntegrations } from "../../external";
 import type { LeadState, Web2TextLead } from "../../types";
 import { SyncWithDB } from "../db";
 import { ParseAndVerifyLeadCreation } from "../validators";
-import { Authorization } from "common/restate";
 /**
  * Helper function that runs before all of our exclusive handlers
  * Handles initializing state from the database verifying assumptions

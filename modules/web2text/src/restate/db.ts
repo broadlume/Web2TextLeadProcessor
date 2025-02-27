@@ -2,10 +2,10 @@ import * as restate from "@restatedev/restate-sdk";
 import { GetRunningEnvironment } from "common";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "../dynamodb/LeadStateModel";
-import { type LeadState, Web2TextLeadSchema } from "../types";
+import { type LeadState, LeadStateSchema, type Web2TextLead, Web2TextLeadSchema } from "../types";
 
 export async function SyncWithDB(
-	ctx: restate.ObjectContext<LeadState>,
+	ctx: restate.ObjectContext<LeadState<Web2TextLead>>,
 	direction: "SEND" | "RECEIVE",
 ) {
 	ctx.console.debug(
@@ -16,7 +16,7 @@ export async function SyncWithDB(
 	switch (direction) {
 		case "SEND": {
 			const objectState = await ctx.getAll();
-			const parsed = Web2TextLeadSchema.parse(objectState);
+			const parsed = LeadStateSchema(Web2TextLeadSchema).parse(objectState);
 			// For debugging
 			if (GetRunningEnvironment().local) {
 				ctx.console.debug("SYNCED TO DB:", parsed);
@@ -40,7 +40,7 @@ export async function SyncWithDB(
 				break;
 			}
 			const { data, success, error } =
-				await Web2TextLeadSchema.safeParseAsync(lead);
+				await LeadStateSchema(Web2TextLeadSchema).safeParseAsync(lead);
 			if (!success) {
 				throw new restate.TerminalError(
 					`Could not parse lead ID '${leadID}' from database`,

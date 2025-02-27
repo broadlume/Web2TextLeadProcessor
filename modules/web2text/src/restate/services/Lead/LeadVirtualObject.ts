@@ -5,10 +5,16 @@ import { Authorization } from "common/restate";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { Web2TextIntegrations } from "../../external";
-import type { LeadState, Web2TextLead } from "../../types";
-import { SyncWithDB } from "../db";
-import { ParseAndVerifyLeadCreation } from "../validators";
+import { Web2TextIntegrations } from "../../../external";
+import type { ErrorLeadState, LeadState, SubmittedLeadState, Web2TextLead, Web2TextLeadSchema } from "../../../types";
+import { SyncWithDB } from "../../db";
+import { VerifyLeadSubmission } from "../../../validators";
+import { Web2TextLeadCreateRequestSchema } from "./Web2TextLeadCreateRequest";
+import { fromError } from "zod-validation-error";
+
+type State = LeadState<Web2TextLead>
+type SubmittedState = SubmittedLeadState<Web2TextLead>;
+type ErrorState = ErrorLeadState<Web2TextLead>;
 /**
  * Helper function that runs before all of our exclusive handlers
  * Handles initializing state from the database verifying assumptions
@@ -16,8 +22,8 @@ import { ParseAndVerifyLeadCreation } from "../validators";
  * @param allowedStates a set of lead status states that we should allow this handler to run with
  */
 async function setup(
-	ctx: restate.ObjectContext<LeadState>,
-	allowedStates: LeadState["Status"][],
+	ctx: restate.ObjectContext<State>,
+	allowedStates: State["Status"][],
 ) {
 	const uuidParser = z.string().uuid();
 	if (!uuidParser.safeParse(ctx.key).success) {
@@ -56,9 +62,9 @@ export const LeadVirtualObject = restate.object({
 		 */
 		status: restate.handlers.object.shared(
 			async (
-				ctx: restate.ObjectSharedContext<LeadState>,
+				ctx: restate.ObjectSharedContext<State>,
 				req?: Record<string, any>,
-			): Promise<LeadState> => {
+			): Promise<State> => {
 				// Validate the API key
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -77,9 +83,9 @@ export const LeadVirtualObject = restate.object({
 		 */
 		create: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext<LeadState>,
+				ctx: restate.ObjectContext<State>,
 				req: Record<string, any>,
-			): Promise<LeadState> => {
+			): Promise<SubmittedState | ErrorState> => {
 				// Validate the API key
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -91,12 +97,21 @@ export const LeadVirtualObject = restate.object({
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
-					await ctx.update((_) => ({
-						Status: "VALIDATING",
-						Request: req ?? {},
-					}));
+					// Parse the request
+					const leadCreateRequest = await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
+					if (!leadCreateRequest.success) {
+						const formattedError = fromError(leadCreateRequest.error);
+						throw new restate.TerminalError(
+							`Request could not be parsed - ${formattedError.message}`,
+							{
+								errorCode: 400,
+							},
+						);
+					}
+
 					// Validate the submitted lead
-					const Lead = await ParseAndVerifyLeadCreation(ctx, req);
+					await VerifyLeadSubmission(ctx, leadCreateRequest.data);
+					const Lead = leadCreateRequest.data;
 					ShouldRunSync = Lead.SyncImmediately ?? true;
 					delete Lead.SyncImmediately;
 
@@ -105,12 +120,12 @@ export const LeadVirtualObject = restate.object({
 						...Lead,
 						LeadId: ctx.key as UUID,
 						Status: "ACTIVE",
-						SchemaVersion: "1.0.0",
+						SchemaVersion: "2.0.0",
 						DateSubmitted: currentDate.toISOString(),
 						Integrations: {},
 					}));
 					// Mark the lead as ACTIVE and sync with the database
-					ctx.set<LeadState["Status"]>("Status", "ACTIVE");
+					ctx.set<State["Status"]>("Status", "ACTIVE");
 					await SyncWithDB(ctx, "SEND");
 					ctx.console.log(`Created new lead with LeadID: '${ctx.key}'`, {
 						_meta: 1,
@@ -133,7 +148,7 @@ export const LeadVirtualObject = restate.object({
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
+					.status({ API_KEY: process.env.INTERNAL_API_TOKEN }) as SubmittedState;
 			},
 		),
 		/**
@@ -141,9 +156,9 @@ export const LeadVirtualObject = restate.object({
 		 */
 		sync: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext<LeadState>,
+				ctx: restate.ObjectContext<SubmittedState>,
 				req?: Record<string, any>,
-			): Promise<LeadState> => {
+			): Promise<State> => {
 				// Validate the API key
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
@@ -243,7 +258,7 @@ export const LeadVirtualObject = restate.object({
 					await SyncWithDB(ctx, "SEND");
 				}
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
-				ctx.set<LeadState["Status"]>("Status", "ACTIVE");
+				ctx.set<State["Status"]>("Status", "ACTIVE");
 				await SyncWithDB(ctx, "SEND");
 				ctx.console.log(`Finished 'sync' for Lead ID: '${ctx.key}'`);
 
@@ -258,9 +273,9 @@ export const LeadVirtualObject = restate.object({
 		 */
 		close: restate.handlers.object.exclusive(
 			async (
-				ctx: restate.ObjectContext<LeadState>,
+				ctx: restate.ObjectContext<SubmittedState>,
 				req?: { reason?: string; API_KEY?: string },
-			): Promise<LeadState> => {
+			): Promise<State> => {
 				// Validate the API key
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,

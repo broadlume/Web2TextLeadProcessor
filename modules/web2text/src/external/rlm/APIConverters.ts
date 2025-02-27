@@ -2,15 +2,15 @@ import { Into } from "common/external";
 import type { RLMLeadsAPI } from "common/external/rlm";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import type { Jsonify } from "type-fest";
-import type { Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 
 export class Web2TextMessageIntoRLMNote extends Into<RLMLeadsAPI.RLMAttachNoteRequest> {
 	private twilioMessage: Jsonify<MessageInstance>;
-	private web2TextLead: Web2TextLead;
+	private web2TextLead: SubmittedLeadState<Web2TextLead>;
 	private rlmLeadUUID: string;
 	constructor(
 		rlmLeadUUID: string,
-		web2TextLead: Web2TextLead,
+		web2TextLead: SubmittedLeadState<Web2TextLead>,
 		twilioMessage: Jsonify<MessageInstance>,
 	) {
 		super();
@@ -43,7 +43,7 @@ export class Web2TextMessageIntoRLMNote extends Into<RLMLeadsAPI.RLMAttachNoteRe
 }
 
 export class Web2TextLeadIntoRLMLead extends Into<RLMLeadsAPI.RLMCreateLeadRequest> {
-	private web2TextLead: Web2TextLead;
+	private web2TextLead: SubmittedLeadState<Web2TextLead>;
 	/**
 	 * The name of the location - RLM uses this to associated the lead with the correct location
 	 *
@@ -55,14 +55,14 @@ export class Web2TextLeadIntoRLMLead extends Into<RLMLeadsAPI.RLMCreateLeadReque
 	 */
 	private rlmLocationName: string;
 	constructor(
-		web2TextLead: Web2TextLead,
+		web2TextLead: SubmittedLeadState<Web2TextLead>,
 		rlmLocationName: string = "Per Pipeline configuration",
 	) {
 		super();
 		this.web2TextLead = web2TextLead;
 		this.rlmLocationName = rlmLocationName;
 	}
-	private static formatLeadIntoMessage(lead: Web2TextLead): string {
+	private static formatLeadIntoMessage(lead: SubmittedLeadState<Web2TextLead>): string {
 		let message = `--------------------
         Web2Text Lead Information
         --------------------

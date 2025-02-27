@@ -7,13 +7,12 @@ import { TwilioLookupAPI } from "common/external/twilio";
 import type { E164Number } from "libphonenumber-js";
 import parsePhoneNumber from "libphonenumber-js";
 import type { Twilio } from "twilio";
-import { fromError } from "zod-validation-error";
-import { OptedOutNumberModel } from "../dynamodb/OptedOutNumberModel";
-import {
-	type LeadState,
-	type Web2TextLeadCreateRequest,
-	Web2TextLeadCreateRequestSchema,
-} from "../types";
+import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
+import type { Web2TextLeadCreateRequest } from "./restate/services/Lead/Web2TextLeadCreateRequest";
+import type {
+	LeadState,
+	Web2TextLead
+} from "./types";
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -177,22 +176,11 @@ export async function CheckPhoneNumberStatus(
  * @param req the request to parse and verify
  * @returns a parsed Web2TextLeadCreateRequest if the lead passed validation - throws an error otherwise
  */
-export async function ParseAndVerifyLeadCreation(
-	ctx: restate.ObjectContext<LeadState>,
-	req: unknown,
-): Promise<Web2TextLeadCreateRequest> {
-	const parseRequest =
-		await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
-	if (!parseRequest.success) {
-		const formattedError = fromError(parseRequest.error);
-		throw new restate.TerminalError(
-			`Request could not be parsed - ${formattedError.message}`,
-			{
-				errorCode: 400,
-			},
-		);
-	}
-	const leadState = parseRequest.data;
+export async function VerifyLeadSubmission(
+	ctx: restate.ObjectContext<LeadState<Web2TextLead>>,
+	req: Web2TextLeadCreateRequest,
+) {
+	const leadState = req;
 	if (leadState.Lead.IPAddress != null) {
 		const ipAddressValid = await ctx.run<ValidationStatus>(
 			"IP address validation",
@@ -218,7 +206,7 @@ export async function ParseAndVerifyLeadCreation(
 
 	const locationStatus = await ctx.run<ValidationStatus>(
 		"Location validation",
-		async () => await CheckLocationStatus(leadState.LocationId),
+		async () => await CheckLocationStatus(leadState.Lead.LocationId),
 	);
 	if (locationStatus.Status !== "VALID") {
 		throw new restate.TerminalError(
@@ -231,7 +219,7 @@ export async function ParseAndVerifyLeadCreation(
 			await ctx.run(
 				"Get store phone number",
 				async () =>
-					await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
+					await NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
 			)
 		)?.Web2Text_Phone_Number ?? "",
 		"US",
@@ -240,6 +228,7 @@ export async function ParseAndVerifyLeadCreation(
 	if (storePhoneNumber?.number === leadState.Lead.PhoneNumber) {
 		throw new restate.TerminalError(
 			"Customer phone number is the same as the store's phone number",
+			{ errorCode: 400 },
 		);
 	}
 
@@ -259,5 +248,4 @@ export async function ParseAndVerifyLeadCreation(
 			},
 		);
 	}
-	return parseRequest.data;
 }

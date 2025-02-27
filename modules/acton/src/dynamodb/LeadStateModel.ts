@@ -3,7 +3,7 @@ import type { ExternalIntegrationState } from "common/external";
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
 import type { WebFormLead } from "../types";
-import { ENV_PREFIX } from "./Environment";
+import { ENV_PREFIX } from "common";
 class WebLeadStateItem extends Item {
 	SchemaVersion!: string;
 	LeadId!: string;
@@ -51,6 +51,6 @@ const DynamoDBWebLeadStateSchema = new dynamoose.Schema(
 	{ saveUnknown: true },
 );
 export const LeadStateModel = dynamoose.model<WebLeadStateItem>(
-	LeadStateModelTableName,
-	DynamoDBLeadStateSchema,
+	WebLeadStateModelTableName,
+	DynamoDBWebLeadStateSchema,
 );

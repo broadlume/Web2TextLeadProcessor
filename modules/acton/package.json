@@ -3,6 +3,12 @@
     "version": "1.0.0",
     "description": "Acton Lead Processor",
     "type": "commonjs",
+    "exports": {
+      "./*": {
+        "default": "./src/*.ts",
+        "types": "./src/*.ts"
+      }
+    },
     "scripts": {
       "app-dev": "tsx watch ./src/app.ts --inspect=9229",
       "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9080 --force --yes --quiet",

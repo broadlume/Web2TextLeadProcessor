@@ -36,12 +36,13 @@ export const ENV_FILE_SCHEMA = z
 
 export type EnvConfig = z.infer<typeof ENV_FILE_SCHEMA>;
 
-export function VerifyEnvVariables() {
+export function VerifyEnvVariables(): boolean {
 	const parsed = ENV_FILE_SCHEMA.safeParse(process.env);
-	if (parsed.success) return;
+	if (parsed.success) return true;
 	const formatted = fromZodError(parsed.error);
 	_logger.error(`Error verifying env variables:\n${formatted.message}`, {
 		_meta: 1,
 		Error: formatted,
 	});
+	return false;
 }

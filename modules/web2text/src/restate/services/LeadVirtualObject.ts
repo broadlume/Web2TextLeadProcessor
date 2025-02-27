@@ -1,14 +1,14 @@
 import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
 import type { ExternalIntegrationState } from "common/external";
+import { Authorization } from "common/restate";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { Web2TextIntegrations } from "../../external";
 import type { LeadState, Web2TextLead } from "../../types";
 import { SyncWithDB } from "../db";
-import { CheckAuthorization, ParseAndVerifyLeadCreation } from "../validators";
-
+import { ParseAndVerifyLeadCreation } from "../validators";
 /**
  * Helper function that runs before all of our exclusive handlers
  * Handles initializing state from the database verifying assumptions
@@ -60,7 +60,7 @@ export const LeadVirtualObject = restate.object({
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/status`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
@@ -81,7 +81,7 @@ export const LeadVirtualObject = restate.object({
 				req: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/create`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
@@ -145,7 +145,7 @@ export const LeadVirtualObject = restate.object({
 				req?: Record<string, any>,
 			): Promise<LeadState> => {
 				// Validate the API key
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/sync`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
@@ -262,7 +262,7 @@ export const LeadVirtualObject = restate.object({
 				req?: { reason?: string; API_KEY?: string },
 			): Promise<LeadState> => {
 				// Validate the API key
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/close`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],

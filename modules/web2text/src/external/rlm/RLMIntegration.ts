@@ -3,8 +3,8 @@ import {
 	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
-import { NexusRetailerAPI } from "common/external/nexus";
-import { RLMLeadsAPI } from "common/external/rlm";
+import { NexusRetailerAPI, NexusStoresAPI } from "common/external/nexus";
+import { RLMLeadsAPI, RLMLocationsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
@@ -19,6 +19,7 @@ export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: number;
 		LeadUUID: string;
+		LocationName: string;
 		SyncedMessageIds: string[];
 	};
 }
@@ -38,6 +39,19 @@ export class RLMIntegration extends IExternalIntegration<
 		super();
 		client ??= globalThis.TWILIO_CLIENT;
 		this.twilioClient = client;
+	}
+	private async getRLMLocationName(
+		nexusLocationId: string,
+	): Promise<RLMLocationsAPI.RLMDHQLocationMappingResponse[0] | null> {
+		const rlmLocationsMapping = await RLMLocationsAPI.GetDHQLocationsMapping();
+		const storeInformation =
+			await NexusStoresAPI.GetRetailerStoreByID(nexusLocationId);
+		if (storeInformation?.universal_id == null) return null;
+		return (
+			rlmLocationsMapping.find(
+				(mapping) => mapping.dhq_store_id === storeInformation?.universal_id,
+			) ?? null
+		);
 	}
 	async create(
 		state: RLMIntegrationState,
@@ -61,12 +75,25 @@ export class RLMIntegration extends IExternalIntegration<
 				},
 			};
 		}
+		const rlmLocationMapping = await context.run(
+			"Get RLM location name",
+			async () => await this.getRLMLocationName(leadState.LocationId),
+		);
+		if (rlmLocationMapping == null) {
+			context.console.warn(
+				`Could not find RLM location mapping for nexus location id: '${leadState.LocationId}'`,
+				{ _meta: 1, LeadState: leadState },
+			);
+		}
 		const response = await context.run(
 			"Create RLM Lead",
 			async () =>
 				await RLMLeadsAPI.CreateLead(
 					leadState.LeadId,
-					new Web2TextLeadIntoRLMLead(leadState),
+					new Web2TextLeadIntoRLMLead(
+						leadState,
+						rlmLocationMapping?.location_name ?? undefined,
+					),
 					rlm_api_key!,
 				).catch(
 					(e) =>
@@ -96,6 +123,8 @@ export class RLMIntegration extends IExternalIntegration<
 			LastSynced: new Date(await context.date.now()).toISOString(),
 			Data: {
 				LeadId: response.lead_id,
+				LocationName:
+					rlmLocationMapping?.location_name ?? "Per Pipeline configuration",
 				LeadUUID: response.lead_uuid!,
 				SyncedMessageIds: [],
 			},

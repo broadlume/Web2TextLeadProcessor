@@ -21,6 +21,8 @@ export const ENV_FILE_SCHEMA = z
 		NEXUS_API_USERNAME: z.string().min(1, "Nexus API Username is required"),
 		NEXUS_API_PASSWORD: z.string().min(1, "Nexus API Password is required"),
 		RLM_API_URL: z.string().url("RLM API URL must be a valid URL"),
+		RLM_GOD_API_KEY: z.string().min(1, "RLM God API key is required"),
+		RLM_GOD_EMAIL: z.string().min(1, "RLM God email is required"),
 		RESTATE_ADMIN_URL: z.string().url("Restate Admin URL must be a valid URL"),
 		LOCAL_DYNAMODB_URL: z
 			.string()
@@ -52,17 +54,22 @@ export const ENV_FILE_SCHEMA = z
 		NEXUS_AUTH_AWS_REGION: z
 			.string()
 			.min(1, "Nexus Auth AWS secret region is required"),
+		PUBLIC_RESTATE_INGRESS_URL: z
+			.string()
+			.url("Public Restate Ingress URL must be a valid URL")
+			.optional(),
 	})
 	.passthrough();
 
 export type EnvConfig = z.infer<typeof ENV_FILE_SCHEMA>;
 
-export function VerifyEnvVariables() {
+export function VerifyEnvVariables(): boolean {
 	const parsed = ENV_FILE_SCHEMA.safeParse(process.env);
-	if (parsed.success) return;
+	if (parsed.success) return true;
 	const formatted = fromZodError(parsed.error);
 	_logger.error(`Error verifying env variables:\n${formatted.message}`, {
 		_meta: 1,
 		Error: formatted,
 	});
+	return false;
 }

@@ -9,7 +9,6 @@ import type {
 	IExternalIntegration,
 } from "common/external";
 import { NexusRetailerAPI, NexusStoresAPI } from "common/external/nexus";
-import { RESTATE_INGRESS_URL } from "common/external/restate";
 import {
 	TwilioConversationHelpers,
 	TwilioProxyAPI,
@@ -39,7 +38,7 @@ export class TwilioIntegration
 	implements IExternalIntegration<LeadState, TwilioIntegrationState>
 {
 	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
-		? "P14D"
+		? "P30D"
 		: "P1D";
 	readonly CONVERSATION_INACTIVE_TIMER = isProductionAndDeployed()
 		? "P7D"
@@ -416,12 +415,10 @@ export class TwilioIntegration
 
 		// Attach Twilio webhooks only when deployed
 		if (isDeployed()) {
-			const syncEndpoint = new URL("TwilioWebhooks/sync", RESTATE_INGRESS_URL);
+			const ingressUrl = process.env.PUBLIC_RESTATE_INGRESS_URL;
+			const syncEndpoint = new URL("TwilioWebhooks/sync", ingressUrl);
 			syncEndpoint.port = "";
-			const closeEndpoint = new URL(
-				"TwilioWebhooks/close",
-				RESTATE_INGRESS_URL,
-			);
+			const closeEndpoint = new URL("TwilioWebhooks/close", ingressUrl);
 			closeEndpoint.port = "";
 			const activeWebhooks = await this.twilioClient.conversations.v1
 				.conversations(conversation.sid)

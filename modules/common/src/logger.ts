@@ -2,6 +2,7 @@ import ecsFormat from "@elastic/ecs-winston-format";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import winston from "winston";
+import { GetRunningEnvironment } from "./util";
 
 const myFormat = winston.format.printf(
 	({ level, message, label, timestamp, errors = [] }) => {
@@ -29,7 +30,10 @@ const prodFormatter = ecsFormat();
 
 export const logger = winston.createLogger({
 	level: "info",
-	format: process.env.NODE_ENV === "production" ? prodFormatter : devFormatter,
+	format:
+		GetRunningEnvironment().environment === "production"
+			? prodFormatter
+			: devFormatter,
 	defaultMeta: { name: "Web2Text Handler", hostname: "localhost" },
 	transports: [new winston.transports.Console()],
 });

@@ -3,7 +3,7 @@ import {
 	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
-import { DHQStoreInquiryAPI } from "common/external/DHQ";
+import { DHQStoreInquiryAPI } from "common/external/dhq";
 import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";

@@ -4,7 +4,7 @@ import type {
 } from "common/external";
 import { TWILIO_CLIENT } from "../twilio";
 import type { LeadState } from "../types";
-import { DHQIntegration } from "./DHQ/DHQIntegration";
+import { DHQIntegration } from "./dhq/DHQIntegration";
 import { RLMIntegration } from "./rlm/RLMIntegration";
 import { TwilioIntegration } from "./twilio/TwilioIntegration";
 

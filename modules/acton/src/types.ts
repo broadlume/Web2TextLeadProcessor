@@ -1,6 +1,6 @@
 import type { UUID as UUIDType } from "node:crypto";
 import { ExternalIntegrationStateSchema } from "common/external";
-import z, { Schema } from "zod";
+import z from "zod";
 
 const NonEmptyString = () =>
 	z.string().min(1, { message: "String cannot be empty" });

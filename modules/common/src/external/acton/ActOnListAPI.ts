@@ -1,11 +1,12 @@
 import ky from "ky";
-import type { z } from "zod";
+import { z } from "zod";
 import { ACTON_AUTHORIZE_HEADERS } from ".";
 import { Into } from "..";
-import type { WebFormLeadSchema } from "../../../../acton/src/types";
 import { logger } from "../../logger";
 
-type ActOnRequest = z.infer<typeof WebFormLeadSchema>;
+const ActOnLead = z.record(z.string(), z.any());
+type ActOnRequest = z.infer<typeof ActOnLead>;
+
 export interface ActOnResponse {
 	status: string;
 	message: string;

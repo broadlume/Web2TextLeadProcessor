@@ -46,7 +46,10 @@ export class FfWebApiIntegration
 				...state,
 				SyncStatus: "ERROR",
 				ErrorInfo: {
-					Message: response.message,
+					Message: "Failed to create FloorForce Lead",
+					Details: {
+						Response: serializeError(response),
+					},
 					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
@@ -60,7 +63,7 @@ export class FfWebApiIntegration
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<FfWebApiIntegrationState> {
-		throw new restate.TerminalError("Lead Syncing not allowed.", {
+		throw new restate.TerminalError("FloorForce Lead Syncing not allowed.", {
 			errorCode: 400,
 		});
 	}
@@ -68,7 +71,7 @@ export class FfWebApiIntegration
 		state: FfWebApiIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<FfWebApiIntegrationState> {
-		throw new restate.TerminalError("Lead Closing not allowed.", {
+		throw new restate.TerminalError("FloorForce Lead Closing not allowed.", {
 			errorCode: 400,
 		});
 	}

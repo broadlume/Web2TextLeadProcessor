@@ -9,8 +9,8 @@ import {
 	RegisterThisServiceWithRestate,
 } from "common/restate";
 import { LeadStateModel } from "./dynamodb/LeadStateModel";
-import { VerifyEnvVariables } from "./verifyEnvVariables";
 import { WebLeadVirtualObject } from "./restate/services/WebLeadVirtualObject";
+import { VerifyEnvVariables } from "./verifyEnvVariables";
 
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();
@@ -20,7 +20,9 @@ if (GetRunningEnvironment().environment !== "test") {
 		process.exit(1);
 	}
 } else {
-	Object.assign(WebLeadVirtualObject, { name: `${WebLeadVirtualObject.name}-test` });
+	Object.assign(WebLeadVirtualObject, {
+		name: `${WebLeadVirtualObject.name}-test`,
+	});
 }
 
 // Initialize the local DynamoDB instance and create the necessary tables

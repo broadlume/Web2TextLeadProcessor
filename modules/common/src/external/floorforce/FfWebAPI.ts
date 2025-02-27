@@ -1,11 +1,11 @@
 import ky from "ky";
-import type { z } from "zod";
+import z from "zod";
 import { FF_AUTHORIZATION_HEADERS } from ".";
 import { Into } from "..";
-import type { WebFormLeadSchema } from "../../../../acton/src/types";
 import { logger } from "../../logger";
 
-export type FfLeadRequest = z.infer<typeof WebFormLeadSchema>;
+const FFLead = z.record(z.string(), z.any());
+export type FfLeadRequest = z.infer<typeof FFLead>;
 export type FfLeadResponse = {
 	status: string;
 	message: string;

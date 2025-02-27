@@ -1,5 +1,5 @@
 import { Into } from "common/external";
-import type { FfWebAPI } from "../../../../common/src/external/floorforce";
+import type { FfWebAPI } from "common/external/acton";
 import type { WebFormLead } from "../../types";
 
 export class WebFormLeadIntoFf extends Into<FfWebAPI.FfLeadRequest> {

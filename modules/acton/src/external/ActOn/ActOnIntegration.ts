@@ -4,8 +4,8 @@ import type {
 	ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
-import { ActOnListAPI } from "../../../../common/src/external/acton";
-import type { ActOnResponse } from "../../../../common/src/external/acton/ActOnListAPI";
+import { ActOnListAPI } from "common/external/acton";
+import { serializeError } from "serialize-error";
 import type { LeadState, WebLead } from "../../types";
 
 interface ActOnIntegrationState extends ExternalIntegrationState {
@@ -29,27 +29,29 @@ export class ActOnIntegration
 	): Promise<ActOnIntegrationState> {
 		context.console.log(`Starting 'create' for ActOn Integration`);
 		const leadState = await context.getAll();
-		const response = await context.run("Create ActOn Lead", async () => {
-			const listId = leadState?.Lead?.Lead?.listId!;
-			delete leadState?.Lead?.Lead?.listId;
-			const ActOnRes = await ActOnListAPI.CreateContactAPI(
-				listId,
-				leadState?.Lead?.Lead,
-			).catch(
-				(e) =>
-					({
-						status: "failure",
-						message: e,
-					}) as ActOnResponse,
-			);
-			return ActOnRes;
-		});
-		if (response?.status !== "success") {
+
+		const listId = leadState?.Lead?.Lead?.listId!;
+		delete leadState?.Lead?.Lead?.listId;
+		const ActOnRes = await ActOnListAPI.CreateContactAPI(
+			listId,
+			leadState?.Lead?.Lead,
+		).catch(
+			(e) =>
+				({
+					status: "failure",
+					message: e,
+				}) as ActOnListAPI.ActOnResponse,
+		);
+
+		if (ActOnRes?.status !== "success") {
 			return {
 				...state,
 				SyncStatus: "ERROR",
 				ErrorInfo: {
-					Message: response.message,
+					Message: "Failed to create ActOn Lead",
+					Details: {
+						Response: serializeError(ActOnRes),
+					},
 					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
@@ -63,7 +65,7 @@ export class ActOnIntegration
 		state: ActOnIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<ActOnIntegrationState> {
-		throw new restate.TerminalError("Lead Syncing not allowed.", {
+		throw new restate.TerminalError("ActOn Lead Syncing not allowed.", {
 			errorCode: 400,
 		});
 	}
@@ -71,7 +73,7 @@ export class ActOnIntegration
 		state: ActOnIntegrationState,
 		context: ObjectSharedContext<LeadState>,
 	): Promise<ActOnIntegrationState> {
-		throw new restate.TerminalError("Lead Closing not allowed.", {
+		throw new restate.TerminalError("ActOn Lead Closing not allowed.", {
 			errorCode: 400,
 		});
 	}

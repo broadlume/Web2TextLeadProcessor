@@ -1,8 +1,8 @@
 import type { UUID } from "node:crypto";
 import * as restate from "@restatedev/restate-sdk";
 import type { ExternalIntegrationState } from "common/external";
+import { Authorization } from "common/restate";
 import { serializeError } from "serialize-error";
-import { CheckAuthorization } from "src/validators";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
@@ -62,12 +62,15 @@ export const WebLeadVirtualObject = restate.object({
 				ctx: restate.ObjectSharedContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				//await CheckAuthorization(ctx);
+				await Authorization.CheckAuthorization(
+					ctx as unknown as restate.ObjectSharedContext,
+					`${WebLeadVirtualObject.name}/status`,
+					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+				);
 				const state = await ctx.getAll();
 				if (state.Status == null) {
 					return { Status: "NONEXISTANT" };
 				}
-				console.log("state", state);
 				return state;
 			},
 		),
@@ -79,7 +82,7 @@ export const WebLeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${WebLeadVirtualObject.name}/create`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
@@ -130,7 +133,7 @@ export const WebLeadVirtualObject = restate.object({
 				ctx: restate.ObjectContext<LeadState>,
 				req: Record<string, any>,
 			): Promise<LeadState> => {
-				await CheckAuthorization(
+				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${WebLeadVirtualObject.name}/sync`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],

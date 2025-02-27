@@ -3,13 +3,13 @@ import type { DHQStoreInquiryAPI } from "common/external/dhq";
 import type { NexusStoresAPI } from "common/external/nexus";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import type { Jsonify } from "type-fest";
-import type { Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 
 export class Web2TextMessageIntoDhqComment extends Into<DHQStoreInquiryAPI.AddCommentRequest> {
 	private twilioMessage: Jsonify<MessageInstance>;
-	private web2TextLead: Web2TextLead;
+	private web2TextLead: SubmittedLeadState<Web2TextLead>;
 	constructor(
-		web2TextLead: Web2TextLead,
+		web2TextLead: SubmittedLeadState<Web2TextLead>,
 		twilioMessage: Jsonify<MessageInstance>,
 	) {
 		super();
@@ -41,10 +41,10 @@ export class Web2TextMessageIntoDhqComment extends Into<DHQStoreInquiryAPI.AddCo
 }
 
 export class Web2TextLeadIntoDHQStoreInquiry extends Into<DHQStoreInquiryAPI.StoreInquiryRequest> {
-	private web2TextLead: Web2TextLead;
+	private web2TextLead: SubmittedLeadState<Web2TextLead>;
 	private storeInfo: NexusStoresAPI.RetailerStore;
 	constructor(
-		web2TextLead: Web2TextLead,
+		web2TextLead: SubmittedLeadState<Web2TextLead>,
 		storeInfo: NexusStoresAPI.RetailerStore,
 	) {
 		super();

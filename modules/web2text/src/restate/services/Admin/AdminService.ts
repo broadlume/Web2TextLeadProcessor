@@ -5,9 +5,9 @@ import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
-import { LeadStateModel } from "../../dynamodb/LeadStateModel";
-import type { Web2TextLead } from "../../types";
-import { LeadVirtualObject } from "./LeadVirtualObject";
+import { LeadStateModel } from "../../../dynamodb/LeadStateModel";
+import type { SubmittedLeadState, Web2TextLead } from "../../../types";
+import { LeadVirtualObject } from "../Lead/LeadVirtualObject";
 const NonEmptyObjectSchema = z
 	.object({})
 	.passthrough()
@@ -59,7 +59,7 @@ export const AdminService = restate.service({
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
 				const filter = parsed.data.Filter === "*" ? {} : parsed.data.Filter;
-				const leads: Web2TextLead[] = (await ctx.run(
+				const leads: SubmittedLeadState<Web2TextLead>[] = (await ctx.run(
 					"Scan LeadStates in DynamoDB",
 					async () => {
 						let scan: Scan<any>;
@@ -85,7 +85,7 @@ export const AdminService = restate.service({
 								);
 							});
 					},
-				)) as Web2TextLead[];
+				)) as SubmittedLeadState<Web2TextLead>[];
 				let result: any[] = [];
 				switch (parsed.data.Operation) {
 					case "CLOSE": {

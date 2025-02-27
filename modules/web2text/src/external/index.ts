@@ -3,13 +3,13 @@ import type {
 	IExternalIntegration,
 } from "common/external";
 import { TWILIO_CLIENT } from "../twilio";
-import type { LeadState } from "../types";
+import type { LeadState, SubmittedLeadState, Web2TextLead } from "../types";
 import { DHQIntegration } from "./dhq/DHQIntegration";
 import { RLMIntegration } from "./rlm/RLMIntegration";
 import { TwilioIntegration } from "./twilio/TwilioIntegration";
 
 export const Web2TextIntegrations: IExternalIntegration<
-	LeadState,
+	SubmittedLeadState<Web2TextLead>,
 	ExternalIntegrationState
 >[] = [
 	new TwilioIntegration(TWILIO_CLIENT),

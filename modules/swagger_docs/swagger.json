@@ -857,20 +857,6 @@
               "properties": {
                 "Status": {
                   "type": "string",
-                  "enum": ["VALIDATING"]
-                },
-                "Request": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              },
-              "required": ["Status", "Request"]
-            },
-            {
-              "type": "object",
-              "properties": {
-                "Status": {
-                  "type": "string",
                   "enum": ["ERROR"]
                 },
                 "Error": {

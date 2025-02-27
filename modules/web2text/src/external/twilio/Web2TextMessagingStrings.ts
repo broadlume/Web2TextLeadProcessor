@@ -1,4 +1,4 @@
-import type { Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 
 export function SystemGreetingMessage(
 	dealerName: string,
@@ -7,7 +7,7 @@ export function SystemGreetingMessage(
 	return `Broadlume, a flooring software company, is facilitating this messaging conversation. We have connected you with ${dealerName}, and they will respond via ${contactPreference} shortly. Please text STOP to opt out of communication.`;
 }
 export function DealerGreetMessage(
-	lead: Web2TextLead,
+	lead: SubmittedLeadState<Web2TextLead>,
 	locationName: string,
 ): string {
 	let message = `You have a new Web2Text lead!

@@ -8,7 +8,7 @@ import { RLMLeadsAPI, RLMLocationsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { LeadState, Web2TextLead } from "../../types";
+import type { LeadState, SubmittedLeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
@@ -25,7 +25,7 @@ export interface RLMIntegrationState extends ExternalIntegrationState {
 }
 
 export class RLMIntegration extends IExternalIntegration<
-	LeadState,
+	SubmittedLeadState<Web2TextLead>,
 	RLMIntegrationState
 > {
 	Name = "RLM";
@@ -55,7 +55,7 @@ export class RLMIntegration extends IExternalIntegration<
 	}
 	async create(
 		state: RLMIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<RLMIntegrationState> {
 		const leadState = await context.getAll();
 		const retailer = await context.run(
@@ -77,11 +77,11 @@ export class RLMIntegration extends IExternalIntegration<
 		}
 		const rlmLocationMapping = await context.run(
 			"Get RLM location name",
-			async () => await this.getRLMLocationName(leadState.LocationId),
+			async () => await this.getRLMLocationName(leadState.Lead.LocationId),
 		);
 		if (rlmLocationMapping == null) {
 			context.console.warn(
-				`Could not find RLM location mapping for nexus location id: '${leadState.LocationId}'`,
+				`Could not find RLM location mapping for nexus location id: '${leadState.Lead.LocationId}'`,
 				{ _meta: 1, LeadState: leadState },
 			);
 		}
@@ -132,7 +132,7 @@ export class RLMIntegration extends IExternalIntegration<
 	}
 	async sync(
 		state: RLMIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<RLMIntegrationState> {
 		const lead = await context.getAll();
 		const twilioIntegration: TwilioIntegrationState | undefined =
@@ -203,7 +203,7 @@ export class RLMIntegration extends IExternalIntegration<
 	}
 	async close(
 		state: RLMIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<RLMIntegrationState> {
 		return {
 			...state,

@@ -4,7 +4,8 @@
   "workspaces": [
     "modules/common",
     "modules/web2text",
-    "modules/e2e_tests"
+    "modules/e2e_tests",
+    "modules/acton"
   ],
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.5.3",

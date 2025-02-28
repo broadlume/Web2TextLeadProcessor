@@ -61,19 +61,8 @@ beforeAll(async () => {
 	globalThis.ranSetup = true;
 });
 
-beforeEach(async () => {
+beforeAll(async () => {
 	nock.cleanAll();
-	nock.enableNetConnect();
-	// Clear the state between each test
-	await new Promise((resolve, reject) =>
-		shelljs.exec(
-			"bun run clear-restate-test",
-			{ silent: true, async: true },
-			(code, stdout, stderr) => (code === 0 ? resolve(stdout) : reject(stderr)),
-		),
-	).catch((err) => {
-		console.error(err);
-	});
 	nock.disableNetConnect();
 	nock.enableNetConnect((host) => {
 		const allowedHosts = [

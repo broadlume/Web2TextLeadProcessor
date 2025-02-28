@@ -4,56 +4,62 @@ import { v4 as uuidv4 } from "uuid";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
-const leadId = uuidv4();
-const testLead = {
-	SchemaVersion: "2.0.0",
-	UniversalRetailerId: uuidv4(),
-	LeadType: "WEB2TEXT",
-	Lead: {
-		LocationId: uuidv4(),
-		PageUrl: "https://example.com",
-		IPAddress: "192.168.1.1",
-		Name: "John Doe",
-		PhoneNumber: "+12345678900",
-		PreferredMethodOfContact: "text",
-		CustomerMessage: "I'm interested in your products",
-	},
-	SyncImmediately: false,
-};
+import { createRandomLeadRequest } from "src/faker/Lead";
 
+const INVALID_LOCATION_ID = "e994392b-5a6f-473f-85f8-dd715048fe29";
+const INVALID_UNIVERSAL_RETAILER_ID = "e994392b-5a6f-473f-85f8-dd715048fe29";
 describe("Lead Close E2E Tests", () => {
 	beforeEach(() => {
 		const rlm_api_key = uuidv4();
 		nock(process.env.NEXUS_API_URL!)
-			.get(`/retailers/${testLead.UniversalRetailerId}`)
-			.reply(200, {
-				id: testLead.UniversalRetailerId,
-				name: "Test Client",
-				status: "Customer",
-				rlm_api_key: rlm_api_key,
+			.get(/retailers\/([^\/]+)$/)
+			.reply((uri) => {
+				const retailerId = uri.replace("/retailers/", "");
+				if (retailerId === INVALID_UNIVERSAL_RETAILER_ID) {
+					return [404];
+				}
+				return [200, {
+					id: retailerId,
+					name: "Test Client",
+					status: "Customer",
+					rlm_api_key: rlm_api_key,
+				}];
 			})
 			.persist()
-			.get(`/retailers/${testLead.UniversalRetailerId}/subscriptions`)
-			.reply(200, [
-				{
+			.get(/retailers\/([^\/]+)\/subscriptions$/)
+			.reply((uri) => {
+				const retailerId = uri.replace("/retailers/", "");
+				if (retailerId === INVALID_UNIVERSAL_RETAILER_ID) {
+					return [404];
+				}
+				return [200, [{
 					status: "Live",
 					web2text_opt_out: false,
 					subscription_status: "Live",
-				},
-			])
+				}]];
+			})
 			.persist();
 
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
-			.query({ location_id: testLead.Lead.LocationId })
-			.reply(200, {
-				data: [
-					{
-						id: testLead.Lead.LocationId,
-						location_id: testLead.Lead.LocationId,
-						Web2Text_Phone_Number: "+12246591932",
-					},
-				],
+			.query(query => {
+				return "location_id" in query && Object.keys(query).length === 1;
+			})
+			.reply((uri) => {
+				const invalidLocationId = "e994392b-5a6f-473f-85f8-dd715048fe29";
+				const locationId = new URL(uri, "https://example.com").searchParams.get("location_id");
+				if (locationId === invalidLocationId) {
+					return [404];
+				}
+				return [200, {
+					data: [
+						{
+							id: locationId,
+							location_id: locationId,
+							Web2Text_Phone_Number: "+12246591932",
+						},
+					],
+				}];
 			})
 			.persist();
 		nock("https://lookups.twilio.com")
@@ -86,7 +92,6 @@ describe("Lead Close E2E Tests", () => {
 				url: "https://lookups.twilio.com/v2/PhoneNumbers/+14159929960",
 			}))
 			.persist();
-
 		// Mock Twilio API calls
 		nock("https://conversations.twilio.com")
 			.persist()
@@ -110,11 +115,13 @@ describe("Lead Close E2E Tests", () => {
 			.reply(200, { status: "success", data: { lead: { id: "dhq-lead-id" } } });
 	});
 	it("should close a lead successfully", async () => {
+		const leadId = uuidv4();
+		const request = createRandomLeadRequest({ SyncImmediately: false });
 		// Create a lead first
 		const createResponse = await supertest
 			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
 			.auth(TEST_API_KEY, { type: "bearer" })
-			.send(testLead)
+			.send(request)
 			.expect(200);
 
 		// Close the lead
@@ -131,29 +138,30 @@ describe("Lead Close E2E Tests", () => {
 		});
 	});
 	it("should successfully close integrations on lead close", async () => {
-		const newLeadId = uuidv4();
+		const leadId = uuidv4();
+		const request = createRandomLeadRequest({ SyncImmediately: false });
 		// Create a lead first
 		await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/create`)
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
 			.auth(TEST_API_KEY, { type: "bearer" })
-			.send(testLead)
+			.send(request)
 			.expect(200);
 
 		// Sync the lead
 		await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/sync`)
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/sync`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.expect(200);
 
 		// Close the lead
 		const closeResponse = await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${newLeadId}/close`)
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Test close reason" })
 			.expect(200);
 
 		expect(closeResponse.body).toMatchObject({
-			LeadId: newLeadId,
+			LeadId: leadId,
 			Status: "CLOSED",
 			CloseReason: "Test close reason",
 		});
@@ -167,9 +175,9 @@ describe("Lead Close E2E Tests", () => {
 	});
 
 	it("should return 409 when trying to close a non-existent lead", async () => {
-		const nonExistentLeadId = uuidv4();
+		const leadId = uuidv4();
 		await supertest
-			.post(`/${LEAD_SERVICE_NAME}/${nonExistentLeadId}/close`)
+			.post(`/${LEAD_SERVICE_NAME}/${leadId}/close`)
 			.auth(TEST_API_KEY, { type: "bearer" })
 			.send({ reason: "Test close reason" })
 			.expect(409);

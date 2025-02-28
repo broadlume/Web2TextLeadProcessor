@@ -9,11 +9,12 @@
         "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
     },
     "dependencies": {
+        "@faker-js/faker": "^9.5.1",
         "common": "workspace:*",
-        "web2text-service": "workspace:*",
-        "vitest": "3.0.5",
         "dotenv": "^16.4.5",
-        "vite-tsconfig-paths": "^5.1.4"
+        "vite-tsconfig-paths": "^5.1.4",
+        "vitest": "3.0.5",
+        "web2text-service": "workspace:*"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",

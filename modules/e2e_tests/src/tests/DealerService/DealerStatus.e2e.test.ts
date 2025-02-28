@@ -6,9 +6,9 @@ import { DEALER_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
 
 describe("DealerStatus E2E Tests", () => {
-	const mockUniversalRetailerId = uuidv4();
-	const mockLocationId = uuidv4();
 	it("should return VALID status for a valid dealer with valid locations", async () => {
+		const mockUniversalRetailerId = uuidv4();
+		const mockLocationId = uuidv4();
 		// Mock Nexus API responses
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${mockUniversalRetailerId}`)
@@ -106,6 +106,8 @@ describe("DealerStatus E2E Tests", () => {
 	});
 
 	it("should return INVALID status for a churned dealer", async () => {
+		const mockUniversalRetailerId = uuidv4();
+		const mockLocationId = uuidv4();
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${mockUniversalRetailerId}`)
 			.reply(200, { status: "Churned_Customer" });
@@ -123,6 +125,8 @@ describe("DealerStatus E2E Tests", () => {
 	});
 
 	it("should return INVALID status for a dealer opted out of Web2Text", async () => {
+		const mockUniversalRetailerId = uuidv4();
+		const mockLocationId = uuidv4();
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${mockUniversalRetailerId}`)
 			.reply(200, { status: "Active" })
@@ -142,6 +146,8 @@ describe("DealerStatus E2E Tests", () => {
 	});
 
 	it("should return NONEXISTANT status for a non-existent dealer", async () => {
+		const mockUniversalRetailerId = uuidv4();
+		const mockLocationId = uuidv4();
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${mockUniversalRetailerId}`)
 			.reply(404);
@@ -160,6 +166,8 @@ describe("DealerStatus E2E Tests", () => {
 	});
 
 	it("should handle invalid locations for a valid dealer", async () => {
+		const mockUniversalRetailerId = uuidv4();
+		const mockLocationId = uuidv4();
 		nock(process.env.NEXUS_API_URL!)
 			.get(`/retailers/${mockUniversalRetailerId}`)
 			.reply(200, { status: "Active" })

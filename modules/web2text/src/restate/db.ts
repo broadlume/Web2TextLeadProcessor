@@ -39,6 +39,13 @@ export async function SyncWithDB(
 				synced = false;
 				break;
 			}
+			// Schema migrations
+			if ("SchemaVersion" in lead && lead.SchemaVersion === "1.0.0") {
+				lead.Lead.LocationId = lead.LocationId;
+				delete lead.LocationId;
+				lead.LeadType = "WEB2TEXT";
+				lead.SchemaVersion = "2.0.0";
+			}
 			const { data, success, error } =
 				await LeadStateSchema(Web2TextLeadSchema).safeParseAsync(lead);
 			if (!success) {

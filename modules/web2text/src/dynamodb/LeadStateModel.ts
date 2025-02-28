@@ -24,6 +24,7 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 		LeadType: {
 			type: String,
 			required: true,
+			default: "WEB2TEXT",
 		},
 		LeadId: {
 			type: String,

@@ -97,6 +97,13 @@ export const LeadVirtualObject = restate.object({
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
+					// Schema migrations
+					if (req.SchemaVersion === "1.0.0") {
+						req.Lead.LocationId ??= req.LocationId;
+						delete req.LocationId;
+						req.LeadType ??= "WEB2TEXT";
+						req.SchemaVersion ??= "2.0.0";
+					}
 					// Parse the request
 					const leadCreateRequest = await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
 					if (!leadCreateRequest.success) {

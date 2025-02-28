@@ -84,7 +84,7 @@ export function LeadStateSchema<T extends Record<string, any>, SCHEMA extends z.
 			 * Version of the Web2Text schema
 			 * Intended for DB migrations
 			 */
-			SchemaVersion: z.string().default("1.0.0"),
+			SchemaVersion: z.string().default("2.0.0"),
 			/**
 			 * The type of lead
 			 */

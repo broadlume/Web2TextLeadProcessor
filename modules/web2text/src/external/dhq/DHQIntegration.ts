@@ -8,7 +8,7 @@ import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { LeadState, Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoDHQStoreInquiry,
@@ -21,7 +21,7 @@ interface DHQIntegrationState extends ExternalIntegrationState {
 	};
 }
 export class DHQIntegration extends IExternalIntegration<
-	LeadState,
+	SubmittedLeadState<Web2TextLead>,
 	DHQIntegrationState
 > {
 	Name = "DHQ";
@@ -38,20 +38,20 @@ export class DHQIntegration extends IExternalIntegration<
 	}
 	async create(
 		state: DHQIntegrationState,
-		context: ObjectSharedContext<Web2TextLead>,
+		context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<DHQIntegrationState> {
 		const leadState = await context.getAll();
 		const store = await context.run(
 			"Fetch Store from Nexus",
 			async () =>
-				await NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
+				await NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
 		);
 		if (store === null) {
 			return {
 				...state,
 				SyncStatus: "ERROR",
 				ErrorInfo: {
-					Message: `Store '${leadState.LocationId}' does not exist in Nexus API`,
+					Message: `Store '${leadState.Lead.LocationId}' does not exist in Nexus API`,
 					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
@@ -96,7 +96,7 @@ export class DHQIntegration extends IExternalIntegration<
 	}
 	async sync(
 		state: DHQIntegrationState,
-		context: ObjectSharedContext<Web2TextLead>,
+		context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<DHQIntegrationState> {
 		const lead = await context.getAll();
 		const twilioIntegration: TwilioIntegrationState | undefined =
@@ -168,7 +168,7 @@ export class DHQIntegration extends IExternalIntegration<
 	}
 	async close(
 		state: DHQIntegrationState,
-		context: ObjectSharedContext<Web2TextLead>,
+		context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<DHQIntegrationState> {
 		return {
 			...state,

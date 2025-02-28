@@ -17,9 +17,9 @@ import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import type { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import { LeadVirtualObject } from "../../restate/services/LeadVirtualObject";
-import { IsPhoneNumberOptedOut } from "../../restate/validators";
-import type { Web2TextLead } from "../../types";
+import { LeadVirtualObject } from "../../restate/services/Lead/LeadVirtualObject";
+import { IsPhoneNumberOptedOut } from "../../validators";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 import type { LeadState } from "../../types";
 import {
 	DealerCloseMessage,
@@ -35,7 +35,7 @@ export interface TwilioIntegrationState extends ExternalIntegrationState {
 }
 
 export class TwilioIntegration
-	implements IExternalIntegration<LeadState, TwilioIntegrationState>
+	implements IExternalIntegration<SubmittedLeadState<Web2TextLead>, TwilioIntegrationState>
 {
 	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
 		? "P30D"
@@ -56,16 +56,16 @@ export class TwilioIntegration
 	}
 	async create(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<TwilioIntegrationState> {
 		const leadState = await context.getAll();
 		const locationInformation = await context.run(
 			"Get retailer store from Nexus",
-			async () => NexusStoresAPI.GetRetailerStoreByID(leadState.LocationId),
+			async () => NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
 		);
 		if (locationInformation === null) {
 			throw new Error(
-				`Location info is missing in Nexus for location ID '${leadState.LocationId}'`,
+				`Location info is missing in Nexus for location ID '${leadState.Lead.LocationId}'`,
 			);
 		}
 		const dealerInformation = await context.run(
@@ -142,7 +142,7 @@ export class TwilioIntegration
 	}
 	async sync(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<TwilioIntegrationState> {
 		const lead = await context.getAll();
 		const conversationSID = state.Data?.ConversationSID!;
@@ -209,7 +209,7 @@ export class TwilioIntegration
 	}
 	async close(
 		state: TwilioIntegrationState,
-		context: restate.ObjectSharedContext<Web2TextLead>,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<TwilioIntegrationState> {
 		const lead = await context.getAll();
 		const conversationID = state.Data?.ConversationSID;
@@ -348,7 +348,7 @@ export class TwilioIntegration
 		});
 	}
 	private async createWeb2TextConversation(
-		leadState: Web2TextLead,
+		leadState: SubmittedLeadState<Web2TextLead>,
 		storePhoneNumber: E164Number,
 		dealerInformation: NexusRetailerAPI.NexusRetailer,
 		locationInformation: NexusStoresAPI.RetailerStore,
@@ -393,7 +393,7 @@ export class TwilioIntegration
 						StorePhoneNumber: storePhoneNumber,
 						CustomerName: leadState.Lead.Name,
 						UniversalRetailerId: leadState.UniversalRetailerId,
-						LocationID: leadState.LocationId,
+						LocationID: leadState.Lead.LocationId,
 						Environment: GetRunningEnvironment(),
 					}),
 					messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,

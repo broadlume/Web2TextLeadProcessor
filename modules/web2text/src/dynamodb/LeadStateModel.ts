@@ -7,9 +7,9 @@ import type { Web2TextLead } from "../types";
 class LeadStateItem extends Item {
 	SchemaVersion!: string;
 	LeadId!: string;
+	LeadType!: string;
 	Status!: string;
 	UniversalRetailerId!: UUID;
-	LocationId!: UUID;
 	Lead!: Web2TextLead;
 	DateSubmitted!: Date;
 	Integrations!: Record<string, ExternalIntegrationState>;
@@ -20,6 +20,11 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 		SchemaVersion: {
 			type: String,
 			required: true,
+		},
+		LeadType: {
+			type: String,
+			required: true,
+			default: "WEB2TEXT",
 		},
 		LeadId: {
 			type: String,
@@ -32,10 +37,6 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 			enum: ["ACTIVE", "SYNCING", "CLOSED"],
 		},
 		UniversalRetailerId: {
-			type: String,
-			required: true,
-		},
-		LocationId: {
 			type: String,
 			required: true,
 		},

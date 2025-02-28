@@ -77,10 +77,10 @@ export async function GetRetailerByID(
 			return null;
 		}
 		logger
-			.child({ label: "NexusRetailerAPI:GetRetailerSubscriptions" })
+			.child({ label: "NexusRetailerAPI:GetRetailerByID" })
 			.warn("Error fetching retailer from Nexus");
 		logger
-			.child({ label: "NexusRetailerAPI:GetRetailerSubscriptions" })
+			.child({ label: "NexusRetailerAPI:GetRetailerByID" })
 			.error(e);
 		throw e;
 	}

@@ -1,4 +1,4 @@
-import { LeadStateSchema, Web2TextLeadSchema } from "src/types";
+import { LeadStateSchema, Web2TextLeadSchema } from "../../../types";
 import { z } from "zod";
 
 export const Web2TextLeadCreateRequestSchema =

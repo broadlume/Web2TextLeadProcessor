@@ -77,7 +77,7 @@ export class RLMIntegration extends IExternalIntegration<
 		}
 		const rlmLocationMapping = await context.run(
 			"Get RLM location name",
-			async () => await this.getRLMLocationName(leadState.Lead.LocationId),
+			async () => await this.getRLMLocationName(leadState.Lead.LocationId).catch(e => null),
 		);
 		if (rlmLocationMapping == null) {
 			context.console.warn(

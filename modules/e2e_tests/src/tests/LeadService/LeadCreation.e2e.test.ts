@@ -7,9 +7,11 @@ import { supertest } from "../../setup";
 import { TEST_API_KEY } from "../../setup";
 
 const testLead = {
+	SchemaVersion: "2.0.0",
 	UniversalRetailerId: "314aa161-867a-4902-b780-35c62319b418",
-	LocationId: "d3ff7b23-fe09-4959-85b7-fb08d4bb1cb9",
+	LeadType: "WEB2TEXT",
 	Lead: {
+		LocationId: "d3ff7b23-fe09-4959-85b7-fb08d4bb1cb9",
 		PageUrl: "https://carpetdirect.com/d/some-product/some-sku",
 		IPAddress: "127.0.0.1",
 		Name: "John Smith",
@@ -48,12 +50,12 @@ describe("Lead Creation", () => {
 
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
-			.query({ location_id: testLead.LocationId })
+			.query({ location_id: testLead.Lead.LocationId })
 			.reply(200, {
 				data: [
 					{
-						id: testLead.LocationId,
-						location_id: testLead.LocationId,
+						id: testLead.Lead.LocationId,
+						location_id: testLead.Lead.LocationId,
 						Web2Text_Phone_Number: "+12246591932",
 					},
 				],
@@ -138,7 +140,7 @@ describe("Lead Creation", () => {
 			.persist();
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
-			.query({ location_id: testLead.LocationId })
+			.query({ location_id: testLead.Lead.LocationId })
 			.reply(404)
 			.persist();
 		const leadID = randomUUID();
@@ -165,7 +167,7 @@ describe("Lead Creation", () => {
 	test("Lead creation with missing required fields", async () => {
 		const incompleteLead = {
 			UniversalRetailerId: testLead.UniversalRetailerId,
-			LocationId: testLead.LocationId,
+			LocationId: testLead.Lead.LocationId,
 			Lead: {
 				PageUrl: testLead.Lead.PageUrl,
 				IPAddress: testLead.Lead.IPAddress,
@@ -202,12 +204,12 @@ describe("Lead Creation", () => {
 
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
-			.query({ location_id: testLead.LocationId })
+			.query({ location_id: testLead.Lead.LocationId })
 			.reply(200, {
 				data: [
 					{
-						id: testLead.LocationId,
-						location_id: testLead.LocationId,
+						id: testLead.Lead.LocationId,
+						location_id: testLead.Lead.LocationId,
 						Web2Text_Phone_Number: "+12246591932",
 					},
 				],

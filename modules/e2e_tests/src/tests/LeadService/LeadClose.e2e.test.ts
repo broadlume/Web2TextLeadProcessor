@@ -6,9 +6,11 @@ import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { TEST_API_KEY, supertest } from "../../setup";
 const leadId = uuidv4();
 const testLead = {
+	SchemaVersion: "2.0.0",
 	UniversalRetailerId: uuidv4(),
-	LocationId: uuidv4(),
+	LeadType: "WEB2TEXT",
 	Lead: {
+		LocationId: uuidv4(),
 		PageUrl: "https://example.com",
 		IPAddress: "192.168.1.1",
 		Name: "John Doe",
@@ -43,12 +45,12 @@ describe("Lead Close E2E Tests", () => {
 
 		nock(process.env.NEXUS_AWS_API_URL!)
 			.get("/nexus/location")
-			.query({ location_id: testLead.LocationId })
+			.query({ location_id: testLead.Lead.LocationId })
 			.reply(200, {
 				data: [
 					{
-						id: testLead.LocationId,
-						location_id: testLead.LocationId,
+						id: testLead.Lead.LocationId,
+						location_id: testLead.Lead.LocationId,
 						Web2Text_Phone_Number: "+12246591932",
 					},
 				],

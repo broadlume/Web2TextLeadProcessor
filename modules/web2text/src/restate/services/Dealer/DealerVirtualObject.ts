@@ -5,7 +5,8 @@ import { Authorization } from "common/restate";
 import parsePhoneNumber from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { CheckClientStatus, CheckLocationStatus } from "../validators";
+import { CheckClientStatus, CheckLocationStatus } from "../../../validators";
+
 
 type LocationStatus = {
 	NexusLocationId: string;

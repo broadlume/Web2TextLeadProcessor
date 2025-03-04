@@ -10,10 +10,10 @@ import {
 } from "common/restate";
 import { LeadStateModel } from "./dynamodb/LeadStateModel";
 import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
-import { AdminService } from "./restate/services/AdminService";
-import { DealerVirtualObject } from "./restate/services/DealerVirtualObject";
-import { LeadVirtualObject } from "./restate/services/LeadVirtualObject";
-import { TwilioWebhooks } from "./restate/services/TwilioWebhooks";
+import { AdminService } from "./restate/services/Admin/AdminService";
+import { DealerVirtualObject } from "./restate/services/Dealer/DealerVirtualObject";
+import { LeadVirtualObject } from "./restate/services/Lead/LeadVirtualObject";
+import { TwilioWebhooks } from "./restate/services/TwilioWebhooks/TwilioWebhooks";
 import { TWILIO_CLIENT } from "./twilio";
 import { VerifyEnvVariables } from "./verifyEnvVariables";
 

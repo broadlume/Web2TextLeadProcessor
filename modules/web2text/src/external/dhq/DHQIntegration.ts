@@ -192,7 +192,7 @@ export class DHQIntegration extends IExternalIntegration<
 				const dhqResponse = await context.run("Sending Botpress AI Summary to DHQ", async () => {
 					return await DHQStoreInquiryAPI.AddCommentToInquiry(state.Data!.LeadId, {
 						comment: {
-							body: `Fibi Chatbot:\n\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n\n${conversation.summary}` ,
+							body: `\n\n**Fibi Chatbot**\n\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n\n${conversation.summary}` ,
 							author_id: 262,
 						}
 					}).catch((e) => ({

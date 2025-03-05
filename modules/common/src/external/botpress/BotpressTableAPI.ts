@@ -28,6 +28,9 @@ interface FindTableRowsResponse {
 
 export async function FindTableRows(table: string, botId: string, workspaceId: string, query: FindTableRowsRequest): Promise<FindTableRowsResponse> {
     try {
+        if (process.env.BOTPRESS_API_TOKEN == null) {
+            throw new Error("BOTPRESS_API_TOKEN is not set");
+        }
         const response = await ky.post(`https://api.botpress.cloud/v1/tables/${table}/rows/find`, {
             headers: {
                 "x-bot-id": botId,

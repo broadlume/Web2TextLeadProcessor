@@ -29,15 +29,15 @@ export async function CreateLead(
 			body: urlEncodedData,
 		});
 
-		if (response?.ok)
+		if (response?.status !== 200)
 			return {
-				status: "success",
-				message: "Lead created successfully",
+				status: "failure",
+				message: "Failed to create lead",
 			};
 
 		return {
-			status: "failure",
-			message: "Failed to create lead",
+			status: "success",
+			message: "Lead created successfully",
 		};
 	} catch (e) {
 		logger

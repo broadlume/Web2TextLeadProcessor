@@ -1,4 +1,6 @@
+import ky from "ky";
 export * as ActOnListAPI from "./ActOnListAPI";
+
 type ActOnTokenResponse = {
 	access_token: string;
 	refresh_token: string;
@@ -33,8 +35,7 @@ const GetActOnAccessToken = async (): Promise<string> => {
 		body as Record<string, string>,
 	).toString();
 
-	const response = await fetch(actonUrl.toString(), {
-		method: "POST",
+	const response = await ky.post(actonUrl.toString(), {
 		headers: headers,
 		body: urlEncodedData,
 	});

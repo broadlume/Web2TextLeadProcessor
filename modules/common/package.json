@@ -52,6 +52,10 @@
             "types": "./src/external/restate/index.ts",
             "default": "./src/external/restate/index.ts"
         },
+        "./external/botpress": {
+            "types": "./src/external/botpress/index.ts",
+            "default": "./src/external/botpress/index.ts"
+        },
         "./dynamodb": {
             "types": "./src/dynamodb/index.ts",
             "default": "./src/dynamodb/index.ts"

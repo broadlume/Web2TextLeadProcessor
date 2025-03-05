@@ -15,7 +15,7 @@ import { DealerVirtualObject } from "./restate/services/Dealer/DealerVirtualObje
 import { LeadVirtualObject } from "./restate/services/Lead/LeadVirtualObject";
 import { TwilioWebhooks } from "./restate/services/TwilioWebhooks/TwilioWebhooks";
 import { TWILIO_CLIENT } from "./twilio";
-import { VerifyEnvVariables } from "./verifyEnvVariables";
+import { VerifyEnvVariables } from "./env";
 
 // Randomize internal API token
 process.env.INTERNAL_API_TOKEN ??= randomUUID();

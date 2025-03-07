@@ -62,8 +62,6 @@ declare global {
 			ACTON_PASSWORD: string;
 			/** FF Web API base URL */
 			FF_API_URL: string;
-			FF_API_USERNAME: string;
-			FF_API_PASSWORD: string;
 		}
 	}
 	/** Global Twilio client instance */

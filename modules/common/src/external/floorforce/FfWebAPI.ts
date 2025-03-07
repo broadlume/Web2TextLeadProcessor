@@ -1,6 +1,6 @@
 import ky from "ky";
 import z from "zod";
-import { FF_AUTHORIZATION_HEADERS } from ".";
+import { FF_HEADERS } from ".";
 import { Into } from "..";
 import { logger } from "../../logger";
 
@@ -17,8 +17,7 @@ export async function CreateLead(
 	const ffLead = request instanceof Into ? request.into() : request;
 	const ffUrl = new URL(process.env.FF_API_URL);
 	ffUrl.pathname += "external/postactonformdata";
-	const headers = FF_AUTHORIZATION_HEADERS();
-
+	const headers = FF_HEADERS();
 	//FF WEB API expects the data to be urlencoded
 	const urlEncodedData = new URLSearchParams(
 		ffLead as Record<string, string>,

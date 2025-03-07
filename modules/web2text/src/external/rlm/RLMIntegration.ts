@@ -8,12 +8,14 @@ import { RLMLeadsAPI, RLMLocationsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { LeadState, SubmittedLeadState, Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../types";
 import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
 	Web2TextMessageIntoRLMNote,
 } from "./APIConverters";
+import type { BotpressIntegrationState } from "../botpress/BotpressIntegration";
+import { assert, is } from "tsafe/assert";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -21,6 +23,7 @@ export interface RLMIntegrationState extends ExternalIntegrationState {
 		LeadUUID: string;
 		LocationName: string;
 		SyncedMessageIds: string[];
+		SentBotpressSummary?: boolean;
 	};
 }
 
@@ -116,8 +119,8 @@ export class RLMIntegration extends IExternalIntegration<
 				},
 			};
 		}
-
-		return {
+		const newState: RLMIntegrationState = 
+		{
 			...state,
 			SyncStatus: "SYNCED",
 			LastSynced: new Date(await context.date.now()).toISOString(),
@@ -129,6 +132,9 @@ export class RLMIntegration extends IExternalIntegration<
 				SyncedMessageIds: [],
 			},
 		};
+		const sentBotpressSummary = await this.sendBotpressSummary(newState, context);
+		newState.Data!.SentBotpressSummary = sentBotpressSummary;
+		return newState;
 	}
 	async sync(
 		state: RLMIntegrationState,
@@ -146,6 +152,9 @@ export class RLMIntegration extends IExternalIntegration<
 					ErrorDate: new Date(await context.date.now()).toISOString(),
 				},
 			};
+		}
+		if (!state.Data?.SentBotpressSummary) {
+			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(state, context);
 		}
 
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
@@ -209,5 +218,33 @@ export class RLMIntegration extends IExternalIntegration<
 			...state,
 			SyncStatus: "CLOSED",
 		};
+	}
+
+	private async sendBotpressSummary(state: RLMIntegrationState, context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>): Promise<boolean> {
+		const lead = await context.getAll();
+		if (!state.Data?.SentBotpressSummary && lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED") {
+			const botpressConversation = lead.Integrations?.["Botpress"].Data;
+			assert(is<BotpressIntegrationState["Data"]>(botpressConversation));
+			if (botpressConversation?.Conversation != null) {
+				const conversation = botpressConversation.Conversation;
+				const date = new Date(await context.date.now()).toISOString();
+				const rlmResponse = await context.run("Sending Botpress AI Summary to RLM", async () => {
+					return await RLMLeadsAPI.AttachNoteToLead({
+						lead_uuid: state.Data!.LeadUUID,
+						message: `Fibi Chatbot:\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n${conversation.summary}`,
+						"sender_name": "Dealer",
+						"sender_phone": "+10000000",
+						"date": date,
+					}).catch((e) => ({
+						result: "Error",
+						Error: serializeError(e),
+					}));
+				});
+				if (rlmResponse.result === "Success") {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

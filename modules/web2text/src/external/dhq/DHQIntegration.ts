@@ -14,10 +14,13 @@ import {
 	Web2TextLeadIntoDHQStoreInquiry,
 	Web2TextMessageIntoDhqComment,
 } from "./APIConverters";
+import { assert, is } from "tsafe";
+import type { BotpressIntegrationState } from "../botpress/BotpressIntegration";
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
 		SyncedMessageIds: string[];
+		SentBotpressSummary?: boolean;
 	};
 }
 export class DHQIntegration extends IExternalIntegration<
@@ -83,8 +86,7 @@ export class DHQIntegration extends IExternalIntegration<
 				},
 			};
 		}
-
-		return {
+		const newState: DHQIntegrationState = {
 			...state,
 			SyncStatus: "SYNCED",
 			LastSynced: new Date(await context.date.now()).toISOString(),
@@ -93,6 +95,9 @@ export class DHQIntegration extends IExternalIntegration<
 				SyncedMessageIds: [],
 			},
 		};
+		const sentBotpressSummary = await this.sendBotpressSummary(newState, context);
+		newState.Data!.SentBotpressSummary = sentBotpressSummary;
+		return newState;
 	}
 	async sync(
 		state: DHQIntegrationState,
@@ -111,7 +116,9 @@ export class DHQIntegration extends IExternalIntegration<
 				},
 			};
 		}
-
+		if (!state.Data?.SentBotpressSummary) {
+			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(state, context);
+		}
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
 		const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
 		const messages = await context.run(
@@ -174,5 +181,30 @@ export class DHQIntegration extends IExternalIntegration<
 			...state,
 			SyncStatus: "CLOSED",
 		};
+	}
+	private async sendBotpressSummary(state: DHQIntegrationState, context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>): Promise<boolean> {
+		const lead = await context.getAll();
+		if (!state.Data?.SentBotpressSummary && lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED") {
+			const botpressConversation = lead.Integrations?.["Botpress"].Data;
+			assert(is<BotpressIntegrationState["Data"]>(botpressConversation));
+			if (botpressConversation?.Conversation != null) {
+				const conversation = botpressConversation.Conversation;
+				const dhqResponse = await context.run("Sending Botpress AI Summary to DHQ", async () => {
+					return await DHQStoreInquiryAPI.AddCommentToInquiry(state.Data!.LeadId, {
+						comment: {
+							body: `\n\n**Fibi Chatbot**\n\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n\n${conversation.summary}` ,
+							author_id: 262,
+						}
+					}).catch((e) => ({
+						status: "failure",
+						Error: serializeError(e),
+					}));
+				});
+				if (dhqResponse.status === "success") {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

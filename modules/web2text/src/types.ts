@@ -72,6 +72,7 @@ export const Web2TextLeadSchema = z.object({
 			Type: z.string().optional(),
 		})
 		.optional(),
+		BotpressConversationId: z.string().optional()
 });
 
 export function LeadStateSchema<T extends Record<string, any>, SCHEMA extends z.ZodType<T> = z.ZodType<T>>(leadSchema: SCHEMA) {

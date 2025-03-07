@@ -29,8 +29,6 @@ export const ENV_FILE_SCHEMA = z
 		ACTON_USERNAME: z.string().min(1, "ActOn Username is required"),
 		ACTON_PASSWORD: z.string().min(1, "ActOn Password is required"),
 		FF_API_URL: z.string().url("FF API URL must be a valid URL"),
-		FF_API_USERNAME: z.string().min(1, "FF API Username is required"),
-		FF_API_PASSWORD: z.string().min(1, "FF API Password is required"),
 	})
 	.passthrough();
 

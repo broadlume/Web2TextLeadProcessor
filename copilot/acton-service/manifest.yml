@@ -21,7 +21,25 @@ platform: linux/x86_64     # See https://aws.github.io/copilot-cli/docs/manifest
 count: 1       # Number of tasks that should be running in your service.
 exec: true     # Enable running commands in your container.
 network:
-  connect: true # Enable Service Connect for intra-environment traffic between services.
+  connect:
+    alias: web2text-service # Allows us to use service discovery to communicate with the other services
+
+secrets:
+  FF_API_URL: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/FF_API_URL
+  ACTON_BASE_URL: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/ACTON_BASE_URL
+  ACTON_USERNAME: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/ACTON_USERNAME
+  ACTON_PASSWORD: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/ACTON_PASSWORD
+  ACTON_CLIENT_ID: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/ACTON_CLIENT_ID
+  ACTON_CLIENT_SECRET: /copilot/${COPILOT_APPLICATION_NAME}/${COPILOT_ENVIRONMENT_NAME}/secrets/ACTON_CLIENT_SECRET
+
+environments:
+  production:
+    variables:
+      RESTATE_ADMIN_URL: http://restate-server:9070
+  
+  development:
+    variables:
+      RESTATE_ADMIN_URL: http://restate-server:9070
 
 # storage:
   # readonly_fs: true       # Limit to read-only access to mounted root filesystems.

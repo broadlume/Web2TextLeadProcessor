@@ -17,7 +17,7 @@ export async function CreateContactAPI(
 	request: Into<ActOnRequest> | ActOnRequest,
 ) {
 	const actOnLead = request instanceof Into ? request.into() : request;
-	const actonUrl = new URL(process.env.ACTON_BASE_URL);
+	const actonUrl = new URL(process.env.ACTON_BASE_URL as string);
 	actonUrl.pathname += `api/1/list/${listId}/record`;
 	const headers = await ACTON_AUTHORIZE_HEADERS();
 

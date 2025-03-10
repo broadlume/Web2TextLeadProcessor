@@ -15,7 +15,7 @@ export async function CreateLead(
 	request: Into<FfLeadRequest> | FfLeadRequest,
 ): Promise<FfLeadResponse> {
 	const ffLead = request instanceof Into ? request.into() : request;
-	const ffUrl = new URL(process.env.FF_API_URL);
+	const ffUrl = new URL(process.env.FF_API_URL as string);
 	ffUrl.pathname += "external/postactonformdata";
 	const headers = FF_HEADERS();
 	//FF WEB API expects the data to be urlencoded

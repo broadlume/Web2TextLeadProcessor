@@ -18,17 +18,17 @@ export const ACTON_AUTHORIZE_HEADERS = async () => {
 };
 
 const GetActOnAccessToken = async (): Promise<string> => {
-	const actonUrl = new URL(process.env.ACTON_BASE_URL);
+	const actonUrl = new URL(process.env.ACTON_BASE_URL as string);
 	actonUrl.pathname += "token";
 	const headers = new Headers();
 	headers.set("Content-Type", "application/x-www-form-urlencoded");
 
 	const body = {
 		grant_type: "password",
-		username: process.env.ACTON_USERNAME,
-		password: process.env.ACTON_PASSWORD,
-		client_id: process.env.ACTON_CLIENT_ID,
-		client_secret: process.env.ACTON_CLIENT_SECRET,
+		username: process.env.ACTON_USERNAME as string,
+		password: process.env.ACTON_PASSWORD as string,
+		client_id: process.env.ACTON_CLIENT_ID as string,
+		client_secret: process.env.ACTON_CLIENT_SECRET as string,
 	};
 
 	const urlEncodedData = new URLSearchParams(

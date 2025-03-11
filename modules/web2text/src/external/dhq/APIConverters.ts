@@ -63,7 +63,7 @@ export class Web2TextLeadIntoDHQStoreInquiry extends Into<DHQStoreInquiryAPI.Sto
 			},
 			inquiry: {
 				contact_method: "cys_inquiry",
-				email: `poweredbytextdirect+${this.web2TextLead.Lead.PhoneNumber.replace(/\D+/g, "")}@broadlume.com`,
+				email: `web2text+${this.web2TextLead.Lead.PhoneNumber.replace(/\D+/g, "")}@broadlume.com`,
 				external_id: this.web2TextLead.LeadId,
 				message: this.web2TextLead.Lead.CustomerMessage,
 				name: this.web2TextLead.Lead.Name,

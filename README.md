@@ -52,6 +52,8 @@ Web2Text is a service that will send and monitor SMS conversations between deale
 ## Admin UI
 Restate has an admin UI that allows you to inspect the state of the services, in-flight invocations, and other metrics.
 
+**You must be on the Broadlume VPN to access the admin UI**
+
 - Local: http://localhost:9070
 - Dev: https://admin.web2text.web.dev.broadlume.com:9070
 - Prod: https://admin.web2text.web.broadlume.com:9070

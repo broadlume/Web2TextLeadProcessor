@@ -39,7 +39,7 @@ export type RestateService = {
  * @returns an array of registered services
  */
 export async function ListServices(): Promise<RestateService[]> {
-	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL as string);
 	restateURL.pathname += "services";
 
 	const json = await ky
@@ -59,7 +59,7 @@ export async function ModifyServiceState(
 	objectKey: string,
 	state: any,
 ): Promise<void> {
-	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL as string);
 	restateURL.pathname += `services/${service}/state`;
 
 	await ky.post(restateURL.toString(), {

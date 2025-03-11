@@ -69,7 +69,7 @@ export async function CreateDeployment(
 		throw new Error(`deploymentUri '${deploymentUri}' is not a valid URL`);
 	}
 
-	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL as string);
 	restateURL.pathname += "deployments";
 
 	const json = await ky
@@ -117,7 +117,7 @@ export async function DeleteDeployment(
 			);
 		}
 	}
-	const restateURL = new URL(process.env.RESTATE_ADMIN_URL);
+	const restateURL = new URL(process.env.RESTATE_ADMIN_URL as string);
 	restateURL.pathname += `deployments/${deploymentId}`;
 
 	await ky.delete(restateURL.toString(), {

@@ -52,6 +52,14 @@
             "types": "./src/external/restate/index.ts",
             "default": "./src/external/restate/index.ts"
         },
+        "./external/acton": {
+            "types": "./src/external/acton/index.ts",
+            "default": "./src/external/acton/index.ts"
+        },
+        "./external/floorforce": {
+            "types": "./src/external/floorforce/index.ts",
+            "default": "./src/external/floorforce/index.ts"
+        },
         "./external/botpress": {
             "types": "./src/external/botpress/index.ts",
             "default": "./src/external/botpress/index.ts"

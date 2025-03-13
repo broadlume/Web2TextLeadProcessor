@@ -11,7 +11,7 @@ RUN apt-get update
 RUN apt-get install -y curl xz-utils
 
 # Install Restate CLI
-RUN BIN=/usr/local/bin && RESTATE_PLATFORM=aarch64-unknown-linux-musl && RESTATE_VERSION=1.2.1 && \
+RUN BIN=/usr/local/bin && RESTATE_PLATFORM=aarch64-unknown-linux-musl && RESTATE_VERSION=1.2.2 && \
 curl -LO https://restate.gateway.scarf.sh/v$RESTATE_VERSION/restate-cli-$RESTATE_PLATFORM.tar.xz && \
 ls && \
 tar -xvf ./restate-cli-$RESTATE_PLATFORM.tar.xz --strip-components=1 restate-cli-$RESTATE_PLATFORM/restate && \

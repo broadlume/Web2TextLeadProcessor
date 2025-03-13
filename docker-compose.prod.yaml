@@ -21,7 +21,7 @@ services:
     environment:
       RESTATE_ADMIN_URL: "http://restate-server:9070"
   restate-server:
-    image: "docker.restate.dev/restatedev/restate:1.2.1"
+    image: "docker.restate.dev/restatedev/restate:1.2.2"
     container_name: restate-server
     networks:
       - restate-network

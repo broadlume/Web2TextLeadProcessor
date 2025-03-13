@@ -44,6 +44,7 @@ deployment:
 #
 variables:
  RESTATE_NODE_NAME: web2text-restate-server # Restate Node Name (need to have this to keep services between restate server deployments/restarts)
+ RESTATE_WORKER__CLEANUP_INTERVAL: 5min # Set the invocation cleanup worker to run every 5 minutes
 
 #secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
 #  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.

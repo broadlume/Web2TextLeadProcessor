@@ -42,6 +42,8 @@ export class RestateServerStack extends cdk.Stack {
                 subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
             },
             environment: {
+                RESTATE_TRACING_ENDPOINT: "http://localhost:4317",
+                RESTATE_LOG_FORMAT: "json",
                 ...ENVIRONMENT_VARIABLES
             },
             vpc,

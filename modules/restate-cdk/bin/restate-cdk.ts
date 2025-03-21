@@ -3,7 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Web2TextServiceStack } from '../lib/web2text-service-stack';
 import { RestateServerStack } from '../lib/restate-server-stack';
 import { TwilioProxyStack } from '../lib/twilio-proxy-stack';
-import { VPC_IDS } from '../lib/constants';
+import { ACM_CERTIFICATE_ARNS, NLB_SUBNET_IDS, VPC_IDS } from './constants';
 if (!["development", "production"].includes(process.env.DEPLOY_ENV?.toLowerCase() as string)) {
   throw new Error(`DEPLOY_ENV must be either "development" or "production", but got ${process.env.DEPLOY_ENV}`);
 }
@@ -14,6 +14,8 @@ export const DEPLOYMENT_ENV_SUFFIX = DEPLOYMENT_ENV === "development" ? "DEV" : 
 const app = new cdk.App();
 const restateServerStack = new RestateServerStack(app, `RestateServerStack-${DEPLOYMENT_ENV_SUFFIX}`, {
   vpcId: VPC_IDS[DEPLOYMENT_ENV],
+  nlbSubnetIds: NLB_SUBNET_IDS[DEPLOYMENT_ENV],
+  acmCertificateArn: ACM_CERTIFICATE_ARNS[DEPLOYMENT_ENV],
   env: { account: "202061849983", region: "us-east-1" },
   description: `Web2Text ${DEPLOYMENT_ENV} Restate server`,
 });

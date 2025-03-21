@@ -11,16 +11,12 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { NLB_SUBNET_IDS } from './constants';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
+    nlbSubnetIds: string[];
+    acmCertificateArn: string;
 }
 
-const ACM_CERTIFICATE_ARNS = {
-    "development": "arn:aws:acm:us-east-1:202061849983:certificate/f18856c4-831f-41e0-927f-11f5410bfcdc",
-    "staging": "arn:aws:acm:us-east-1:202061849983:certificate/47bd373d-637e-42ed-9677-ec0f8dbbd8fb",
-    "production": "arn:aws:acm:us-east-1:202061849983:certificate/e96ebcf1-a25a-4427-8ac2-4e25df123872"
-}
 export class RestateServerStack extends cdk.Stack {
     public readonly restateServer: restate.SingleNodeRestateDeployment;
     public readonly restateServiceDeployer: restate.ServiceDeployer;
@@ -66,7 +62,7 @@ export class RestateServerStack extends cdk.Stack {
         const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`, {
             vpc,
             vpcSubnets: {
-                subnets: NLB_SUBNET_IDS[DEPLOYMENT_ENV].map((id: string, idx: number) => ec2.Subnet.fromSubnetId(this, `RestateLoadBalancerSubnet-${idx}`, id))
+                subnets: props.nlbSubnetIds.map((id: string, idx: number) => ec2.Subnet.fromSubnetId(this, `RestateLoadBalancerSubnet-${idx}`, id))
             },
             securityGroups: [this.restateServer.adminSecurityGroup, loadBalancerSecurityGroup],
             internetFacing: true
@@ -119,7 +115,7 @@ export class RestateServerStack extends cdk.Stack {
 
         // Import the ACM certificate for TLS termination
         const certificate = acm.Certificate.fromCertificateArn(this, `RestateCertificate-${DEPLOYMENT_ENV_SUFFIX}`,
-            ACM_CERTIFICATE_ARNS[DEPLOYMENT_ENV]
+            props.acmCertificateArn
         );
         loadBalancer.addListener(`Listener443-${DEPLOYMENT_ENV_SUFFIX}`, {
             port: 443,

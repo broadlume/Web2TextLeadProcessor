@@ -134,6 +134,7 @@ export class RestateServerStack extends cdk.Stack {
             functionName: `Web2Text-RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`,
             securityGroups: [this.restateServer.adminSecurityGroup],
             logGroup: new logs.LogGroup(this, `RestateDeployerLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
+                logGroupName: `/web2text-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-service-deployer-logs`,
                 retention: logs.RetentionDays.ONE_WEEK,
                 removalPolicy: cdk.RemovalPolicy.RETAIN,
             }),

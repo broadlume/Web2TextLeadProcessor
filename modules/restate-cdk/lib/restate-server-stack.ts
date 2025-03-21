@@ -11,6 +11,7 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { NLB_SUBNET_IDS } from './constants';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
 }
@@ -65,10 +66,7 @@ export class RestateServerStack extends cdk.Stack {
         const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`, {
             vpc,
             vpcSubnets: {
-                subnets: [
-                    ec2.Subnet.fromSubnetId(this, "Publicwebsites-dev1A", "subnet-0748be9bc387e9bed"),
-                    ec2.Subnet.fromSubnetId(this, "Publicwebsites-dev1B", "subnet-0a97c28c458f887ee"),
-                ]
+                subnets: NLB_SUBNET_IDS[DEPLOYMENT_ENV].map((id: string, idx: number) => ec2.Subnet.fromSubnetId(this, `RestateLoadBalancerSubnet-${idx}`, id))
             },
             securityGroups: [this.restateServer.adminSecurityGroup, loadBalancerSecurityGroup],
             internetFacing: true
@@ -143,7 +141,7 @@ export class RestateServerStack extends cdk.Stack {
             vpc,
         });
 
-        // Create a policy that allows the restate server to register lambda services
+        // Create a policy that allows the restate server to access lambda services
         const invocationPolicy = new iam.Policy(this, "InvocationPolicy");
         // Wait until the policy is deployed before invoking the restate service deployer
         this.restateServiceDeployer.node.addDependency(invocationPolicy);

@@ -31,9 +31,9 @@ const prodFormatter = ecsFormat();
 export const logger = winston.createLogger({
 	level: "info",
 	format:
-		GetRunningEnvironment().environment === "production"
-			? prodFormatter
-			: devFormatter,
+		GetRunningEnvironment().local
+			? devFormatter
+			: prodFormatter,
 	defaultMeta: { name: "Web2Text Handler", hostname: "localhost" },
 	transports: [new winston.transports.Console()],
 });

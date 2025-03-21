@@ -35,7 +35,7 @@ export class Web2TextServiceStack extends cdk.Stack {
     const web2TextService = new lambda_nodejs.NodejsFunction(this, `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`,
-      entry: "../web2text/src/app.ts",
+      entry: "../web2text/src/lambda.ts",
       architecture: lambda.Architecture.ARM_64,
       depsLockFilePath: "../../bun.lockb",
       timeout: cdk.Duration.minutes(15),

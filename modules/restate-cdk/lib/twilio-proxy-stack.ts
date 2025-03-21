@@ -29,10 +29,10 @@ export class TwilioProxyStack extends cdk.Stack {
         const twilioProxy = new lambda_nodejs.NodejsFunction(this, `TwilioProxy-${DEPLOYMENT_ENV_SUFFIX}`, {
             runtime: lambda.Runtime.NODEJS_22_X,
             functionName: `TwilioProxy-${DEPLOYMENT_ENV_SUFFIX}`,
-            entry: "../twilio_proxy/index.ts",
+            entry: "../twilio_proxy/lambda.ts",
             architecture: lambda.Architecture.ARM_64,
             timeout: cdk.Duration.minutes(5),
-            depsLockFilePath: "../../bun.lockb",
+            depsLockFilePath: "../twilio_proxy/bun.lockb",
             bundling: {
                 minify: true,
                 sourceMap: true,

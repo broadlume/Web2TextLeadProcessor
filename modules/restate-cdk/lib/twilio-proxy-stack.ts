@@ -31,6 +31,7 @@ export class TwilioProxyStack extends cdk.Stack {
             functionName: `TwilioProxy-${DEPLOYMENT_ENV_SUFFIX}`,
             entry: "../twilio_proxy/index.ts",
             architecture: lambda.Architecture.ARM_64,
+            timeout: cdk.Duration.minutes(5),
             depsLockFilePath: "../../bun.lockb",
             bundling: {
                 minify: true,
@@ -48,6 +49,7 @@ export class TwilioProxyStack extends cdk.Stack {
                 removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
             }),
             vpc,
+            memorySize: 512,
         });
         this.twilioProxyUrl = twilioProxy.addFunctionUrl({
             authType: lambda.FunctionUrlAuthType.NONE,

@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
+import { randomUUID } from 'crypto';
 
 
 interface Web2TextServiceStackProps extends cdk.StackProps {
@@ -37,6 +38,7 @@ export class Web2TextServiceStack extends cdk.Stack {
       entry: "../web2text/src/app.ts",
       architecture: lambda.Architecture.ARM_64,
       depsLockFilePath: "../../bun.lockb",
+      timeout: cdk.Duration.minutes(15),
       bundling: {
         minify: true,
         sourceMap: true,
@@ -45,6 +47,7 @@ export class Web2TextServiceStack extends cdk.Stack {
       environment: {
         ...ENVIRONMENT_VARIABLES,
         DEPLOYMENT_ENV: DEPLOYMENT_ENV,
+        INTERNAL_API_TOKEN: randomUUID(),
         RESTATE_ADMIN_URL: props.restateServer.adminUrl,
         TWILIO_PROXY_URL: props.twilioProxyUrl,
         NODE_OPTIONS: "--enable-source-maps",

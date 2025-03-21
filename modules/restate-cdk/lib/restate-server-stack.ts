@@ -11,7 +11,6 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getEniIpsByEniIds } from './util';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
 }

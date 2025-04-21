@@ -143,9 +143,6 @@ export class RestateServerStack extends cdk.Stack {
         new cdk.CfnOutput(this, "restateNLBPublicIngressUrl", { value: loadBalancer.loadBalancerDnsName,
             description: "Public ingress URL for the Restate NLB"
          });
-        new cdk.CfnOutput(this, "restatePrivateAdminUrl", { value: this.restateServer.adminUrl,
-            description: "Private admin URL for the Restate server"
-         });
         
     }
 }

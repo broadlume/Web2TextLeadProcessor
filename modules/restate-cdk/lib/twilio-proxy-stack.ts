@@ -4,28 +4,23 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as logs from 'aws-cdk-lib/aws-logs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
-
 interface TwilioProxyStackProps extends cdk.StackProps {
     vpcId: string;
+    envVariables: Record<string, string>;
 }
+
 
 export class TwilioProxyStack extends cdk.Stack {
     public readonly twilioProxyUrl: lambda.FunctionUrl;
+    public static readonly SECRET_IDS = {
+        "development": "twilio-proxy-dev-env",
+        "production": "twilio-proxy-prod-env"
+    };
     constructor(scope: Construct, id: string, props: TwilioProxyStackProps) {
         super(scope, id, props);
         const vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
-        let ENVIRONMENT_VARIABLES: Record<string, string> = {};
 
-        if (DEPLOYMENT_ENV === 'development') {
-            ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/twilio-proxy/.env.dev')));
-        } else if (DEPLOYMENT_ENV === 'production') {
-            ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/twilio-proxy/.env.prod')));
-        }
         const twilioProxy = new lambda_nodejs.NodejsFunction(this, `TwilioProxy-${DEPLOYMENT_ENV_SUFFIX}`, {
             runtime: lambda.Runtime.NODEJS_22_X,
             functionName: `TwilioProxy-${DEPLOYMENT_ENV_SUFFIX}`,
@@ -39,7 +34,7 @@ export class TwilioProxyStack extends cdk.Stack {
                 sourceMapMode: lambda_nodejs.SourceMapMode.INLINE,
             },
             environment: {
-                ...ENVIRONMENT_VARIABLES,
+                ...props.envVariables,
                 DEPLOYMENT_ENV: DEPLOYMENT_ENV,
                 NODE_OPTIONS: "--enable-source-maps",
             },

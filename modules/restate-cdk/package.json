@@ -5,9 +5,8 @@
     "restate-cdk": "bin/restate-cdk.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
+    "build": "tsc --noEmit",
+    "deploy": "cdk deploy",
     "cdk": "cdk"
   },
   "devDependencies": {
@@ -17,7 +16,8 @@
     "ts-jest": "^29.2.5",
     "aws-cdk": "2.1005.0",
     "ts-node": "^10.9.2",
-    "typescript": "~5.6.3"
+    "typescript": "~5.6.3",
+    "@types/bun": "1.1.11"
   },
   "dependencies": {
     "@restatedev/restate-cdk": "^1.1.1",

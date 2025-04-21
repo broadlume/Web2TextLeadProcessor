@@ -6,10 +6,6 @@ import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
 import { randomUUID } from 'crypto';
 
@@ -19,19 +15,18 @@ interface Web2TextServiceStackProps extends cdk.StackProps {
   restateServer: restate.SingleNodeRestateDeployment;
   serviceDeployer: restate.ServiceDeployer;
   vpcId: string;
+  envVariables: Record<string, string>;
+
 }
 
 export class Web2TextServiceStack extends cdk.Stack {
+  public static readonly SECRET_IDS = {
+    "development": "web2text-dev-env",
+    "production": "web2text-prod-env"
+  };
   constructor(scope: Construct, id: string, props: Web2TextServiceStackProps) {
     super(scope, id, props);
     const vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
-    let ENVIRONMENT_VARIABLES: Record<string, string> = {};
-
-    if (DEPLOYMENT_ENV === 'development') {
-      ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/web2text-service/.env.dev')));
-    } else if (DEPLOYMENT_ENV === 'production') {
-      ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/web2text-service/.env.prod')));
-    }
     const web2TextService = new lambda_nodejs.NodejsFunction(this, `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`,
@@ -45,7 +40,7 @@ export class Web2TextServiceStack extends cdk.Stack {
         sourceMapMode: lambda_nodejs.SourceMapMode.INLINE,
       },
       environment: {
-        ...ENVIRONMENT_VARIABLES,
+        ...props.envVariables,
         DEPLOYMENT_ENV: DEPLOYMENT_ENV,
         INTERNAL_API_TOKEN: randomUUID(),
         RESTATE_ADMIN_URL: props.restateServer.adminUrl,

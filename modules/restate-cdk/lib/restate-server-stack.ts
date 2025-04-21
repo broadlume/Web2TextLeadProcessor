@@ -1,4 +1,4 @@
-import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
+import { DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as restate from '@restatedev/restate-cdk';
@@ -8,13 +8,11 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
     nlbSubnetIds: string[];
     acmCertificateArn: string;
+    envVariables: Record<string, string>;
 }
 
 export class RestateServerStack extends cdk.Stack {
@@ -25,13 +23,7 @@ export class RestateServerStack extends cdk.Stack {
         super(scope, id, props);
         this.vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
         const vpc = this.vpc;
-        let ENVIRONMENT_VARIABLES: Record<string, string> = {};
 
-        if (DEPLOYMENT_ENV === 'development') {
-            ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/restate-server/.env.dev')));
-        } else if (DEPLOYMENT_ENV === 'production') {
-            ENVIRONMENT_VARIABLES = dotenv.parse(fs.readFileSync(path.resolve(__dirname, '../env/restate-server/.env.prod')));
-        }
         // Create the restate server on an EC2 instance
         this.restateServer = new restate.SingleNodeRestateDeployment(this, `RestateServer-${DEPLOYMENT_ENV_SUFFIX}`, {
             publicIngress: true,
@@ -39,12 +31,12 @@ export class RestateServerStack extends cdk.Stack {
                 subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
             },
             environment: {
+                ...props.envVariables,
                 RESTATE_TRACING_ENDPOINT: "http://localhost:4317",
                 RESTATE_LOG_FORMAT: "json",
-                ...ENVIRONMENT_VARIABLES
             },
             vpc,
-            restateTag: "1.2.2",
+            restateTag: "1.3",
             tracing: restate.TracingMode.AWS_XRAY,
             instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.LARGE),
             dataVolumeOptions: {
@@ -136,7 +128,7 @@ export class RestateServerStack extends cdk.Stack {
             }),
             vpc,
         });
-
+        
         // Create a policy that allows the restate server to access lambda services
         const invocationPolicy = new iam.Policy(this, "InvocationPolicy");
         // Wait until the policy is deployed before invoking the restate service deployer

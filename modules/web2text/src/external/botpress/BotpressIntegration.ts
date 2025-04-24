@@ -30,6 +30,13 @@ export class BotpressIntegration extends IExternalIntegration<
 > {
 
     Name = "Botpress";
+    override async shouldRun(context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>): Promise<boolean> {
+        const lead = await context.getAll();
+        if (lead.Lead.BotpressConversationId == null) {
+            return false;
+        }
+        return true;
+    }
     defaultState(): BotpressIntegrationState {
         return {
             SyncStatus: "NOT SYNCED",

@@ -22,6 +22,9 @@ export abstract class IExternalIntegration<
 	STATE extends ExternalIntegrationState,
 > {
 	abstract Name: string;
+	shouldRun(context: ObjectSharedContext<CONTEXT>): Promise<boolean> {
+		return Promise.resolve(true);
+	}
 	abstract defaultState(): STATE;
 	abstract create(
 		state: STATE,

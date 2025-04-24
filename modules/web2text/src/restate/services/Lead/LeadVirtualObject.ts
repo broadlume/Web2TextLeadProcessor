@@ -185,6 +185,7 @@ export const LeadVirtualObject = restate.object({
 
 				// Run create/sync method on each integration
 				for (const integration of integrations) {
+					if (!integration.shouldRun(ctx)) continue;
 					// Set the default state if it doesn't exist
 					integrationStates[integration.Name] ??= integration.defaultState();
 					const state = integrationStates[integration.Name];
@@ -301,6 +302,7 @@ export const LeadVirtualObject = restate.object({
 					(await ctx.get("CloseReason")) ?? req?.reason ?? "Not specified";
 				ctx.set("CloseReason", closeReason);
 				for (const integration of integrations) {
+					if (!integration.shouldRun(ctx)) continue;
 					// Set the default state if it doesn't exist
 					integrationStates[integration.Name] ??= integration.defaultState();
 					const state = integrationStates[integration.Name];

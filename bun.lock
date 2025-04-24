@@ -7,11 +7,11 @@
         "@elastic/ecs-winston-format": "^1.5.3",
         "@restatedev/restate": "1.1.6",
         "@restatedev/restate-sdk": "1.4.0",
-        "@twilio/conversations": "^2.5.0",
+        "@twilio/conversations": "^2.6.2",
         "ky": "^1.7.2",
         "libphonenumber-js": "^1.11.4",
         "tsafe": "^1.7.2",
-        "twilio": "5.3.5",
+        "twilio": "5.5.2",
         "type-fest": "^4.26.1",
         "winston": "^3.14.2",
         "zod": "^3.23.8",
@@ -368,19 +368,19 @@
 
     "@smithy/util-waiter": ["@smithy/util-waiter@4.0.2", "", { "dependencies": { "@smithy/abort-controller": "^4.0.1", "@smithy/types": "^4.1.0", "tslib": "^2.6.2" } }, "sha512-piUTHyp2Axx3p/kc2CIJkYSv0BAaheBQmbACZgQSSfWUumWNW+R1lL+H9PDBxKJkvOeEX+hKYEFiwO8xagL8AQ=="],
 
-    "@twilio/conversations": ["@twilio/conversations@2.6.0", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.7", "@twilio/deprecation-decorator": "^0.2.5", "@twilio/mcs-client": "^0.6.7", "@twilio/notifications": "^2.0.6", "@twilio/operation-retrier": "^4.0.16", "@twilio/replay-event-emitter": "^0.3.7", "core-js": "^3.17.3", "iso8601-duration": "=1.2.0", "isomorphic-form-data": "^2.0.0", "lodash.isequal": "^4.5.0", "loglevel": "^1.8.0", "platform": "^1.3.6", "quick-lru": "^5.1.1", "twilio-sync": "~3.1.0", "twilsock": "~0.12.2", "uuid": "^3.4.0", "xmlhttprequest": "^1.8.0" } }, "sha512-LRI1CS+4dThzOwUqemw412D0Imw3qTpM7W0nC+GW11LhTeLjibrviySEoLl3l0P0625sjAM0VCrlBScQbmkR0w=="],
+    "@twilio/conversations": ["@twilio/conversations@2.6.2", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.10", "@twilio/deprecation-decorator": "^0.2.8", "@twilio/mcs-client": "^0.6.10", "@twilio/notifications": "^2.0.9", "@twilio/operation-retrier": "^4.0.18", "@twilio/replay-event-emitter": "^0.3.10", "core-js": "^3.17.3", "iso8601-duration": "=1.2.0", "isomorphic-form-data": "^2.0.0", "lodash.isequal": "^4.5.0", "loglevel": "^1.8.0", "platform": "^1.3.6", "quick-lru": "^5.1.1", "twilio-sync": "~3.1.0", "twilsock": "~0.12.2", "uuid": "^3.4.0", "xmlhttprequest": "^1.8.0" } }, "sha512-xbikMRIiDeVxthchThAp2aL3BDHxCd6gqDkpQU4cwMHkzktxceuTC3NoBmV6HtDHzt1xjvct2WxBKw/ZPJj8Xw=="],
 
-    "@twilio/declarative-type-validator": ["@twilio/declarative-type-validator@0.2.8", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-leKswApxym29V1H2p8qIrvLR7g8yAUOVOVUBgIKk49bpRdHnQSIjA5zLfZXBFjwsd6Sd3UdEswL4neDjMe/nbg=="],
+    "@twilio/declarative-type-validator": ["@twilio/declarative-type-validator@0.2.10", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-q3ep+qsctZ0u+xr1U6/kjs4RlIJ/u8+wHyUQkrNCoVtjgnCV938P0RP7OUkW/fYt/vLhfy0Nnzo1G0bBbn9o/w=="],
 
-    "@twilio/deprecation-decorator": ["@twilio/deprecation-decorator@0.2.6", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3", "loglevel": "1.8.0" } }, "sha512-U/S+/dVwE+xuyiD8qhfO8cs0js1u/nU2SmAfM/Z4Fl7mSMU8u3Sp8bn7MOFU9GdAw55V3mvJY4RZeFwum1I5nQ=="],
+    "@twilio/deprecation-decorator": ["@twilio/deprecation-decorator@0.2.8", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3", "loglevel": "1.8.0" } }, "sha512-kDWN6sxOisTMQXQL0JgvzqGjNZIUj+hdZ1eZtm/5z6EMb14xuoi6qSXb//0x6Yn02zSrr6c7K8YKDrUawDRabQ=="],
 
-    "@twilio/mcs-client": ["@twilio/mcs-client@0.6.8", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.7", "@twilio/operation-retrier": "^4.0.16", "core-js": "^3.17.3", "loglevel": "^1.8.0", "xmlhttprequest": "^1.8.0" } }, "sha512-qNivLopm9U619ReH+nqN2gE5p9a8ZFmldkOV4a716h+QR0nlusiDPUmeSAPmVin3jfURwQHLpFJ8DwV29dv4fQ=="],
+    "@twilio/mcs-client": ["@twilio/mcs-client@0.6.10", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.10", "@twilio/operation-retrier": "^4.0.18", "core-js": "^3.17.3", "loglevel": "^1.8.0", "xmlhttprequest": "^1.8.0" } }, "sha512-MrZtvxyChUXUpcHG+BR/hY3u573/HsBtMMrTQE4HRvy3v9ZYY0RhHrECqW2TRw0iA3R9quk0CNrz357fjg8I+w=="],
 
-    "@twilio/notifications": ["@twilio/notifications@2.0.7", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.7", "@twilio/operation-retrier": "^4.0.16", "core-js": "^3.17.3", "loglevel": "^1.8.0", "twilsock": "~0.12.2", "uuid": "^3.4.0" } }, "sha512-uuwikPCb4EesJwS9OedjR85DM6ddtUvpR0McQM21X06AtXTkA8CYdqH3OqM7wQxHgGPvBw859LpHJIJAPxegfw=="],
+    "@twilio/notifications": ["@twilio/notifications@2.0.9", "", { "dependencies": { "@babel/runtime": "^7.17.0", "@twilio/declarative-type-validator": "^0.2.10", "@twilio/operation-retrier": "^4.0.18", "core-js": "^3.17.3", "loglevel": "^1.8.0", "twilsock": "~0.12.2", "uuid": "^3.4.0" } }, "sha512-sHuiIwSPx9xMo6y2l1p+lISs7kWt299B7AOsFqhoetgQr/Pz2PePwKLDruch9OWtW8ZNnT/vOpoz7qbN15vvmA=="],
 
-    "@twilio/operation-retrier": ["@twilio/operation-retrier@4.0.16", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-6AXZEb++Ts/ZuXLUpFaHzDwDcko5rxJ8R8TNTPWK3b2IYuhGHT66WIXLky4uSgY/SfurgPb0L6iEaqa73pEszQ=="],
+    "@twilio/operation-retrier": ["@twilio/operation-retrier@4.0.18", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-vG3i41XEa4lyC3+8FRFbjYBPZQftkI1WrJTtTDBf85N2UzZ8brqrUp9EbSdQmny1/zIvoZ18AswQrvBDLtNEvA=="],
 
-    "@twilio/replay-event-emitter": ["@twilio/replay-event-emitter@0.3.8", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-jjEs8v04m9gSbvlScG4HnxLDgWRsDsMF1Qa3cETNPCblBorklReXpZ6ifY3IUDZv5BccYlres/iX98jCzlcPWw=="],
+    "@twilio/replay-event-emitter": ["@twilio/replay-event-emitter@0.3.10", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-GaT5ihN3eJvIgCV81ggvLgtNwMtD2pBR4hMrFE/dlqN73FsNw01bawLSMIofOdRj8ydEPgvSTJHVCIjBWKHQvg=="],
 
     "@types/cookiejar": ["@types/cookiejar@2.1.5", "", {}, "sha512-he+DHOWReW0nghN24E1WUqM0efK4kI9oTqDm6XmK8ZPe2djZ90BSNdGnIyCLzCPw7/pogPlGbzI2wHGGmi4O/Q=="],
 
@@ -772,7 +772,7 @@
 
     "tsx": ["tsx@4.19.2", "", { "dependencies": { "esbuild": "~0.23.0", "get-tsconfig": "^4.7.5" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "bin": { "tsx": "dist/cli.mjs" } }, "sha512-pOUl6Vo2LUq/bSa8S5q7b91cgNSjctn9ugq/+Mvow99qW6x/UZYwzxy/3NmqoT66eHYfCVvFvACC58UBPFf28g=="],
 
-    "twilio": ["twilio@5.3.5", "", { "dependencies": { "axios": "^1.7.4", "dayjs": "^1.11.9", "https-proxy-agent": "^5.0.0", "jsonwebtoken": "^9.0.2", "qs": "^6.9.4", "scmp": "^2.1.0", "xmlbuilder": "^13.0.2" } }, "sha512-f/sA1Yd6TyIzfcq0u4QDGU+93afwswsJB+rf3T08tvBAMobBDVR3DfGREwJr5jp8xUic0qWa7GbJidk16NA4bg=="],
+    "twilio": ["twilio@5.5.2", "", { "dependencies": { "axios": "^1.7.8", "dayjs": "^1.11.9", "https-proxy-agent": "^5.0.0", "jsonwebtoken": "^9.0.2", "qs": "^6.9.4", "scmp": "^2.1.0", "xmlbuilder": "^13.0.2" } }, "sha512-yrRh6immcL5xEVX7VmHsl3vU01x/fmqxf38kvxMrrtvEtAkYARYOPor9lt5T7964zC7l31k5sTrnLJmd2jjeOA=="],
 
     "twilio-sync": ["twilio-sync@3.1.0", "", { "dependencies": { "@babel/runtime": "^7.14.5", "@twilio/declarative-type-validator": "^0.1.11", "@twilio/operation-retrier": "^4.0.7", "core-js": "^3.17.3", "iso8601-duration": "=1.2.0", "loglevel": "^1.6.3", "platform": "^1.3.6", "twilsock": "^0.12.2", "uuid": "^3.4.0" } }, "sha512-KNkbbnoBITpsmxV2UnmNDEot/Q5t7p5I1zP05oqj0OYT1kMcZq4nhiSNkcxkunfxINFSUzz8d/mUA82yWS7iLQ=="],
 
@@ -842,7 +842,11 @@
 
     "twilio-sync/@twilio/declarative-type-validator": ["@twilio/declarative-type-validator@0.1.11", "", { "dependencies": { "@babel/runtime": "^7.14.5", "core-js": "^3.17.3" } }, "sha512-yRAMLPD8j3k67UFvPeZvfTlKYuceiNq+iZ8a/ADzAbZMeaV0FMvsJmG97MH8yN/VdXY9hcscchsnc99bJ1sClw=="],
 
+    "twilio-sync/@twilio/operation-retrier": ["@twilio/operation-retrier@4.0.16", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-6AXZEb++Ts/ZuXLUpFaHzDwDcko5rxJ8R8TNTPWK3b2IYuhGHT66WIXLky4uSgY/SfurgPb0L6iEaqa73pEszQ=="],
+
     "twilsock/@twilio/declarative-type-validator": ["@twilio/declarative-type-validator@0.1.11", "", { "dependencies": { "@babel/runtime": "^7.14.5", "core-js": "^3.17.3" } }, "sha512-yRAMLPD8j3k67UFvPeZvfTlKYuceiNq+iZ8a/ADzAbZMeaV0FMvsJmG97MH8yN/VdXY9hcscchsnc99bJ1sClw=="],
+
+    "twilsock/@twilio/operation-retrier": ["@twilio/operation-retrier@4.0.16", "", { "dependencies": { "@babel/runtime": "^7.17.0", "core-js": "^3.17.3" } }, "sha512-6AXZEb++Ts/ZuXLUpFaHzDwDcko5rxJ8R8TNTPWK3b2IYuhGHT66WIXLky4uSgY/SfurgPb0L6iEaqa73pEszQ=="],
 
     "vite/esbuild": ["esbuild@0.21.5", "", { "optionalDependencies": { "@esbuild/aix-ppc64": "0.21.5", "@esbuild/android-arm": "0.21.5", "@esbuild/android-arm64": "0.21.5", "@esbuild/android-x64": "0.21.5", "@esbuild/darwin-arm64": "0.21.5", "@esbuild/darwin-x64": "0.21.5", "@esbuild/freebsd-arm64": "0.21.5", "@esbuild/freebsd-x64": "0.21.5", "@esbuild/linux-arm": "0.21.5", "@esbuild/linux-arm64": "0.21.5", "@esbuild/linux-ia32": "0.21.5", "@esbuild/linux-loong64": "0.21.5", "@esbuild/linux-mips64el": "0.21.5", "@esbuild/linux-ppc64": "0.21.5", "@esbuild/linux-riscv64": "0.21.5", "@esbuild/linux-s390x": "0.21.5", "@esbuild/linux-x64": "0.21.5", "@esbuild/netbsd-x64": "0.21.5", "@esbuild/openbsd-x64": "0.21.5", "@esbuild/sunos-x64": "0.21.5", "@esbuild/win32-arm64": "0.21.5", "@esbuild/win32-ia32": "0.21.5", "@esbuild/win32-x64": "0.21.5" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw=="],
 

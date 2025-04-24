@@ -101,6 +101,19 @@ export class TwilioIntegration
 				`Found pre-existing Twilio Conversation: ${conversation.sid}`,
 				{
 					_meta: 1,
+					ConversationSID: conversation.sid,
+					isNewConversation: false,
+					label: [`${this.Name}/createWeb2TextConversation`],
+				},
+			);
+		}
+		else {
+			context.console.info(
+				`Created new Twilio Conversation: ${conversation.sid}`,
+				{
+					_meta: 1,
+					ConversationSID: conversation.sid,
+					isNewConversation: true,
 					label: [`${this.Name}/createWeb2TextConversation`],
 				},
 			);
@@ -185,7 +198,7 @@ export class TwilioIntegration
 					.then((pa) => pa.map((p) => p.toJSON())),
 		);
 		const phoneNumbers = participants
-			.map((p) => p.messagingBinding?.address)
+			.map((p) => (p.messagingBinding as any)?.address)
 			.filter((p) => p != null);
 		if (phoneNumbers.length <= 1) {
 			// Close the lead if no phone numbers left in conversation

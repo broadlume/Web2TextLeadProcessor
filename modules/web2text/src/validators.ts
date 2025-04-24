@@ -144,7 +144,7 @@ export async function CheckPhoneNumberStatus(
 			Reason: `Twilio lookup reported this number as invalid - [${lookup.validationErrors.join(", ")}]`,
 		};
 	}
-	const lineTypeError: number | null = lookup.lineTypeIntelligence?.error_code;
+	const lineTypeError: number | null = lookup.lineTypeIntelligence?.error_code as unknown as number | null;
 	if (lineTypeError != null) {
 		logger
 			.child({ label: ["CheckPhoneNumberStatus", phoneNumber] })
@@ -157,7 +157,7 @@ export async function CheckPhoneNumberStatus(
 				},
 			);
 	}
-	const phoneType: string = lookup.lineTypeIntelligence?.type;
+	const phoneType: string = lookup.lineTypeIntelligence?.type as unknown as string;
 	const allowedValues = ["mobile", "nonFixedVoip", "fixedVoip", "personal"];
 	if (phoneType != null && !allowedValues.includes(phoneType)) {
 		return {

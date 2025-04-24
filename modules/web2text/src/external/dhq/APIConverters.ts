@@ -27,7 +27,7 @@ export class Web2TextMessageIntoDhqComment extends Into<DHQStoreInquiryAPI.AddCo
 		}
 		let messageBody = this.twilioMessage.body ?? "";
 		messageBody += (this.twilioMessage.media ?? [])
-			.map((m) => `\n[MEDIA ATTACHMENT - ${m.filename}]`)
+			.map((m) => `\n[MEDIA ATTACHMENT - ${(m as any).filename as string}]`)
 			.join("");
 		const dhqComment: DHQStoreInquiryAPI.AddCommentRequest = {
 			comment: {

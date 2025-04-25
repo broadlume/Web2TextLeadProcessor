@@ -4,8 +4,8 @@ import {
 	isDeployed,
 	isProductionAndDeployed,
 } from "common";
-import type {
-	ExternalIntegrationState,
+import {
+	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
 import { NexusRetailerAPI, NexusStoresAPI } from "common/external/nexus";
@@ -20,7 +20,6 @@ import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conv
 import { LeadVirtualObject } from "../../restate/services/Lead/LeadVirtualObject";
 import { IsPhoneNumberOptedOut } from "../../validators";
 import type { SubmittedLeadState, Web2TextLead } from "../../types";
-import type { LeadState } from "../../types";
 import {
 	DealerCloseMessage,
 	DealerGreetMessage,
@@ -35,7 +34,7 @@ export interface TwilioIntegrationState extends ExternalIntegrationState {
 }
 
 export class TwilioIntegration
-	implements IExternalIntegration<SubmittedLeadState<Web2TextLead>, TwilioIntegrationState>
+	extends IExternalIntegration<SubmittedLeadState<Web2TextLead>, TwilioIntegrationState>
 {
 	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
 		? "P30D"
@@ -51,6 +50,7 @@ export class TwilioIntegration
 	}
 	private twilioClient: Twilio;
 	constructor(client?: Twilio) {
+		super();
 		client ??= globalThis.TWILIO_CLIENT;
 		this.twilioClient = client;
 	}

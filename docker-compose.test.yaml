@@ -18,7 +18,7 @@ services:
       - CI
       - GITHUB_ACTIONS
   restate-server:
-    image: "docker.restate.dev/restatedev/restate:1.2.2"
+    image: "docker.restate.dev/restatedev/restate:1.3.2"
     container_name: restate-server
     networks:
       - restate-network

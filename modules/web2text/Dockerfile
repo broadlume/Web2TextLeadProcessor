@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7-labs
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1.2 AS base
+FROM oven/bun:1.2.10 AS base
 RUN mkdir -p /app
 WORKDIR /app
 

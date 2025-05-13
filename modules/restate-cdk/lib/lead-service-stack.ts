@@ -48,7 +48,7 @@ export class LeadServiceStack extends cdk.Stack {
         NODE_OPTIONS: "--enable-source-maps",
       },
       logGroup: new logs.LogGroup(this, `LeadServiceLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-        logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/lead-service-logs`,
+        logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/lead-service`,
         retention: logs.RetentionDays.ONE_MONTH,
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       }),

@@ -39,7 +39,7 @@ export class TwilioProxyStack extends cdk.Stack {
                 NODE_OPTIONS: "--enable-source-maps",
             },
             logGroup: new logs.LogGroup(this, `TwilioProxyLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-                logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/twilio-proxy-logs`,
+                logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/twilio-proxy`,
                 retention: logs.RetentionDays.ONE_MONTH,
                 removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
             }),

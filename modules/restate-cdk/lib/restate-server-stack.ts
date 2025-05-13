@@ -44,7 +44,7 @@ export class RestateServerStack extends cdk.Stack {
                 "volumeSize": 128,
             },
             logGroup: new logs.LogGroup(this, `RestateLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-                logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server-logs`,
+                logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server`,
                 retention: logs.RetentionDays.ONE_MONTH,
                 removalPolicy: cdk.RemovalPolicy.DESTROY,
             }),
@@ -126,7 +126,7 @@ export class RestateServerStack extends cdk.Stack {
             functionName: `LeadService-RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`,
             securityGroups: [this.restateServer.adminSecurityGroup],
             logGroup: new logs.LogGroup(this, `RestateDeployerLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-                logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-service-deployer-logs`,
+                logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server/service-deployer`,
                 retention: logs.RetentionDays.ONE_WEEK,
                 removalPolicy: cdk.RemovalPolicy.RETAIN,
             }),

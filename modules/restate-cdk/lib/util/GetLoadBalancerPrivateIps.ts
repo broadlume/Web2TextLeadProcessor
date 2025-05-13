@@ -14,7 +14,7 @@ export function GetPrivateIpsOfLoadBalancer(
     loadBalancer: elbv2.NetworkLoadBalancer,
 ): string[] {
     const outputPaths = ["NetworkInterfaces.0.PrivateIpAddress", "NetworkInterfaces.1.PrivateIpAddress"];
-    const loadBalancerPrivateIp = new AwsCustomResource(scope, `${loadBalancer.loadBalancerName}-PrivateIps`, {
+    const loadBalancerPrivateIp = new AwsCustomResource(scope, `NLB-PrivateIps`, {
         onUpdate: {
             service: "EC2",
             action: "describeNetworkInterfaces",

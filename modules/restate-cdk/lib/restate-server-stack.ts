@@ -8,6 +8,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import { GetPrivateIpsOfLoadBalancer } from './util/GetLoadBalancerPrivateIps';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
     nlbSubnetIds: string[];
@@ -36,7 +37,7 @@ export class RestateServerStack extends cdk.Stack {
                 RESTATE_LOG_FORMAT: "json",
             },
             vpc,
-            restateTag: "1.3",
+            restateTag: "1.3.2",
             tracing: restate.TracingMode.AWS_XRAY,
             instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.LARGE),
             dataVolumeOptions: {
@@ -49,8 +50,9 @@ export class RestateServerStack extends cdk.Stack {
             }),
         });
         // Set the EC2 instance name
-        const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", "sg-0125cec8ff948873f");
         cdk.Tags.of(this.restateServer.instance).add('Name', `Web2Text-RestateServer-${DEPLOYMENT_ENV_SUFFIX}`);
+        const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", "sg-0125cec8ff948873f");
+        
         const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`, {
             vpc,
             vpcSubnets: {
@@ -59,6 +61,7 @@ export class RestateServerStack extends cdk.Stack {
             securityGroups: [this.restateServer.adminSecurityGroup, loadBalancerSecurityGroup],
             internetFacing: true
         });
+        cdk.Tags.of(loadBalancer).add('Name', `Web2Text-RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`);
 
         // Create target groups for each port
         const targetGroup8080 = new elbv2.NetworkTargetGroup(this, `RestateTargetGroup8080-${DEPLOYMENT_ENV_SUFFIX}`, {
@@ -102,7 +105,7 @@ export class RestateServerStack extends cdk.Stack {
         loadBalancer.addListener(`Listener9070-${DEPLOYMENT_ENV_SUFFIX}`, {
             port: 9070,
             protocol: elbv2.Protocol.TCP,
-            defaultTargetGroups: [targetGroup9070]
+            defaultTargetGroups: [targetGroup9070],
         });
 
         // Import the ACM certificate for TLS termination
@@ -115,7 +118,6 @@ export class RestateServerStack extends cdk.Stack {
             certificates: [certificate],
             defaultTargetGroups: [targetGroup8080]
         });
-
 
         // Create a lambda function that will automatically register restate services with the restate server
         this.restateServiceDeployer = new restate.ServiceDeployer(this, `RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`, {
@@ -140,7 +142,17 @@ export class RestateServerStack extends cdk.Stack {
                 resources: ["*"]
             })
         );
-        new cdk.CfnOutput(this, "restateNLBPublicIngressUrl", { value: loadBalancer.loadBalancerDnsName,
+        // Output the private IPs of the Restate NLB
+        // While HTTP ingress on port 80, 8080, and 443 is allowed via the public IP of the NLB,
+        // port 9070 (the admin panel) is only accesible from internal IPs
+        // Since our VPN is in split tunnel mode, in order to access the admin panel we need the admin.web2text DNS entry to be set to the private IPs of the NLB
+        const privateIps = GetPrivateIpsOfLoadBalancer(this, loadBalancer);
+        new cdk.CfnOutput(this, "restateNLBPrivateIps", { 
+            value: privateIps.join(","),
+            description: "The private IPs of the Restate NLB (multiple IPs for different AZs)"
+        });
+        new cdk.CfnOutput(this, "restateNLBPublicIngressUrl", { 
+            value: loadBalancer.loadBalancerDnsName,
             description: "Public ingress URL for the Restate NLB"
          });
         

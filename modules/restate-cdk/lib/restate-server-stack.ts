@@ -44,17 +44,17 @@ export class RestateServerStack extends cdk.Stack {
                 "volumeSize": 128,
             },
             logGroup: new logs.LogGroup(this, `RestateLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-                logGroupName: `/web2text-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server-logs`,
+                logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server-logs`,
                 retention: logs.RetentionDays.ONE_MONTH,
                 removalPolicy: cdk.RemovalPolicy.DESTROY,
             }),
         });
         // Set the EC2 instance name
-        cdk.Tags.of(this.restateServer.instance).add('Name', `Web2Text-RestateServer-${DEPLOYMENT_ENV_SUFFIX}`);
+        cdk.Tags.of(this.restateServer.instance).add('Name', `LeadService-RestateServer-${DEPLOYMENT_ENV_SUFFIX}`);
         const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", "sg-0125cec8ff948873f");
         
-        const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`, {
-            loadBalancerName: `Web2Text-RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`,
+        const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateNLB-${DEPLOYMENT_ENV_SUFFIX}`, {
+            loadBalancerName: `LeadService-RestateNLB-${DEPLOYMENT_ENV_SUFFIX}`,
             vpc,
             vpcSubnets: {
                 subnets: props.nlbSubnetIds.map((id: string, idx: number) => ec2.Subnet.fromSubnetId(this, `RestateLoadBalancerSubnet-${idx}`, id))
@@ -62,10 +62,11 @@ export class RestateServerStack extends cdk.Stack {
             securityGroups: [this.restateServer.adminSecurityGroup, loadBalancerSecurityGroup],
             internetFacing: true,
         });
-        cdk.Tags.of(loadBalancer).add('Name', `Web2Text-RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`);
+        cdk.Tags.of(loadBalancer).add('Name', `LeadService-RestateNLB-${DEPLOYMENT_ENV_SUFFIX}`);
 
+        const loadBalancerName = cdk.Names.uniqueResourceName(loadBalancer, {});
         // Create target groups for each port
-        const targetGroup8080 = new elbv2.NetworkTargetGroup(this, `RestateTargetGroup8080-${DEPLOYMENT_ENV_SUFFIX}`, {
+        const targetGroup8080 = new elbv2.NetworkTargetGroup(this, `${loadBalancerName}-RestateTargetGroup8080-${DEPLOYMENT_ENV_SUFFIX}`, {
             vpc,
             port: 8080,
             protocol: elbv2.Protocol.TCP,
@@ -75,7 +76,7 @@ export class RestateServerStack extends cdk.Stack {
                 port: '8080'
             }
         });
-        const targetGroup9070 = new elbv2.NetworkTargetGroup(this, `RestateTargetGroup9070-${DEPLOYMENT_ENV_SUFFIX}`, {
+        const targetGroup9070 = new elbv2.NetworkTargetGroup(this, `${loadBalancerName}-RestateTargetGroup9070-${DEPLOYMENT_ENV_SUFFIX}`, {
             vpc,
             port: 9070,
             protocol: elbv2.Protocol.TCP,
@@ -122,10 +123,10 @@ export class RestateServerStack extends cdk.Stack {
 
         // Create a lambda function that will automatically register restate services with the restate server
         this.restateServiceDeployer = new restate.ServiceDeployer(this, `RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`, {
-            functionName: `Web2Text-RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`,
+            functionName: `LeadService-RestateServiceDeployer-${DEPLOYMENT_ENV_SUFFIX}`,
             securityGroups: [this.restateServer.adminSecurityGroup],
             logGroup: new logs.LogGroup(this, `RestateDeployerLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-                logGroupName: `/web2text-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-service-deployer-logs`,
+                logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-service-deployer-logs`,
                 retention: logs.RetentionDays.ONE_WEEK,
                 removalPolicy: cdk.RemovalPolicy.RETAIN,
             }),
@@ -146,7 +147,7 @@ export class RestateServerStack extends cdk.Stack {
         // Output the private IPs of the Restate NLB
         // While HTTP ingress on port 80, 8080, and 443 is allowed via the public IP of the NLB,
         // port 9070 (the admin panel) is only accesible from internal IPs
-        // Since our VPN is in split tunnel mode, in order to access the admin panel we need the admin.web2text DNS entry to be set to the private IPs of the NLB
+        // Since our VPN is in split tunnel mode, in order to access the admin panel we need the admin DNS entry to be set to the private IPs of the NLB
         const privateIps = GetPrivateIpsOfLoadBalancer(this, loadBalancer);
         new cdk.CfnOutput(this, "restateNLBPrivateIps", { 
             value: privateIps.join(","),

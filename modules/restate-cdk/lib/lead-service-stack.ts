@@ -10,7 +10,7 @@ import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
 import { randomUUID } from 'crypto';
 
 
-interface Web2TextServiceStackProps extends cdk.StackProps {
+interface LeadServiceStackProps extends cdk.StackProps {
   twilioProxyUrl: string;
   restateServer: restate.SingleNodeRestateDeployment;
   serviceDeployer: restate.ServiceDeployer;
@@ -19,17 +19,17 @@ interface Web2TextServiceStackProps extends cdk.StackProps {
 
 }
 
-export class Web2TextServiceStack extends cdk.Stack {
+export class LeadServiceStack extends cdk.Stack {
   public static readonly SECRET_IDS = {
     "development": "web2text-dev-env",
     "production": "web2text-prod-env"
   };
-  constructor(scope: Construct, id: string, props: Web2TextServiceStackProps) {
+  constructor(scope: Construct, id: string, props: LeadServiceStackProps) {
     super(scope, id, props);
     const vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
-    const web2TextService = new lambda_nodejs.NodejsFunction(this, `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`, {
+    const leadService = new lambda_nodejs.NodejsFunction(this, `LeadService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,
-      functionName: `Web2TextService-${DEPLOYMENT_ENV_SUFFIX}`,
+      functionName: `LeadService-${DEPLOYMENT_ENV_SUFFIX}`,
       entry: "../web2text/src/lambda.ts",
       architecture: lambda.Architecture.ARM_64,
       depsLockFilePath: "../../bun.lockb",
@@ -47,8 +47,8 @@ export class Web2TextServiceStack extends cdk.Stack {
         TWILIO_PROXY_URL: props.twilioProxyUrl,
         NODE_OPTIONS: "--enable-source-maps",
       },
-      logGroup: new logs.LogGroup(this, `Web2TextServiceLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
-        logGroupName: `/web2text-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/web2text-service-logs`,
+      logGroup: new logs.LogGroup(this, `LeadServiceLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
+        logGroupName: `/lead-service-${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/lead-service-logs`,
         retention: logs.RetentionDays.ONE_MONTH,
         removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       }),
@@ -60,12 +60,12 @@ export class Web2TextServiceStack extends cdk.Stack {
       vpc,
     });
 
-    web2TextService.addToRolePolicy(new iam.PolicyStatement({
+    leadService.addToRolePolicy(new iam.PolicyStatement({
       actions: ["dynamodb:*"],
       resources: ["*"],
     }));
 
-    props.serviceDeployer.register(web2TextService.currentVersion, props.restateServer, {
+    props.serviceDeployer.register(leadService.currentVersion, props.restateServer, {
       "adminUrl": props.restateServer.adminUrl,
       skipInvokeFunctionGrant: true,
     });

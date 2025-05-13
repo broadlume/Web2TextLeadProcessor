@@ -54,12 +54,13 @@ export class RestateServerStack extends cdk.Stack {
         const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", "sg-0125cec8ff948873f");
         
         const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`, {
+            loadBalancerName: `Web2Text-RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`,
             vpc,
             vpcSubnets: {
                 subnets: props.nlbSubnetIds.map((id: string, idx: number) => ec2.Subnet.fromSubnetId(this, `RestateLoadBalancerSubnet-${idx}`, id))
             },
             securityGroups: [this.restateServer.adminSecurityGroup, loadBalancerSecurityGroup],
-            internetFacing: true
+            internetFacing: true,
         });
         cdk.Tags.of(loadBalancer).add('Name', `Web2Text-RestateLoadBalancer-${DEPLOYMENT_ENV_SUFFIX}`);
 

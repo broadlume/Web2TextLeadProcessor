@@ -1,4 +1,4 @@
-import { DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
+import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as restate from '@restatedev/restate-cdk';
@@ -9,6 +9,7 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { GetPrivateIpsOfLoadBalancer } from './util/GetLoadBalancerPrivateIps';
+import { NLB_SECURITY_GROUP_IDS } from '../bin/constants';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
     nlbSubnetIds: string[];
@@ -51,8 +52,9 @@ export class RestateServerStack extends cdk.Stack {
         });
         // Set the EC2 instance name
         cdk.Tags.of(this.restateServer.instance).add('Name', `LeadService-RestateServer-${DEPLOYMENT_ENV_SUFFIX}`);
-        const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", "sg-0125cec8ff948873f");
-        
+
+        // Create the load balancer
+        const loadBalancerSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, "RestateServerSecurityGroup", NLB_SECURITY_GROUP_IDS[DEPLOYMENT_ENV]);
         const loadBalancer = new elbv2.NetworkLoadBalancer(this, `RestateNLB-${DEPLOYMENT_ENV_SUFFIX}`, {
             loadBalancerName: `LeadService-RestateNLB-${DEPLOYMENT_ENV_SUFFIX}`,
             vpc,
@@ -128,7 +130,7 @@ export class RestateServerStack extends cdk.Stack {
             logGroup: new logs.LogGroup(this, `RestateDeployerLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
                 logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server/service-deployer`,
                 retention: logs.RetentionDays.ONE_WEEK,
-                removalPolicy: cdk.RemovalPolicy.RETAIN,
+                removalPolicy: cdk.RemovalPolicy.DESTROY,
             }),
             vpc,
         });

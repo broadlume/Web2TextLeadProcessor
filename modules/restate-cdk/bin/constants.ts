@@ -14,6 +14,11 @@ export const NLB_SUBNET_IDS = {
     ]
 }
 
+export const NLB_SECURITY_GROUP_IDS = {
+    "development": "sg-0125cec8ff948873f",
+    "production": "sg-041e2e25be813531e"
+}
+
 export const ACM_CERTIFICATE_ARNS = {
     "development": "arn:aws:acm:us-east-1:202061849983:certificate/f18856c4-831f-41e0-927f-11f5410bfcdc",
     "staging": "arn:aws:acm:us-east-1:202061849983:certificate/47bd373d-637e-42ed-9677-ec0f8dbbd8fb",

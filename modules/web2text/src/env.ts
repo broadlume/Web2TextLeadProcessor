@@ -53,11 +53,11 @@ export const ENV_FILE_SCHEMA = z
 		/** DealerHQ API authentication key */
 		DHQ_API_KEY: z.string().min(1, "DealerHQ API Key is required"),
 		/** Copilot environment name */
-		COPILOT_ENVIRONMENT_NAME: z
+		DEPLOYMENT_ENV: z
 			.enum(["development", "production"], {
 				errorMap: () => ({
 					message:
-						"Copilot Environment must be either 'development' or 'production'",
+						"Deployment environment must be either 'development' or 'production'",
 				}),
 			})
 			.optional(),

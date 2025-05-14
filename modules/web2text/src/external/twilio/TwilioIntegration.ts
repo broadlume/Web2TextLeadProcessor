@@ -92,8 +92,7 @@ export class TwilioIntegration
 					locationInformation,
 				),
 			{
-				maxRetryAttempts: 4,
-				initialRetryIntervalMillis: 500,
+				maxRetryAttempts: 3,
 			},
 		);
 		if (!isNewConversation) {

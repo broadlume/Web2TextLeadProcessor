@@ -11,9 +11,9 @@ export function GetRunningEnvironment(): {
 	environment: ValidEnvironment;
 } {
 	return {
-		local: process.env.COPILOT_ENVIRONMENT_NAME == null,
-		environment: (process.env.COPILOT_ENVIRONMENT_NAME ??
-			process.env.NODE_ENV ??
+		local: process.env.DEPLOYMENT_ENV == null,
+		environment: (process.env.DEPLOYMENT_ENV ??
+			process.env.DEPLOYMENT_ENV ??
 			"development") as ValidEnvironment,
 	};
 }

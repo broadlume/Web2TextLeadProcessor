@@ -32,6 +32,7 @@ export class TwilioProxyStack extends cdk.Stack {
                 minify: true,
                 sourceMap: true,
                 sourceMapMode: lambda_nodejs.SourceMapMode.INLINE,
+                keepNames: true
             },
             environment: {
                 ...props.envVariables,

@@ -37,6 +37,7 @@ export class LeadServiceStack extends cdk.Stack {
       bundling: {
         minify: true,
         sourceMap: true,
+        keepNames: true,
         sourceMapMode: lambda_nodejs.SourceMapMode.INLINE,
       },
       environment: {

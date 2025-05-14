@@ -43,6 +43,7 @@ beforeAll(async () => {
 	Web2TextIntegrations.splice(0, Number.POSITIVE_INFINITY);
 	Web2TextIntegrations.push({
 		Name: "Test Integration",
+		shouldRun: () => Promise.resolve(true),
 		defaultState: () => ({ SyncStatus: "NOT SYNCED" }),
 		create: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),
 		sync: (state: any, context: any) => ({ ...state, SyncStatus: "SYNCED" }),

@@ -1,7 +1,7 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 import * as restate from "@restatedev/restate-sdk";
-import type {
-	ExternalIntegrationState,
+import {
+	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
 import { ActOnListAPI } from "common/external/acton";
@@ -15,7 +15,7 @@ interface ActOnIntegrationState extends ExternalIntegrationState {
 }
 
 export class ActOnIntegration
-	implements IExternalIntegration<LeadState, ActOnIntegrationState>
+	extends IExternalIntegration<LeadState, ActOnIntegrationState>
 {
 	Name!: "ActOn";
 	defaultState(): ActOnIntegrationState {

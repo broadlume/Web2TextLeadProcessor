@@ -16,7 +16,7 @@ jobs:
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.2
+          bun-version: 1.2.10
       - name: Install Dependencies
         run: bun install --frozen-lockfile
       - name: Typecheck

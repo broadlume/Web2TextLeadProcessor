@@ -1,7 +1,7 @@
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 import * as restate from "@restatedev/restate-sdk";
-import type {
-	ExternalIntegrationState,
+import {
+	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
 import { serializeError } from "serialize-error";
@@ -16,7 +16,7 @@ interface FfWebApiIntegrationState extends ExternalIntegrationState {
 }
 
 export class FfWebApiIntegration
-	implements IExternalIntegration<LeadState, FfWebApiIntegrationState>
+	extends IExternalIntegration<LeadState, FfWebApiIntegrationState>
 {
 	Name!: "FFWebApi";
 	defaultState(): FfWebApiIntegrationState {

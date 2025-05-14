@@ -29,7 +29,7 @@ export class Web2TextMessageIntoRLMNote extends Into<RLMLeadsAPI.RLMAttachNoteRe
 		}
 		let messageBody = this.twilioMessage.body ?? "";
 		messageBody += (this.twilioMessage.media ?? [])
-			.map((m) => `\n[MEDIA ATTACHMENT - ${m.filename}]`)
+			.map((m) => `\n[MEDIA ATTACHMENT - ${(m as any).filename as string}]`)
 			.join("");
 		const note: RLMLeadsAPI.RLMAttachNoteRequest = {
 			lead_uuid: this.rlmLeadUUID,

@@ -12,6 +12,8 @@
   "scripts": {
     "format": "biome check --write",
     "check": "tsc --noEmit",
+    "fetch-env": "bun run ../../scripts/fetchEnvVariables.ts --secretName web2text-dev-env",
+    "fetch-env-prod": "bun run ../../scripts/fetchEnvVariables.ts --secretName web2text-prod-env",
     "prebundle": "rm -rf dist",
     "bundle": "esbuild src/app.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outdir=./dist",
     "app": "NODE_ENV=production node ./dist/app.js",

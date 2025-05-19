@@ -5,7 +5,8 @@
     "modules/common",
     "modules/web2text",
     "modules/e2e_tests",
-    "modules/acton"
+    "modules/acton",
+    "modules/twilio_proxy"
   ],
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.5.3",
@@ -33,7 +34,9 @@
     "e2e": "cd modules/e2e_tests && DEBUG=vitest bun run e2e",
     "check": "bun run --filter '*' check",
     "format": "bun biome check --write",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "fetch-env": "bun run --filter '*' fetch-env --operation merge",
+    "fetch-env-prod": "bun run --filter '*' fetch-env-prod --operation merge"
   },
   "patchedDependencies": {
     "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"

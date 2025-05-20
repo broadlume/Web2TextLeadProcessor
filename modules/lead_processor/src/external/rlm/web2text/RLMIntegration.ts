@@ -8,13 +8,13 @@ import { RLMLeadsAPI, RLMLocationsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { SubmittedLeadState, Web2TextLead } from "../../types";
-import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
+import type { SubmittedLeadState, Web2TextLead } from "../../../types";
+import type { TwilioIntegrationState } from "../../twilio/web2text/TwilioIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
 	Web2TextMessageIntoRLMNote,
-} from "./APIConverters";
-import type { BotpressIntegrationState } from "../botpress/BotpressIntegration";
+} from "../web2text/APIConverters";
+import type { BotpressIntegrationState } from "../../botpress/web2text/BotpressIntegration";
 import { assert, is } from "tsafe/assert";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {

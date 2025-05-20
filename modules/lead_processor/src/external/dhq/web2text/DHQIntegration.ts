@@ -8,14 +8,14 @@ import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { SubmittedLeadState, Web2TextLead } from "../../types";
-import type { TwilioIntegrationState } from "../twilio/TwilioIntegration";
+import type { SubmittedLeadState, Web2TextLead } from "../../../types";
+import type { TwilioIntegrationState } from "../../twilio/web2text/TwilioIntegration";
 import {
 	Web2TextLeadIntoDHQStoreInquiry,
 	Web2TextMessageIntoDhqComment,
-} from "./APIConverters";
+} from "../web2text/APIConverters";
 import { assert, is } from "tsafe";
-import type { BotpressIntegrationState } from "../botpress/BotpressIntegration";
+import type { BotpressIntegrationState } from "../../botpress/web2text/BotpressIntegration";
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;

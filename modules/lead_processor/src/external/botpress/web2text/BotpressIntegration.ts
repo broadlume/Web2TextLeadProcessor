@@ -1,4 +1,4 @@
-import type { SubmittedLeadState, Web2TextLead } from "../../types";
+import type { SubmittedLeadState, Web2TextLead } from "../../../types";
 import { type ExternalIntegrationState, IExternalIntegration } from "common/external";
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
 import { BotpressTableAPI } from "common/external/botpress";

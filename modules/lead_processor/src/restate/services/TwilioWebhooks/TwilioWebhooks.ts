@@ -7,7 +7,7 @@ import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
 import { validateRequest } from "twilio/lib/webhooks/webhooks";
 import { OptedOutNumberModel } from "../../../dynamodb/OptedOutNumberModel";
 import { LeadVirtualObject } from "../Lead/LeadVirtualObject";
-import { CustomerCloseMessage, DealerCloseMessage } from "../../../external/twilio/Web2TextMessagingStrings";
+import { CustomerCloseMessage, DealerCloseMessage } from "../../../external/twilio/web2text/Web2TextMessagingStrings";
 
 interface TwilioWebhookBody {
 	AccountSid: string;

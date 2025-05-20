@@ -17,9 +17,10 @@ import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import type { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import { LeadVirtualObject } from "../../../restate/services/Lead/LeadVirtualObject";
-import { IsPhoneNumberOptedOut } from "../../../validators";
-import type { SubmittedLeadState, Web2TextLead } from "../../../types";
+import type { SubmittedLeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
+import { LeadVirtualObject } from "#src/restate/services/Lead/LeadVirtualObject";
+import { IsPhoneNumberOptedOut } from "#src/validators";
 import {
 	DealerCloseMessage,
 	DealerGreetMessage,
@@ -33,9 +34,10 @@ export interface TwilioIntegrationState extends ExternalIntegrationState {
 	};
 }
 
-export class TwilioIntegration
-	extends IExternalIntegration<SubmittedLeadState<Web2TextLead>, TwilioIntegrationState>
-{
+export class TwilioIntegration extends IExternalIntegration<
+	SubmittedLeadState<Web2TextLead>,
+	TwilioIntegrationState
+> {
 	readonly CONVERSATION_CLOSED_TIMER = isProductionAndDeployed()
 		? "P30D"
 		: "P1D";
@@ -61,7 +63,8 @@ export class TwilioIntegration
 		const leadState = await context.getAll();
 		const locationInformation = await context.run(
 			"Get retailer store from Nexus",
-			async () => NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
+			async () =>
+				NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
 		);
 		if (locationInformation === null) {
 			throw new Error(
@@ -105,8 +108,7 @@ export class TwilioIntegration
 					label: [`${this.Name}/createWeb2TextConversation`],
 				},
 			);
-		}
-		else {
+		} else {
 			context.console.info(
 				`Created new Twilio Conversation: ${conversation.sid}`,
 				{

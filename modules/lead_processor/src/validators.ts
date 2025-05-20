@@ -7,12 +7,10 @@ import { TwilioLookupAPI } from "common/external/twilio";
 import type { E164Number } from "libphonenumber-js";
 import parsePhoneNumber from "libphonenumber-js";
 import type { Twilio } from "twilio";
-import { OptedOutNumberModel } from "./dynamodb/OptedOutNumberModel";
-import type { Web2TextLeadCreateRequest } from "./restate/services/Lead/Web2TextLeadCreateRequest";
-import type {
-	LeadState,
-	Web2TextLead
-} from "./types";
+import { OptedOutNumberModel } from "#dynamodb/OptedOutNumberModel";
+import type { LeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
+import type { Web2TextLeadCreateRequest } from "#restate/services/Lead/Web2TextLeadCreateRequest";
 export type ValidationStatus = {
 	Status: "VALID" | "INVALID" | "NONEXISTANT";
 	Reason?: string;
@@ -144,7 +142,8 @@ export async function CheckPhoneNumberStatus(
 			Reason: `Twilio lookup reported this number as invalid - [${lookup.validationErrors.join(", ")}]`,
 		};
 	}
-	const lineTypeError: number | null = lookup.lineTypeIntelligence?.error_code as unknown as number | null;
+	const lineTypeError: number | null = lookup.lineTypeIntelligence
+		?.error_code as unknown as number | null;
 	if (lineTypeError != null) {
 		logger
 			.child({ label: ["CheckPhoneNumberStatus", phoneNumber] })
@@ -157,7 +156,8 @@ export async function CheckPhoneNumberStatus(
 				},
 			);
 	}
-	const phoneType: string = lookup.lineTypeIntelligence?.type as unknown as string;
+	const phoneType: string = lookup.lineTypeIntelligence
+		?.type as unknown as string;
 	const allowedValues = ["mobile", "nonFixedVoip", "fixedVoip", "personal"];
 	if (phoneType != null && !allowedValues.includes(phoneType)) {
 		return {

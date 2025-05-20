@@ -7,15 +7,16 @@ import { NexusRetailerAPI, NexusStoresAPI } from "common/external/nexus";
 import { RLMLeadsAPI, RLMLocationsAPI } from "common/external/rlm";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
+import { assert, is } from "tsafe/assert";
 import type { Twilio } from "twilio";
-import type { SubmittedLeadState, Web2TextLead } from "../../../types";
-import type { TwilioIntegrationState } from "../../twilio/web2text/TwilioIntegration";
+import type { BotpressIntegrationState } from "#external/botpress/web2text/BotpressIntegration";
 import {
 	Web2TextLeadIntoRLMLead,
 	Web2TextMessageIntoRLMNote,
-} from "../web2text/APIConverters";
-import type { BotpressIntegrationState } from "../../botpress/web2text/BotpressIntegration";
-import { assert, is } from "tsafe/assert";
+} from "#external/rlm/web2text/APIConverters";
+import type { TwilioIntegrationState } from "#external/twilio/web2text/TwilioIntegration";
+import type { SubmittedLeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -80,7 +81,10 @@ export class RLMIntegration extends IExternalIntegration<
 		}
 		const rlmLocationMapping = await context.run(
 			"Get RLM location name",
-			async () => await this.getRLMLocationName(leadState.Lead.LocationId).catch(e => null),
+			async () =>
+				await this.getRLMLocationName(leadState.Lead.LocationId).catch(
+					(e) => null,
+				),
 		);
 		if (rlmLocationMapping == null) {
 			context.console.warn(
@@ -119,8 +123,7 @@ export class RLMIntegration extends IExternalIntegration<
 				},
 			};
 		}
-		const newState: RLMIntegrationState = 
-		{
+		const newState: RLMIntegrationState = {
 			...state,
 			SyncStatus: "SYNCED",
 			LastSynced: new Date(await context.date.now()).toISOString(),
@@ -132,7 +135,10 @@ export class RLMIntegration extends IExternalIntegration<
 				SyncedMessageIds: [],
 			},
 		};
-		const sentBotpressSummary = await this.sendBotpressSummary(newState, context);
+		const sentBotpressSummary = await this.sendBotpressSummary(
+			newState,
+			context,
+		);
 		newState.Data!.SentBotpressSummary = sentBotpressSummary;
 		return newState;
 	}
@@ -154,7 +160,10 @@ export class RLMIntegration extends IExternalIntegration<
 			};
 		}
 		if (!state.Data?.SentBotpressSummary) {
-			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(state, context);
+			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(
+				state,
+				context,
+			);
 		}
 
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
@@ -220,26 +229,35 @@ export class RLMIntegration extends IExternalIntegration<
 		};
 	}
 
-	private async sendBotpressSummary(state: RLMIntegrationState, context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>): Promise<boolean> {
+	private async sendBotpressSummary(
+		state: RLMIntegrationState,
+		context: restate.ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
+	): Promise<boolean> {
 		const lead = await context.getAll();
-		if (!state.Data?.SentBotpressSummary && lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED") {
+		if (
+			!state.Data?.SentBotpressSummary &&
+			lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED"
+		) {
 			const botpressConversation = lead.Integrations?.["Botpress"].Data;
 			assert(is<BotpressIntegrationState["Data"]>(botpressConversation));
 			if (botpressConversation?.Conversation != null) {
 				const conversation = botpressConversation.Conversation;
 				const date = new Date(await context.date.now()).toISOString();
-				const rlmResponse = await context.run("Sending Botpress AI Summary to RLM", async () => {
-					return await RLMLeadsAPI.AttachNoteToLead({
-						lead_uuid: state.Data!.LeadUUID,
-						message: `Fibi Chatbot:\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n${conversation.summary}`,
-						"sender_name": "Dealer",
-						"sender_phone": "+10000000",
-						"date": date,
-					}).catch((e) => ({
-						result: "Error",
-						Error: serializeError(e),
-					}));
-				});
+				const rlmResponse = await context.run(
+					"Sending Botpress AI Summary to RLM",
+					async () => {
+						return await RLMLeadsAPI.AttachNoteToLead({
+							lead_uuid: state.Data!.LeadUUID,
+							message: `Fibi Chatbot:\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n${conversation.summary}`,
+							sender_name: "Dealer",
+							sender_phone: "+10000000",
+							date: date,
+						}).catch((e) => ({
+							result: "Error",
+							Error: serializeError(e),
+						}));
+					},
+				);
 				if (rlmResponse.result === "Success") {
 					return true;
 				}

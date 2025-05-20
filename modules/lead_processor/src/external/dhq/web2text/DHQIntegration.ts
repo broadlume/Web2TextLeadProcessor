@@ -8,14 +8,17 @@ import { NexusStoresAPI } from "common/external/nexus";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { serializeError } from "serialize-error";
 import type { Twilio } from "twilio";
-import type { SubmittedLeadState, Web2TextLead } from "../../../types";
-import type { TwilioIntegrationState } from "../../twilio/web2text/TwilioIntegration";
+
+import { assert, is } from "tsafe";
+import type { BotpressIntegrationState } from "#external/botpress/web2text/BotpressIntegration";
 import {
 	Web2TextLeadIntoDHQStoreInquiry,
 	Web2TextMessageIntoDhqComment,
-} from "../web2text/APIConverters";
-import { assert, is } from "tsafe";
-import type { BotpressIntegrationState } from "../../botpress/web2text/BotpressIntegration";
+} from "#external/dhq/web2text/APIConverters";
+import type { TwilioIntegrationState } from "#external/twilio/web2text/TwilioIntegration";
+import type { SubmittedLeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
+
 interface DHQIntegrationState extends ExternalIntegrationState {
 	Data?: {
 		LeadId: string;
@@ -95,7 +98,10 @@ export class DHQIntegration extends IExternalIntegration<
 				SyncedMessageIds: [],
 			},
 		};
-		const sentBotpressSummary = await this.sendBotpressSummary(newState, context);
+		const sentBotpressSummary = await this.sendBotpressSummary(
+			newState,
+			context,
+		);
 		newState.Data!.SentBotpressSummary = sentBotpressSummary;
 		return newState;
 	}
@@ -117,7 +123,10 @@ export class DHQIntegration extends IExternalIntegration<
 			};
 		}
 		if (!state.Data?.SentBotpressSummary) {
-			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(state, context);
+			state.Data!.SentBotpressSummary = await this.sendBotpressSummary(
+				state,
+				context,
+			);
 		}
 		const conversationSID = twilioIntegration.Data?.ConversationSID!;
 		const syncedMessageIds = new Set(state.Data!.SyncedMessageIds);
@@ -182,24 +191,36 @@ export class DHQIntegration extends IExternalIntegration<
 			SyncStatus: "CLOSED",
 		};
 	}
-	private async sendBotpressSummary(state: DHQIntegrationState, context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>): Promise<boolean> {
+	private async sendBotpressSummary(
+		state: DHQIntegrationState,
+		context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
+	): Promise<boolean> {
 		const lead = await context.getAll();
-		if (!state.Data?.SentBotpressSummary && lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED") {
+		if (
+			!state.Data?.SentBotpressSummary &&
+			lead.Integrations?.["Botpress"]?.SyncStatus === "SYNCED"
+		) {
 			const botpressConversation = lead.Integrations?.["Botpress"].Data;
 			assert(is<BotpressIntegrationState["Data"]>(botpressConversation));
 			if (botpressConversation?.Conversation != null) {
 				const conversation = botpressConversation.Conversation;
-				const dhqResponse = await context.run("Sending Botpress AI Summary to DHQ", async () => {
-					return await DHQStoreInquiryAPI.AddCommentToInquiry(state.Data!.LeadId, {
-						comment: {
-							body: `\n\n**Fibi Chatbot**\n\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n\n${conversation.summary}` ,
-							author_id: 262,
-						}
-					}).catch((e) => ({
-						status: "failure",
-						Error: serializeError(e),
-					}));
-				});
+				const dhqResponse = await context.run(
+					"Sending Botpress AI Summary to DHQ",
+					async () => {
+						return await DHQStoreInquiryAPI.AddCommentToInquiry(
+							state.Data!.LeadId,
+							{
+								comment: {
+									body: `\n\n**Fibi Chatbot**\n\n**Topics:** ${conversation.topics?.join(", ") ?? "No topics detected"}\n\n${conversation.summary}`,
+									author_id: 262,
+								},
+							},
+						).catch((e) => ({
+							status: "failure",
+							Error: serializeError(e),
+						}));
+					},
+				);
 				if (dhqResponse.status === "success") {
 					return true;
 				}

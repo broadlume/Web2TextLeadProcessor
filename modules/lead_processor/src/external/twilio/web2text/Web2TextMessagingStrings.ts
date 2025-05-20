@@ -1,4 +1,5 @@
-import type { SubmittedLeadState, Web2TextLead } from "../../../types";
+import type { SubmittedLeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
 
 export function SystemGreetingMessage(
 	dealerName: string,

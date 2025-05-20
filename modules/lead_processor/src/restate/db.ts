@@ -1,8 +1,9 @@
 import * as restate from "@restatedev/restate-sdk";
 import { GetRunningEnvironment } from "common";
 import { fromError } from "zod-validation-error";
-import { LeadStateModel } from "../dynamodb/LeadStateModel";
-import { type LeadState, LeadStateSchema, type Web2TextLead, Web2TextLeadSchema } from "../types";
+import { LeadStateModel } from "#dynamodb/LeadStateModel";
+import { type LeadState, LeadStateSchema } from "#lead";
+import { type Web2TextLead, Web2TextLeadSchema } from "#lead/web2text";
 
 export async function SyncWithDB(
 	ctx: restate.ObjectContext<LeadState<Web2TextLead>>,

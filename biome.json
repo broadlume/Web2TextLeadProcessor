@@ -26,6 +26,9 @@
 			},
 			"performance": {
 				"noDelete": "off"
+			},
+			"nursery": {
+				"useImportRestrictions": "error"
 			}
 		}
 	}

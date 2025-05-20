@@ -5,14 +5,15 @@ import { Authorization } from "common/restate";
 import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { Web2TextIntegrations } from "../../../external";
-import type { ErrorLeadState, LeadState, SubmittedLeadState, Web2TextLead, Web2TextLeadSchema } from "../../../types";
-import { SyncWithDB } from "../../db";
-import { VerifyLeadSubmission } from "../../../validators";
-import { Web2TextLeadCreateRequestSchema } from "./Web2TextLeadCreateRequest";
 import { fromError } from "zod-validation-error";
+import { Web2TextIntegrations } from "#external";
+import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead";
+import type { Web2TextLead } from "#lead/web2text";
+import { SyncWithDB } from "#restate/db";
+import { VerifyLeadSubmission } from "#src/validators";
+import { Web2TextLeadCreateRequestSchema } from "./Web2TextLeadCreateRequest";
 
-type State = LeadState<Web2TextLead>
+type State = LeadState<Web2TextLead>;
 type SubmittedState = SubmittedLeadState<Web2TextLead>;
 type ErrorState = ErrorLeadState<Web2TextLead>;
 /**
@@ -105,7 +106,8 @@ export const LeadVirtualObject = restate.object({
 						req.SchemaVersion ??= "2.0.0";
 					}
 					// Parse the request
-					const leadCreateRequest = await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
+					const leadCreateRequest =
+						await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
 					if (!leadCreateRequest.success) {
 						const formattedError = fromError(leadCreateRequest.error);
 						throw new restate.TerminalError(
@@ -153,9 +155,11 @@ export const LeadVirtualObject = restate.object({
 						.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
 				}
 				// Return the status of the lead
-				return await ctx
+				return (await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status({ API_KEY: process.env.INTERNAL_API_TOKEN }) as SubmittedState;
+					.status({
+						API_KEY: process.env.INTERNAL_API_TOKEN,
+					})) as SubmittedState;
 			},
 		),
 		/**

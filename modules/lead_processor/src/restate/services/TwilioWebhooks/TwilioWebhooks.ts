@@ -5,9 +5,12 @@ import parsePhoneNumber, { type E164Number } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
 import { validateRequest } from "twilio/lib/webhooks/webhooks";
-import { OptedOutNumberModel } from "../../../dynamodb/OptedOutNumberModel";
-import { LeadVirtualObject } from "../Lead/LeadVirtualObject";
-import { CustomerCloseMessage, DealerCloseMessage } from "../../../external/twilio/web2text/Web2TextMessagingStrings";
+import { OptedOutNumberModel } from "#dynamodb/OptedOutNumberModel";
+import {
+	CustomerCloseMessage,
+	DealerCloseMessage,
+} from "#external/twilio/web2text/Web2TextMessagingStrings";
+import { LeadVirtualObject } from "#restate/services/Lead/LeadVirtualObject";
 
 interface TwilioWebhookBody {
 	AccountSid: string;

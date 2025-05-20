@@ -9,4 +9,3 @@ declare global {
 	/** Global Twilio client instance */
 	var TWILIO_CLIENT: Twilio;
 }
-

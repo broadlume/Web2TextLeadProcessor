@@ -9,6 +9,41 @@
         "types": "./src/*.ts"
       }
   },
+  "imports": {
+    "#lead": {
+      "default": "./src/lead/index.ts"
+    },
+    "#lead/web2text": {
+      "default": "./src/lead/web2text/index.ts"
+    },
+    "#lead/acton": {
+      "default": "./src/lead/acton/index.ts"
+    },
+    "#lead/*": {
+      "default": "./src/lead/*.ts"
+    },
+    "#external": {
+      "default": "./src/external/index.ts"
+    },
+    "#external/*": {
+      "default": "./src/external/*.ts"
+    },
+    "#restate": {
+      "default": "./src/restate/index.ts"
+    },
+    "#restate/*": {
+      "default": "./src/restate/*.ts"
+    },
+    "#dynamodb": {
+      "default": "./src/dynamodb/index.ts"
+    },
+    "#dynamodb/*": {
+      "default": "./src/dynamodb/*.ts"
+    },
+    "#src/*": {
+      "default": "./src/*.ts"
+    }
+  },
   "scripts": {
     "format": "biome check --write",
     "check": "tsc --noEmit",

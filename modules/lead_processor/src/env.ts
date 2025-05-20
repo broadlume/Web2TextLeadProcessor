@@ -85,11 +85,15 @@ export const ENV_FILE_SCHEMA = z
 			.url("Public Restate Ingress URL must be a valid URL")
 			.optional(),
 		/** Botpress API token */
-		BOTPRESS_API_TOKEN: z.string().min(1, "Botpress Personal Access Token is required"),
+		BOTPRESS_API_TOKEN: z
+			.string()
+			.min(1, "Botpress Personal Access Token is required"),
 		/** Botpress Bot ID */
 		BOTPRESS_BOT_ID: z.string().min(1, "Botpress Bot ID is required"),
 		/** Botpress workspace id */
-		BOTPRESS_WORKSPACE_ID: z.string().min(1, "Botpress Workspace ID is required"),
+		BOTPRESS_WORKSPACE_ID: z
+			.string()
+			.min(1, "Botpress Workspace ID is required"),
 	})
 	.passthrough();
 

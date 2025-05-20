@@ -11,10 +11,10 @@
     },
     "scripts": {
       "app-dev": "tsx watch ./src/app.ts --inspect=9229",
-      "register-with-restate": "bun run clear-restate; restate deployments reg web2text-devcontainer:9080 --force --yes --quiet",
+      "register-with-restate": "bun run clear-restate; restate deployments reg lead-processor-devcontainer:9080 --force --yes --quiet",
       "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
       "clear-restate": "/app/scripts/clearRestate.sh WebLead;",
-      "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
+      "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://lead-processor-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
       "check": "tsc --noEmit",
       "format": "biome check --write"
     },

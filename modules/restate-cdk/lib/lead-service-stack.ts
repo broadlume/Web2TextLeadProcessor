@@ -30,7 +30,7 @@ export class LeadServiceStack extends cdk.Stack {
     const leadService = new lambda_nodejs.NodejsFunction(this, `LeadService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `LeadService-${DEPLOYMENT_ENV_SUFFIX}`,
-      entry: "../web2text/src/lambda.ts",
+      entry: "../lead_processor/src/lambda.ts",
       architecture: lambda.Architecture.ARM_64,
       depsLockFilePath: "../../bun.lockb",
       timeout: cdk.Duration.minutes(15),

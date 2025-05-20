@@ -1,13 +1,13 @@
 # This docker compose is unused for prod deployment (we use AWS Copilot to deploy)
 # This is just for testing the production application locally
 # Run with `docker compose -f docker-compose.prod.yaml up --build --force-recreate`
-name: web2text-prod
+name: lead-processor
 services:
-  web2text:
-    container_name: web2text-service
+  lead-processor:
+    container_name: lead-processor-service
     build: 
       context: .
-      dockerfile: ./modules/web2text/Dockerfile
+      dockerfile: ./modules/lead_processor/Dockerfile
     networks:
       - restate-network
     ports:
@@ -33,10 +33,10 @@ services:
     - "9070:9070" # Admin - Allows for CRUD operations on service/service deployment metadata, eg for service registration (HTTP)
     - "9071:9071" # Postgres - Exposes Restate RocksDB read-only storage operations using the Postgres protocol (Postgres)
     environment:
-      RESTATE_TRACING_ENDPOINT: http://web2text-jaeger:4317
+      RESTATE_TRACING_ENDPOINT: http://lead-processor-jaeger:4317
     restart: always
   twilio_proxy:
-    container_name: web2text-twilio-proxy
+    container_name: lead-processor-twilio-proxy
     build: 
       context: ./modules/twilio_proxy
     networks:
@@ -50,7 +50,7 @@ services:
       - NUMBER_POOL=development
     restart: always
   jaeger:
-    container_name: web2text-jaeger
+    container_name: lead-processor-jaeger
     image: jaegertracing/all-in-one:1.46
     networks:
       - restate-network

@@ -7,7 +7,7 @@ import nock from "nock";
 import shelljs from "shelljs";
 import request from "supertest";
 import { beforeAll, beforeEach, vi } from "vitest";
-import { Web2TextIntegrations } from "web2text-service/external/index";
+import { Web2TextIntegrations } from "lead-processor-service/external/index";
 import {
 	ADMIN_SERVICE_NAME,
 	DEALER_SERVICE_NAME,
@@ -35,7 +35,7 @@ beforeAll(async () => {
 		{ overwrite: true },
 	);
 	// Turn off DynamoDB sync when testing
-	vi.mock("web2text-service/restate/db", () => ({
+	vi.mock("lead-processor-service/restate/db", () => ({
 		SyncWithDB: vi.fn().mockImplementation(() => {}),
 	}));
 
@@ -51,9 +51,9 @@ beforeAll(async () => {
 	});
 
 	// Setup restate handler
-	TEST_SERVER = (await import("web2text-service/app")).RESTATE_SERVER;
+	TEST_SERVER = (await import("lead-processor-service/app")).RESTATE_SERVER;
 	await RestateAdminDeploymentAPI.CreateDeployment(
-		"http://web2text-devcontainer:9080",
+		"http://lead-processor-service-devcontainer:9080",
 		{
 			force: true,
 		},

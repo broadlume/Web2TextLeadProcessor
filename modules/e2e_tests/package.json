@@ -6,7 +6,7 @@
         "check": "tsc --noEmit",
         "e2e": "bun --env-file=.env.test run vitest --config './vitest.config.mts'",
         "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
-        "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://web2text-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
+        "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://lead-processor-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
     },
     "dependencies": {
         "@faker-js/faker": "^9.5.1",
@@ -14,7 +14,7 @@
         "dotenv": "^16.4.5",
         "vite-tsconfig-paths": "^5.1.4",
         "vitest": "3.0.5",
-        "web2text-service": "workspace:*"
+        "lead-processor-service": "workspace:*"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",

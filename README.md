@@ -1,4 +1,4 @@
-# Web2Text Lead Processor
+# Lead Processor Service
 
 Web2Text is a service that will send and monitor SMS conversations between dealers and customers, while automatically updating our lead tracking.
 

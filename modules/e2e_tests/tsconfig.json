@@ -117,9 +117,5 @@
 		// Disallow features that require cross-file awareness
 		"isolatedModules": true
 	},
-	// "references": [
-	// 	{ "path": "../common" },
-	// 	{ "path": "../web2text" },
-	// ],
 	"include": ["./src/"]
 }

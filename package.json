@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "modules/common",
-    "modules/web2text",
+    "modules/lead_processor",
     "modules/e2e_tests",
     "modules/acton",
     "modules/twilio_proxy"

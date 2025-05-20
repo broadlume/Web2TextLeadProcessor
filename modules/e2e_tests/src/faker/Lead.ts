@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { E164Number } from "libphonenumber-js/core";
 import type { UUID } from "node:crypto";
-import type { Web2TextLeadCreateRequest } from "web2text-service/restate/services/Lead/Web2TextLeadCreateRequest";
+import type { Web2TextLeadCreateRequest } from "lead-processor-service/restate/services/Lead/Web2TextLeadCreateRequest";
 
 export function createRandomLeadRequest(override: Partial<Web2TextLeadCreateRequest> = {}): Web2TextLeadCreateRequest {
 	const lead: Web2TextLeadCreateRequest = {

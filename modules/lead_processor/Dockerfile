@@ -40,20 +40,20 @@ COPY . .
 
 # tests & build
 ENV NODE_ENV=production
-RUN bun run check && cd modules/web2text && bun run bundle
+RUN bun run check && cd modules/lead_processor && bun run bundle
 
 # copy production dependencies and source code into final image
 FROM node:slim AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=install /temp/prod/modules/ modules/
-COPY --from=prerelease /app/modules/web2text/dist modules/web2text/dist
+COPY --from=prerelease /app/modules/lead_processor/dist modules/lead_processor/dist
 
 COPY --from=prerelease /app/package.json .
 COPY --parents --from=prerelease /app/modules/*/package.json .
-COPY modules/web2text/.env.prod modules/web2text/.env
+COPY modules/lead_processor/.env.prod modules/lead_processor/.env
 
 
 # run the app
 EXPOSE 9080/tcp
 ENV NODE_ENV=production
-ENTRYPOINT ["node","--enable-source-maps","--env-file=./modules/web2text/.env","./modules/web2text/dist/app.js"]
+ENTRYPOINT ["node","--enable-source-maps","--env-file=./modules/lead_processor/.env","./modules/lead_processor/dist/app.js"]

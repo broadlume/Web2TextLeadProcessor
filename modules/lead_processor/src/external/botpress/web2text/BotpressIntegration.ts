@@ -107,6 +107,9 @@ export class BotpressIntegration extends IExternalIntegration<
 		state: BotpressIntegrationState,
 		context: ObjectSharedContext<SubmittedLeadState<Web2TextLead>>,
 	): Promise<BotpressIntegrationState> {
-		return state;
+		return {
+			...state,
+			SyncStatus: "CLOSED",
+		};
 	}
 }

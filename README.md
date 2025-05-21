@@ -32,9 +32,12 @@ Acton Leads come from ActOn forms submitted from our websites, and are durably s
 
 1. Pull down the repository
 2. Install [Bun](https://bun.sh/)
-3. Within the root of the repository, run `bun run fetch-env`
+3. Within the root of the repository, run `bun run fetch-env --operation merge`
     - Make sure you're signed into AWS via `aws sso login`
     - This will fetch environment variables for every module from AWS Secret Manager
+    - There are two modes: 
+        - `merge` - will append new env variables and only replace empty envs with ones from the secret store
+        - `overwrite` - will append new env variables and replace all env variables with ones from the secret store
 4. Within VSCode, ensure you have the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed
 5. Open the project in VSCode. It should then prompt you to re-open the project in a dev container - click yes.
     - If it doesn't prompt you, press `Cmd+Shift+P` (`Ctrl+Shift+P` on Windows) and type `Build & Open In Container` and run that command

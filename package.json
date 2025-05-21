@@ -5,7 +5,6 @@
     "modules/common",
     "modules/lead_processor",
     "modules/e2e_tests",
-    "modules/acton",
     "modules/twilio_proxy"
   ],
   "dependencies": {

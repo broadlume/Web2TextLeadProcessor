@@ -94,6 +94,12 @@ export const ENV_FILE_SCHEMA = z
 		BOTPRESS_WORKSPACE_ID: z
 			.string()
 			.min(1, "Botpress Workspace ID is required"),
+		ACTON_BASE_URL: z.string().url("ActOn Base URL must be a valid URL"),
+		ACTON_CLIENT_ID: z.string().min(1, "ActOn Client ID is required"),
+		ACTON_CLIENT_SECRET: z.string().min(1, "ActOn Client Secret is required"),
+		ACTON_USERNAME: z.string().min(1, "ActOn Username is required"),
+		ACTON_PASSWORD: z.string().min(1, "ActOn Password is required"),
+		FF_API_URL: z.string().url("FF API URL must be a valid URL"),
 	})
 	.passthrough();
 

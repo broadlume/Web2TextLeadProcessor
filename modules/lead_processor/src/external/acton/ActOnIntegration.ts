@@ -1,12 +1,12 @@
+import type { SubmittedLeadState } from "#lead";
+import type { ActOnLead } from "#lead/acton";
 import type { ObjectSharedContext } from "@restatedev/restate-sdk";
-import * as restate from "@restatedev/restate-sdk";
 import {
 	type ExternalIntegrationState,
 	IExternalIntegration,
 } from "common/external";
 import { ActOnListAPI } from "common/external/acton";
 import { serializeError } from "serialize-error";
-import type { LeadState, WebLead } from "../../types";
 
 interface ActOnIntegrationState extends ExternalIntegrationState {
 	Data?: {
@@ -15,7 +15,7 @@ interface ActOnIntegrationState extends ExternalIntegrationState {
 }
 
 export class ActOnIntegration
-	extends IExternalIntegration<LeadState, ActOnIntegrationState>
+	extends IExternalIntegration<SubmittedLeadState<ActOnLead>, ActOnIntegrationState>
 {
 	Name!: "ActOn";
 	defaultState(): ActOnIntegrationState {
@@ -25,9 +25,8 @@ export class ActOnIntegration
 	}
 	async create(
 		state: ActOnIntegrationState,
-		context: ObjectSharedContext<WebLead>,
+		context: ObjectSharedContext<SubmittedLeadState<ActOnLead>>,
 	): Promise<ActOnIntegrationState> {
-		context.console.log(`Starting 'create' for ActOn Integration`);
 		const leadState = await context.getAll();
 
 		const listId = leadState?.Lead?.Lead?.listId!;
@@ -61,20 +60,16 @@ export class ActOnIntegration
 			SyncStatus: "SYNCED",
 		};
 	}
-	sync(
+	async sync(
 		state: ActOnIntegrationState,
-		context: ObjectSharedContext<LeadState>,
+		context: ObjectSharedContext<SubmittedLeadState<ActOnLead>>,
 	): Promise<ActOnIntegrationState> {
-		throw new restate.TerminalError("ActOn Lead Syncing not allowed.", {
-			errorCode: 400,
-		});
+		return state;
 	}
-	close(
+	async close(
 		state: ActOnIntegrationState,
-		context: ObjectSharedContext<LeadState>,
+		context: ObjectSharedContext<SubmittedLeadState<ActOnLead>>,
 	): Promise<ActOnIntegrationState> {
-		throw new restate.TerminalError("ActOn Lead Closing not allowed.", {
-			errorCode: 400,
-		});
+		return state;
 	}
 }

@@ -11,6 +11,8 @@ import type { LeadType, SubmittedLeadState, Validator } from "#lead";
 import type { IExternalIntegration } from "common/external";
 import type { z } from "zod";
 import type * as restate from "@restatedev/restate-sdk";
+import { ActOnIntegration } from "#external/acton/ActOnIntegration";
+import { FloorForceIntegration } from "#external/floorforce/FloorForceIntegration";
 type LeadTypeInfoItem = {
     schema: z.AnyZodObject | z.ZodRecord<z.ZodString, z.ZodType<any>>,
     validator: new (ctx: restate.ObjectSharedContext<any>) => Validator<any>,
@@ -30,6 +32,9 @@ export const LeadTypeInfo: Record<LeadType, LeadTypeInfoItem> = {
     "ACTON": {
         schema: ActOnLeadSchema,
         validator: ActOnLeadValidator,
-        integrations: []
+        integrations: [
+            new ActOnIntegration(),
+            new FloorForceIntegration()
+        ]
     },
 } as const;

@@ -56,7 +56,7 @@ services:
     restart: always
     env_file: ./modules/twilio_proxy/.env
     environment:
-      DEPLOYMENT_ENV: "development"
+      DEPLOY_ENV: "development"
   jaeger:
     container_name: lead-processor-jaeger
     image: jaegertracing/all-in-one:1.46

@@ -46,7 +46,7 @@ services:
       - "3000:3000"
     env_file: ./modules/twilio_proxy/.env
     environment:
-      DEPLOYMENT_ENV: "production"
+      DEPLOY_ENV: "production"
     restart: always
   jaeger:
     container_name: lead-processor-jaeger

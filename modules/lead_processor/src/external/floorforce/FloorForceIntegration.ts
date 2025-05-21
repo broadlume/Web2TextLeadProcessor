@@ -20,7 +20,7 @@ export class FloorForceIntegration
 		FloorForceIntegrationState
 	>
 {
-	Name!: "FFWebApi";
+	Name = "FloorForce";
 	defaultState(): FloorForceIntegrationState {
 		return {
 			SyncStatus: "NOT SYNCED",
@@ -31,7 +31,7 @@ export class FloorForceIntegration
 		context: ObjectSharedContext<SubmittedLeadState<ActOnLead>>,
 	): Promise<FloorForceIntegrationState> {
 		const leadState = await context.getAll();
-		const response = await context.run("Create FfWebApi Lead", async () => {
+		const response = await context.run("Create FloorForce Lead", async () => {
 			const res = await FfWebAPI.CreateLead(leadState?.Lead?.Lead).catch(
 				(e) =>
 					({

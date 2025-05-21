@@ -17,7 +17,7 @@ interface ActOnIntegrationState extends ExternalIntegrationState {
 export class ActOnIntegration
 	extends IExternalIntegration<SubmittedLeadState<ActOnLead>, ActOnIntegrationState>
 {
-	Name!: "ActOn";
+	Name = "ActOn";
 	defaultState(): ActOnIntegrationState {
 		return {
 			SyncStatus: "NOT SYNCED",

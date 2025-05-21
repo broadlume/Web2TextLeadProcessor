@@ -5,7 +5,7 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{ find: "common", replacement: resolve(__dirname, "../common/src") },
-			{ find: "web2text", replacement: resolve(__dirname, "../web2text/src") }
+			{ find: "lead_processor", replacement: resolve(__dirname, "../lead_processor/src") }
 		]
 	},
 

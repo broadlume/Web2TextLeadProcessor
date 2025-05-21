@@ -10,6 +10,7 @@ import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { GetPrivateIpsOfLoadBalancer } from './util/GetLoadBalancerPrivateIps';
 import { NLB_SECURITY_GROUP_IDS } from '../bin/constants';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 interface RestateServerStackProps extends cdk.StackProps {
     vpcId: string;
     nlbSubnetIds: string[];
@@ -159,6 +160,12 @@ export class RestateServerStack extends cdk.Stack {
             value: loadBalancer.loadBalancerDnsName,
             description: "Public ingress URL for the Restate NLB"
          });
+
+         new ssm.StringParameter(this, 'LeadProcessorRestateServerAdminUrl', {
+            parameterName: '/lead-service/restate-server/internal-admin-url',
+            stringValue: this.restateServer.adminUrl,
+            description: 'Internal admin URL for the Restate server'
+          });
         
     }
 }

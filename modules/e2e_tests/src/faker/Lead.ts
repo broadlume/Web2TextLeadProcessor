@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
 import type { E164Number } from "libphonenumber-js/core";
 import type { UUID } from "node:crypto";
-import type { Web2TextLeadCreateRequest } from "web2text-service/restate/services/Lead/Web2TextLeadCreateRequest";
+import type { LeadCreateRequest } from "lead-processor-service/restate/services/Lead/LeadCreateRequest";
 
-export function createRandomLeadRequest(override: Partial<Web2TextLeadCreateRequest> = {}): Web2TextLeadCreateRequest {
-	const lead: Web2TextLeadCreateRequest = {
+export function createRandomLeadRequest(override: Partial<LeadCreateRequest> = {}): LeadCreateRequest {
+	const lead: LeadCreateRequest = {
 		SchemaVersion: "2.0.0",
 		UniversalRetailerId: faker.string.uuid() as UUID,
 		LeadType: "WEB2TEXT",
@@ -16,7 +16,7 @@ export function createRandomLeadRequest(override: Partial<Web2TextLeadCreateRequ
 			PreferredMethodOfContact: "text",
 			CustomerMessage: faker.lorem.paragraph(),
 		},
-        ...override
+        ...override as any
 	};
     return lead;
 }

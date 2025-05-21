@@ -1,7 +1,7 @@
-name: web2text
+name: lead-processor
 services:
-  web2text:
-    container_name: web2text-devcontainer
+  lead-processor:
+    container_name: lead-processor-devcontainer
     build: 
       context: .
       dockerfile: DevContainer.dockerfile
@@ -32,14 +32,14 @@ services:
     restart: always
   dynamodb-local:
    image: "amazon/dynamodb-local:latest"
-   container_name: web2text-dynamodb-local
+   container_name: lead-processor-dynamodb-local
    ports:
      - "8000:8000"
    restart: always
    networks:
       - restate-network
   # twilio_proxy:
-  #   container_name: web2text-twilio-proxy
+  #   container_name: lead-processor-twilio-proxy
   #   env_file: "./.env.test"
   #   build: 
   #     context: "./modules/twilio_proxy"

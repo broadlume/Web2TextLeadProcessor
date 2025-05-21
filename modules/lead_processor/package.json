@@ -1,0 +1,76 @@
+{
+  "name": "lead-processor-service",
+  "version": "1.0.0",
+  "description": "Lead Processor Service",
+  "type": "commonjs",
+  "exports": {
+      "./*": {
+        "default": "./src/*.ts",
+        "types": "./src/*.ts"
+      }
+  },
+  "imports": {
+    "#lead": {
+      "default": "./src/lead/index.ts"
+    },
+    "#lead/web2text": {
+      "default": "./src/lead/web2text/index.ts"
+    },
+    "#lead/acton": {
+      "default": "./src/lead/acton/index.ts"
+    },
+    "#lead/*": {
+      "default": "./src/lead/*.ts"
+    },
+    "#external": {
+      "default": "./src/external/index.ts"
+    },
+    "#external/*": {
+      "default": "./src/external/*.ts"
+    },
+    "#restate": {
+      "default": "./src/restate/index.ts"
+    },
+    "#restate/*": {
+      "default": "./src/restate/*.ts"
+    },
+    "#dynamodb": {
+      "default": "./src/dynamodb/index.ts"
+    },
+    "#dynamodb/*": {
+      "default": "./src/dynamodb/*.ts"
+    },
+    "#src/*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "format": "biome check --write",
+    "check": "tsc --noEmit",
+    "fetch-env": "bun run ../../scripts/fetchEnvVariables.ts --secretName web2text-dev-env",
+    "fetch-env-prod": "bun run ../../scripts/fetchEnvVariables.ts --secretName web2text-prod-env",
+    "prebundle": "rm -rf dist",
+    "bundle": "esbuild src/app.ts --bundle --minify --sourcemap=inline --platform=node --target=es2020 --outdir=./dist",
+    "app": "NODE_ENV=production node ./dist/app.js",
+    "app-dev": "tsx watch ./src/app.ts --inspect=9229",
+    "reset": "bun run clear-restate; bun run clear-dynamodb || true;",
+    "register-with-restate": "bun run clear-restate; restate deployments reg lead-processor-devcontainer:9080 --force --yes --quiet",
+    "clear-restate": "/app/scripts/clearRestate.sh Lead; /app/scripts/clearRestate.sh Dealer; /app/scripts/clearRestate.sh Admin; /app/scripts/clearRestate.sh TwilioWebhooks",
+    "clear-dynamodb": "LOCAL_DYNAMODB_URL=http://lead-processor-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV",
+    "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.mts'"
+  },
+  "dependencies": {
+    "common": "workspace:*",
+    "dotenv": "^16.4.5",
+    "dynamoose": "^4.0.1",
+    "memoizee": "^0.4.17",
+    "serialize-error": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/memoizee": "^0.4.11"
+  },
+  "patchedDependencies": {
+    "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"
+  },
+  "trustedDependencies": ["@biomejs/biome", "core-js", "esbuild"]
+}

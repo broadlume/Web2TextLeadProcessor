@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [     
         {
-            "name": "Attach Web2Text Service",
+            "name": "Attach Lead Processor Service",
             "port": 9229,
             "request": "attach",
             "skipFiles": [
@@ -14,10 +14,10 @@
             "type": "node"
         },
         {
-            "name": "Debug Web2Text Service",
+            "name": "Debug Lead Processor Service",
             "type": "node-terminal",
             "request": "launch",
-            "command": "cd ./modules/web2text && bun run app-dev",
+            "command": "cd ./modules/lead_processor && bun run app-dev",
             "autoAttachChildProcesses": true,
             "skipFiles": [
                 "<node_internals>/**"

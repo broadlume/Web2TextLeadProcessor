@@ -1,11 +1,11 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Web2Text Lead Processor DevContainer",
+	"name": "Lead Processor DevContainer",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"dockerComposeFile": ["../docker-compose.devcontainer.yaml"],
 
-	"service": "web2text",
+	"service": "lead-processor",
 	"workspaceFolder": "/app",
 	"mounts": [
 		"source=${localWorkspaceFolderBasename}-perfdiskaccess-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",

@@ -34,6 +34,6 @@ export const logger = winston.createLogger({
 		GetRunningEnvironment().local
 			? devFormatter
 			: prodFormatter,
-	defaultMeta: { name: "Web2Text Handler", hostname: "localhost" },
+	defaultMeta: { name: "Lead Processor Handler", hostname: "localhost" },
 	transports: [new winston.transports.Console()],
 });

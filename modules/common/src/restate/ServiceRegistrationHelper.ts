@@ -67,7 +67,7 @@ export async function DeregisterThisServiceWithRestate(
 				},
 			});
 			logger.info(
-				`Successfully de-registered Web2Text deployment '${deployment.id}' with Restate server`,
+				`Successfully de-registered Lead Processor deployment '${deployment.id}' with Restate server`,
 			);
 		} catch (e) {
 			assert(is<Error>(e));

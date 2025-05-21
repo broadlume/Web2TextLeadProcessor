@@ -153,7 +153,6 @@ If they do, the old lead will be closed and a new one will be opened
 Q. User submits two leads with the same phone number, dealer ID, but different location IDs
 
 A. Web2Text will create two leads and two Twilio conversations
-> Each location has its own Twilio phone number
 
 Q. A retailer has two locations, both have the same phone number assigned to them. One user submits a lead to one location, and another submits it to the other location
 

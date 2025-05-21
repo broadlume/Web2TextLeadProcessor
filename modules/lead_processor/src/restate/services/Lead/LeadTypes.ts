@@ -12,7 +12,7 @@ import type { IExternalIntegration } from "common/external";
 import type { z } from "zod";
 import type * as restate from "@restatedev/restate-sdk";
 type LeadTypeInfoItem = {
-    schema: z.ZodType<any>,
+    schema: z.AnyZodObject | z.ZodRecord<z.ZodString, z.ZodType<any>>,
     validator: new (ctx: restate.ObjectSharedContext<any>) => Validator<any>,
     integrations: IExternalIntegration<SubmittedLeadState<z.infer<LeadTypeInfoItem["schema"]>>, any>[]
 }

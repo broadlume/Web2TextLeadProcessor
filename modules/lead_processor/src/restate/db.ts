@@ -2,8 +2,9 @@ import * as restate from "@restatedev/restate-sdk";
 import { GetRunningEnvironment } from "common";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "#dynamodb/LeadStateModel";
-import { type LeadState, LeadStateSchema } from "#lead/schema";
+import { type LeadState, LeadStateSchema, type LeadType } from "#lead/schema";
 import { Web2TextLeadSchema } from "#lead/web2text";
+import { LeadTypeInfo } from "./services/Lead/LeadTypes";
 
 export async function SyncWithDB(
 	ctx: restate.ObjectContext<LeadState<Record<string,any>>>,
@@ -17,7 +18,8 @@ export async function SyncWithDB(
 	switch (direction) {
 		case "SEND": {
 			const objectState = await ctx.getAll();
-			const parsed = LeadStateSchema(Web2TextLeadSchema).parse(objectState);
+			const leadTypeInfo = LeadTypeInfo[(objectState as any).LeadType as LeadType];
+			const parsed = LeadStateSchema(leadTypeInfo.schema).parse(objectState);
 			// For debugging
 			if (GetRunningEnvironment().local) {
 				ctx.console.debug("SYNCED TO DB:", parsed);
@@ -40,8 +42,9 @@ export async function SyncWithDB(
 				synced = false;
 				break;
 			}
+			const leadTypeInfo = LeadTypeInfo[(lead as any).LeadType as LeadType];
 			const { data, success, error } =
-				await LeadStateSchema(Web2TextLeadSchema).safeParseAsync(lead);
+				await LeadStateSchema(leadTypeInfo.schema).safeParseAsync(lead);
 			if (!success) {
 				throw new restate.TerminalError(
 					`Could not parse lead ID '${leadID}' from database`,

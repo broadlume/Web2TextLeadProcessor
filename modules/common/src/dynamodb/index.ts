@@ -9,6 +9,8 @@ export { APIKeyModel };
  * @returns True if the local DynamoDB instance was initialized, false otherwise
  */
 export function InitLocalDynamoDb(models: ModelType<any>[]): boolean {
+	process.env.AWS_ACCESS_KEY_ID = "DUMMY";
+	process.env.AWS_SECRET_ACCESS_KEY = "DUMMY";
 	// If the local DynamoDB instance is not set, return false
 	if (process.env.LOCAL_DYNAMODB_URL == null) {
 		return false;

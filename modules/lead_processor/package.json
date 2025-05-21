@@ -70,7 +70,7 @@
     "@types/memoizee": "^0.4.11"
   },
   "patchedDependencies": {
-    "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"
+    "@restatedev/restate-sdk@1.6.0": "patches/@restatedev%2Frestate-sdk@1.6.0.patch"
   },
   "trustedDependencies": ["@biomejs/biome", "core-js", "esbuild"]
 }

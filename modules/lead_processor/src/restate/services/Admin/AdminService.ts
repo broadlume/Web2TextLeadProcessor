@@ -162,7 +162,7 @@ export const AdminService = restate.service({
 						);
 				}
 				ctx.console.log(
-					`Executed admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`,
+					`Executing admin bulk operation '${parsed.data.Operation}' over ${leads.length} leads`,
 					{
 						_meta: 1,
 						...parsed.data,

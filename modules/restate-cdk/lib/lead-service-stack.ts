@@ -8,7 +8,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { DEPLOYMENT_ENV, DEPLOYMENT_ENV_SUFFIX } from '../bin/restate-cdk';
 import { randomUUID } from 'crypto';
-
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 interface LeadServiceStackProps extends cdk.StackProps {
   twilioProxyUrl: string;
@@ -27,6 +27,10 @@ export class LeadServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: LeadServiceStackProps) {
     super(scope, id, props);
     const vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
+    const adminUrl = ssm.StringParameter.valueForStringParameter(
+      this, 
+      '/lead-service/restate-server/internal-admin-url'
+    );
     const leadService = new lambda_nodejs.NodejsFunction(this, `LeadService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,
       functionName: `LeadService-${DEPLOYMENT_ENV_SUFFIX}`,
@@ -44,14 +48,14 @@ export class LeadServiceStack extends cdk.Stack {
         ...props.envVariables,
         DEPLOYMENT_ENV: DEPLOYMENT_ENV,
         INTERNAL_API_TOKEN: randomUUID(),
-        RESTATE_ADMIN_URL: props.restateServer.adminUrl,
+        RESTATE_ADMIN_URL: adminUrl,
         TWILIO_PROXY_URL: props.twilioProxyUrl,
         NODE_OPTIONS: "--enable-source-maps",
       },
       logGroup: new logs.LogGroup(this, `LeadServiceLogs-${DEPLOYMENT_ENV_SUFFIX}`, {
         logGroupName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/lead-service`,
         retention: logs.RetentionDays.ONE_MONTH,
-        removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
       }),
       // Retain the old version of the function when updating so old restate invocations still work
       currentVersionOptions: {
@@ -67,7 +71,7 @@ export class LeadServiceStack extends cdk.Stack {
     }));
 
     props.serviceDeployer.register(leadService.currentVersion, props.restateServer, {
-      "adminUrl": props.restateServer.adminUrl,
+      "adminUrl": adminUrl,
       skipInvokeFunctionGrant: true,
     });
   }

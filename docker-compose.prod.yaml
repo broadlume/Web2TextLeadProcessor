@@ -44,10 +44,9 @@ services:
     ports:
     # Proxy service port
       - "3000:3000"
+    env_file: ./modules/twilio_proxy/.env
     environment:
-      - TWILIO_ACCOUNT_SID
-      - TWILIO_AUTH_TOKEN
-      - NUMBER_POOL=development
+      DEPLOYMENT_ENV: "production"
     restart: always
   jaeger:
     container_name: lead-processor-jaeger

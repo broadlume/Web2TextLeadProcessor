@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "deploy": "cdk deploy",
+    "deploy": "./scripts/deploy.sh",
     "cdk": "cdk"
   },
   "devDependencies": {

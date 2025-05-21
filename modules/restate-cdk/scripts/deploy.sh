@@ -1,7 +1,8 @@
 #!/bin/bash
 
-declare -A STACKS=( ["lead_processor"]="LeadProcessorStack" ["restate_server"]="RestateServerStack" ["twilio_proxy"]="TwilioProxyStack" ["all"]="all")
+declare -A STACKS=( ["lead_processor"]="LeadServiceStack" ["restate_server"]="RestateServerStack" ["twilio_proxy"]="TwilioProxyStack" ["all"]="all")
 declare ENVIRONMENTS=("development" "production")
+declare -A ENV_PREFIX=("development" "DEV" "production" "PROD")
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <module_name> <environment>"
@@ -41,4 +42,4 @@ fi
 
 
 
-DEPLOY_ENV=$2 bun cdk deploy ${STACKS[$1]}
+DEPLOY_ENV=$2 bun cdk deploy ${STACKS[$1]}-${ENV_PREFIX[$2]}

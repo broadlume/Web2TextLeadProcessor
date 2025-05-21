@@ -6,7 +6,7 @@ import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { LeadStateModel } from "#dynamodb/LeadStateModel";
-import type { SubmittedLeadState } from "#lead";
+import type { SubmittedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "#lead/web2text";
 import { LeadVirtualObject } from "#restate/services/Lead/LeadVirtualObject";
 const NonEmptyObjectSchema = z

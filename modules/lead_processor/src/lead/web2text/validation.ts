@@ -1,5 +1,4 @@
 import type { UUID } from "node:crypto";
-import * as restate from "@restatedev/restate-sdk";
 import { logger } from "common";
 import { NexusRetailerAPI } from "common/external/nexus";
 import { NexusStoresAPI } from "common/external/nexus";
@@ -7,14 +6,78 @@ import { TwilioLookupAPI } from "common/external/twilio";
 import type { E164Number } from "libphonenumber-js";
 import parsePhoneNumber from "libphonenumber-js";
 import type { Twilio } from "twilio";
-import { OptedOutNumberModel } from "#dynamodb/OptedOutNumberModel";
-import type { LeadState } from "#lead";
-import type { Web2TextLead } from "#lead/web2text";
-import type { Web2TextLeadCreateRequest } from "#restate/services/Lead/Web2TextLeadCreateRequest";
-export type ValidationStatus = {
-	Status: "VALID" | "INVALID" | "NONEXISTANT";
-	Reason?: string;
-};
+import { OptedOutNumberModel } from "#dynamodb";
+import type { Validator, ValidationStatus } from "../validation";
+import type { NonValidatedLeadState } from "#lead/schema";
+import type { Web2TextLead } from "./schema";
+import type * as restate from "@restatedev/restate-sdk";
+export class Web2TextLeadValidator implements Validator<NonValidatedLeadState<Web2TextLead>> {
+    private readonly ctx: restate.ObjectSharedContext;
+    constructor(ctx: restate.ObjectSharedContext) {
+        this.ctx = ctx;
+    }
+    public async validate(leadState: NonValidatedLeadState<Web2TextLead>): Promise<ValidationStatus> {
+        const lead = leadState.Lead;
+        if (lead.IPAddress != null) {
+            const ipAddressValid = await this.ctx.run<ValidationStatus>(
+                "IP address validation",
+                async () => await CheckIpAddressStatus(lead.IPAddress!),
+            );
+            if (ipAddressValid.Status !== "VALID") {
+                return ipAddressValid;
+            }
+        }
+        const clientStatus = await this.ctx.run<ValidationStatus>(
+            "Client status check",
+            async () => await CheckClientStatus(leadState.UniversalRetailerId),
+        );
+        if (clientStatus.Status !== "VALID") {
+            return clientStatus;
+        }
+
+        const locationStatus = await this.ctx.run<ValidationStatus>(
+            "Location validation",
+            async () => await CheckLocationStatus(lead.LocationId),
+        );
+        if (locationStatus.Status !== "VALID") {
+            return locationStatus;
+        }
+        const storePhoneNumber = parsePhoneNumber(
+            (
+                await this.ctx.run(
+                    "Get store phone number",
+                    async () =>
+                        await NexusStoresAPI.GetRetailerStoreByID(lead.LocationId),
+                )
+            )?.Web2Text_Phone_Number ?? "",
+            "US",
+        );
+
+        if (storePhoneNumber?.number === lead.PhoneNumber) {
+            return {
+                Name: "Phone Number",
+                Status: "INVALID",
+                Reason: "Customer phone number is the same as the store's phone number",
+            };
+        }
+
+        const customerPhoneStatus = await this.ctx.run(
+            "Customer phone validation",
+            async () =>
+                await CheckPhoneNumberStatus(
+                    globalThis.TWILIO_CLIENT,
+                    lead.PhoneNumber,
+                ),
+        );
+        if (customerPhoneStatus.Status !== "VALID") {
+            return customerPhoneStatus;
+        }
+        return {
+            Name: "Web2Text Lead",
+            Status: "VALID",
+        };
+    }
+}
 /**
  * Validate that a given IP address is not blocked and allowed to submit a lead
  * @param ipAddress the IP address to check
@@ -23,7 +86,10 @@ export type ValidationStatus = {
 export async function CheckIpAddressStatus(
 	ipAddress: string,
 ): Promise<ValidationStatus> {
-	return { Status: "VALID" };
+	return {
+		Name: "IP Address",
+		Status: "VALID",
+	};
 }
 /**
  * Validate that the client the lead is being submitted to exists and is VALID to receive Web2Text leads
@@ -36,11 +102,13 @@ export async function CheckClientStatus(
 	const nexusRetailer = await NexusRetailerAPI.GetRetailerByID(universalId);
 	if (nexusRetailer == null)
 		return {
+			Name: "Client",
 			Status: "NONEXISTANT",
 			Reason: "Could not find client with this UniversalRetailerId in Nexus",
 		};
 	if (nexusRetailer.status === "Churned_Customer")
 		return {
+			Name: "Client",
 			Status: "INVALID",
 			Reason: "Nexus has flagged this retailer as a churned customer",
 		};
@@ -52,9 +120,16 @@ export async function CheckClientStatus(
 			(s) => s.status !== "Cancelled" && s.web2text_opt_out === true,
 		)
 	) {
-		return { Status: "INVALID", Reason: "Retailer is opted out of Web2Text" };
+		return {
+			Name: "Client",
+			Status: "INVALID",
+			Reason: "Retailer is opted out of Web2Text",
+		};
 	}
-	return { Status: "VALID" };
+	return {
+		Name: "Client",
+		Status: "VALID",
+	};
 }
 
 /**
@@ -71,6 +146,7 @@ export async function CheckLocationStatus(
 	}
 	if (location == null)
 		return {
+			Name: "Location",
 			Status: "NONEXISTANT",
 			Reason: "Could not find location with this Id in Nexus",
 		};
@@ -79,6 +155,7 @@ export async function CheckLocationStatus(
 		location.Web2Text_Phone_Number.trim() === ""
 	) {
 		return {
+			Name: "Location",
 			Status: "INVALID",
 			Reason:
 				"Location does not have a Web2Text phone number associated in Nexus",
@@ -87,6 +164,7 @@ export async function CheckLocationStatus(
 	const locationPhone = parsePhoneNumber(location.Web2Text_Phone_Number, "US");
 	if (locationPhone == null) {
 		return {
+			Name: "Location",
 			Status: "INVALID",
 			Reason: `Location's phone number cannot be parsed: '${location.Web2Text_Phone_Number}'`,
 		};
@@ -99,6 +177,7 @@ export async function CheckLocationStatus(
 		return phoneNumberStatus;
 	}
 	return {
+		Name: "Location",
 		Status: "VALID",
 	};
 }
@@ -120,6 +199,7 @@ export async function CheckPhoneNumberStatus(
 ): Promise<ValidationStatus> {
 	if (phoneNumber == null) {
 		return {
+			Name: "Phone Number",
 			Status: "NONEXISTANT",
 			Reason: "Phone number is missing",
 		};
@@ -127,6 +207,7 @@ export async function CheckPhoneNumberStatus(
 	const optedOut = await IsPhoneNumberOptedOut(phoneNumber);
 	if (optedOut) {
 		return {
+			Name: "Phone Number",
 			Status: "INVALID",
 			Reason: "Phone number is opted-out from our text messaging pool",
 		};
@@ -138,6 +219,7 @@ export async function CheckPhoneNumberStatus(
 	);
 	if (lookup.valid === false) {
 		return {
+			Name: "Phone Number",
 			Status: "INVALID",
 			Reason: `Twilio lookup reported this number as invalid - [${lookup.validationErrors.join(", ")}]`,
 		};
@@ -161,91 +243,13 @@ export async function CheckPhoneNumberStatus(
 	const allowedValues = ["mobile", "nonFixedVoip", "fixedVoip", "personal"];
 	if (phoneType != null && !allowedValues.includes(phoneType)) {
 		return {
+			Name: "Phone Number",
 			Status: "INVALID",
 			Reason: `Twilio lookup reported this number as type '${phoneType}' which is outside the allowed types of phone numbers: ${JSON.stringify(allowedValues)}`,
 		};
 	}
 	return {
+		Name: "Phone Number",
 		Status: "VALID",
 	};
-}
-
-/**
- * Parse and verify the POST body of a lead creation request
- * @param ctx the restate object context
- * @param req the request to parse and verify
- * @returns a parsed Web2TextLeadCreateRequest if the lead passed validation - throws an error otherwise
- */
-export async function VerifyLeadSubmission(
-	ctx: restate.ObjectContext<LeadState<Web2TextLead>>,
-	req: Web2TextLeadCreateRequest,
-) {
-	const leadState = req;
-	if (leadState.Lead.IPAddress != null) {
-		const ipAddressValid = await ctx.run<ValidationStatus>(
-			"IP address validation",
-			async () => await CheckIpAddressStatus(leadState.Lead.IPAddress!),
-		);
-		if (ipAddressValid.Status !== "VALID") {
-			throw new restate.TerminalError(
-				`IP Address is '${ipAddressValid.Status}' - ${ipAddressValid.Reason}`.trim(),
-				{ errorCode: 401 },
-			);
-		}
-	}
-	const clientStatus = await ctx.run<ValidationStatus>(
-		"Client status check",
-		async () => await CheckClientStatus(leadState.UniversalRetailerId),
-	);
-	if (clientStatus.Status !== "VALID") {
-		throw new restate.TerminalError(
-			`UniversalRetailerId is '${clientStatus.Status}' - ${clientStatus.Reason}`.trim(),
-			{ errorCode: 400 },
-		);
-	}
-
-	const locationStatus = await ctx.run<ValidationStatus>(
-		"Location validation",
-		async () => await CheckLocationStatus(leadState.Lead.LocationId),
-	);
-	if (locationStatus.Status !== "VALID") {
-		throw new restate.TerminalError(
-			`Location ID is '${locationStatus.Status}' - ${locationStatus.Reason}`.trim(),
-			{ errorCode: 400 },
-		);
-	}
-	const storePhoneNumber = parsePhoneNumber(
-		(
-			await ctx.run(
-				"Get store phone number",
-				async () =>
-					await NexusStoresAPI.GetRetailerStoreByID(leadState.Lead.LocationId),
-			)
-		)?.Web2Text_Phone_Number ?? "",
-		"US",
-	);
-
-	if (storePhoneNumber?.number === leadState.Lead.PhoneNumber) {
-		throw new restate.TerminalError(
-			"Customer phone number is the same as the store's phone number",
-			{ errorCode: 400 },
-		);
-	}
-
-	const customerPhoneStatus = await ctx.run(
-		"Customer phone validation",
-		async () =>
-			await CheckPhoneNumberStatus(
-				globalThis.TWILIO_CLIENT,
-				leadState.Lead.PhoneNumber,
-			),
-	);
-	if (customerPhoneStatus.Status !== "VALID") {
-		throw new restate.TerminalError(
-			`Customer phone number has status '${customerPhoneStatus.Status}' - ${customerPhoneStatus.Reason}`.trim(),
-			{
-				errorCode: 400,
-			},
-		);
-	}
 }

@@ -7,7 +7,7 @@ import { DHQIntegration } from "#external/dhq/web2text/DHQIntegration";
 import { RLMIntegration } from "#external/rlm/web2text/RLMIntegration";
 import { TwilioIntegration } from "#external/twilio/web2text/TwilioIntegration";
 import type { Web2TextLead } from "#lead/web2text";
-import type { SubmittedLeadState } from "../lead";
+import type { SubmittedLeadState } from "../lead/schema";
 import { TWILIO_CLIENT } from "../twilio";
 
 export const Web2TextIntegrations: IExternalIntegration<

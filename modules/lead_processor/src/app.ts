@@ -8,12 +8,8 @@ import {
 	CreateNewRestateLogger,
 	RegisterThisServiceWithRestate,
 } from "common/restate";
-import { LeadStateModel } from "#dynamodb/LeadStateModel";
-import { OptedOutNumberModel } from "#dynamodb/OptedOutNumberModel";
-import { AdminService } from "#restate/services/Admin/AdminService";
-import { DealerVirtualObject } from "#restate/services/Dealer/DealerVirtualObject";
-import { LeadVirtualObject } from "#restate/services/Lead/LeadVirtualObject";
-import { TwilioWebhooks } from "#restate/services/TwilioWebhooks/TwilioWebhooks";
+import { LeadStateModel, OptedOutNumberModel } from "#dynamodb";
+import { AdminService, DealerVirtualObject, LeadVirtualObject, TwilioWebhooks } from "#restate";
 import { VerifyEnvVariables } from "./env";
 import { TWILIO_CLIENT } from "./twilio";
 

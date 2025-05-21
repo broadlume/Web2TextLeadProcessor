@@ -5,7 +5,7 @@ import { Authorization } from "common/restate";
 import parsePhoneNumber from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import { z } from "zod";
-import { CheckClientStatus, CheckLocationStatus } from "#src/validators";
+import { CheckClientStatus, CheckLocationStatus } from "#lead/web2text/validation";
 
 type LocationStatus = {
 	NexusLocationId: string;
@@ -18,12 +18,12 @@ type LocationStatus = {
 	Web2TextPhoneNumber?: string;
 	StorePhoneNumber?: string;
 	CallTrackingPhoneNumber?: string;
-	Status: "VALID" | "INVALID" | "NONEXISTANT";
+	Status: "VALID" | "INVALID" | "NONEXISTANT" | "UNAUTHORIZED";
 	Reason?: string;
 };
 type DealerStatusResponse =
 	| {
-			Status: "INVALID" | "NONEXISTANT";
+			Status: "INVALID" | "NONEXISTANT" | "UNAUTHORIZED";
 			Reason?: string;
 	  }
 	| {
@@ -117,7 +117,8 @@ export const DealerVirtualObject = restate.object({
 						Web2TextPhoneNumber: web2TextPhoneNumber?.number,
 						StorePhoneNumber: storePhoneNumber?.number,
 						CallTrackingPhoneNumber: callTrackingPhoneNumber?.number,
-						...locationStatus,
+						Status: locationStatus.Status,
+						Reason: undefinedIfEmpty(locationStatus.Reason),
 					};
 					locationStatuses.push(status);
 				}

@@ -3,14 +3,13 @@ import { ENV_PREFIX } from "common";
 import type { ExternalIntegrationState } from "common/external";
 import dynamoose from "dynamoose";
 import { Item } from "dynamoose/dist/Item";
-import type { Web2TextLead } from "#lead/web2text";
 class LeadStateItem extends Item {
 	SchemaVersion!: string;
 	LeadId!: string;
 	LeadType!: string;
 	Status!: string;
 	UniversalRetailerId!: UUID;
-	Lead!: Web2TextLead;
+	Lead!: any;
 	DateSubmitted!: Date;
 	Integrations!: Record<string, ExternalIntegrationState>;
 }
@@ -24,7 +23,6 @@ const DynamoDBLeadStateSchema = new dynamoose.Schema(
 		LeadType: {
 			type: String,
 			required: true,
-			default: "WEB2TEXT",
 		},
 		LeadId: {
 			type: String,

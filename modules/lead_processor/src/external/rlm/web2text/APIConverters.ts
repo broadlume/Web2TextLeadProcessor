@@ -2,7 +2,7 @@ import { Into } from "common/external";
 import type { RLMLeadsAPI } from "common/external/rlm";
 import type { MessageInstance } from "twilio/lib/rest/conversations/v1/conversation/message";
 import type { Jsonify } from "type-fest";
-import type { SubmittedLeadState } from "#lead";
+import type { SubmittedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "#lead/web2text";
 
 export class Web2TextMessageIntoRLMNote extends Into<RLMLeadsAPI.RLMAttachNoteRequest> {

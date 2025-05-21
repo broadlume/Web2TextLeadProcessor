@@ -17,10 +17,10 @@ import { type E164Number, parsePhoneNumber } from "libphonenumber-js";
 import { assert, is } from "tsafe";
 import type { Twilio } from "twilio";
 import type { ConversationInstance } from "twilio/lib/rest/conversations/v1/conversation";
-import type { SubmittedLeadState } from "#lead";
+import type { SubmittedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "#lead/web2text";
-import { LeadVirtualObject } from "#src/restate/services/Lead/LeadVirtualObject";
-import { IsPhoneNumberOptedOut } from "#src/validators";
+import { LeadVirtualObject } from "#restate";
+import { IsPhoneNumberOptedOut } from "#lead/web2text/validation";
 import {
 	DealerCloseMessage,
 	DealerGreetMessage,

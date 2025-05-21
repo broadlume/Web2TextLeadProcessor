@@ -6,16 +6,15 @@ import { serializeError } from "serialize-error";
 import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
-import { Web2TextIntegrations } from "#external";
-import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead";
+import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "#lead/web2text";
 import { SyncWithDB } from "#restate/db";
-import { VerifyLeadSubmission } from "#src/validators";
-import { Web2TextLeadCreateRequestSchema } from "./Web2TextLeadCreateRequest";
+import { LeadCreateRequestSchema } from "./LeadCreateRequest";
+import { LeadTypeInfo } from "./LeadTypes";
 
-type State = LeadState<Web2TextLead>;
-type SubmittedState = SubmittedLeadState<Web2TextLead>;
-type ErrorState = ErrorLeadState<Web2TextLead>;
+type State = LeadState<Record<string, any>>;
+type SubmittedState = SubmittedLeadState<Record<string, any>>;
+type ErrorState = ErrorLeadState<Record<string, any>>;
 /**
  * Helper function that runs before all of our exclusive handlers
  * Handles initializing state from the database verifying assumptions
@@ -98,16 +97,10 @@ export const LeadVirtualObject = restate.object({
 				// Run pre-handler setup
 				await setup(ctx, ["NONEXISTANT"]);
 				try {
-					// Schema migrations
-					if (req.SchemaVersion === "1.0.0") {
-						req.Lead.LocationId ??= req.LocationId;
-						delete req.LocationId;
-						req.LeadType ??= "WEB2TEXT";
-						req.SchemaVersion ??= "2.0.0";
-					}
 					// Parse the request
 					const leadCreateRequest =
-						await Web2TextLeadCreateRequestSchema.safeParseAsync(req);
+						await LeadCreateRequestSchema.safeParseAsync(req);
+						
 					if (!leadCreateRequest.success) {
 						const formattedError = fromError(leadCreateRequest.error);
 						throw new restate.TerminalError(
@@ -117,9 +110,19 @@ export const LeadVirtualObject = restate.object({
 							},
 						);
 					}
-
+					const leadType = leadCreateRequest.data.LeadType;
+					const leadTypeInfo = LeadTypeInfo[leadType];
 					// Validate the submitted lead
-					await VerifyLeadSubmission(ctx, leadCreateRequest.data);
+					const validator = new leadTypeInfo.validator(ctx as unknown as restate.ObjectSharedContext);
+					const validationStatus = await validator.validate(leadCreateRequest.data);
+					if (validationStatus.Status !== "VALID") {
+						throw new restate.TerminalError(
+							`${validationStatus.Name} is ${validationStatus.Status} - ${validationStatus.Reason}`,
+							{
+								errorCode: 400
+							}
+						);
+					}
 					const Lead = leadCreateRequest.data;
 					ShouldRunSync = Lead.SyncImmediately ?? true;
 					delete Lead.SyncImmediately;
@@ -138,6 +141,7 @@ export const LeadVirtualObject = restate.object({
 					await SyncWithDB(ctx, "SEND");
 					ctx.console.log(`Created new lead with LeadID: '${ctx.key}'`, {
 						_meta: 1,
+						label: leadType,
 						Lead: Lead,
 					});
 				} catch (e) {
@@ -178,13 +182,15 @@ export const LeadVirtualObject = restate.object({
 				);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
-				ctx.console.log(`Starting 'sync' for Lead ID: '${ctx.key}'`);
-				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
+				const leadType = (await ctx.get("LeadType"))!;
+				const leadTypeInfo = LeadTypeInfo[leadType];
+
+				ctx.console.log(`Starting 'sync' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Update the state of the lead to SYNCING
 				ctx.set("Status", "SYNCING");
 				await SyncWithDB(ctx, "SEND");
 				// Iterate through all integrations and call their create/sync handlers
-				const integrations = Web2TextIntegrations;
+				const integrations = leadTypeInfo.integrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
 
 				// Run create/sync method on each integration
@@ -205,6 +211,7 @@ export const LeadVirtualObject = restate.object({
 								`Executing 'create' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
+									label: leadType,
 									Integration: integration.Name,
 									CurrentSyncState: state,
 								},
@@ -214,6 +221,7 @@ export const LeadVirtualObject = restate.object({
 								`Finished 'create' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
+									label: leadType,
 									Integration: integration.Name,
 									OldSyncState: state,
 									CurrentSyncState: newState,
@@ -224,6 +232,7 @@ export const LeadVirtualObject = restate.object({
 								`Executing 'sync' for external integration '${integration.Name}'`,
 								{
 									_meta: 1,
+									label: leadType,
 									Integration: integration.Name,
 									CurrentSyncState: state,
 								},
@@ -233,6 +242,7 @@ export const LeadVirtualObject = restate.object({
 								`Finished 'sync' for external integration '${integration.Name}' with status: '${newState.SyncStatus}'`,
 								{
 									_meta: 1,
+									label: leadType,
 									Integration: integration.Name,
 									OldSyncState: state,
 									CurrentSyncState: newState,
@@ -255,6 +265,7 @@ export const LeadVirtualObject = restate.object({
 							`Error executing '${operation}' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
+								label: leadType,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,
@@ -272,7 +283,7 @@ export const LeadVirtualObject = restate.object({
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
 				ctx.set<State["Status"]>("Status", "ACTIVE");
 				await SyncWithDB(ctx, "SEND");
-				ctx.console.log(`Finished 'sync' for Lead ID: '${ctx.key}'`);
+				ctx.console.log(`Finished 'sync' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 
 				// Return the status of the lead
 				return await ctx
@@ -296,10 +307,11 @@ export const LeadVirtualObject = restate.object({
 				);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING", "CLOSED"]);
-				assert(is<restate.ObjectContext<Web2TextLead>>(ctx));
-				ctx.console.log(`Starting 'close' for Lead ID: '${ctx.key}'`);
+				const leadType = (await ctx.get("LeadType"))!;
+				const leadTypeInfo = LeadTypeInfo[leadType];
+				ctx.console.log(`Starting 'close' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Iterate through all integrations and call their close handlers
-				const integrations = Web2TextIntegrations;
+				const integrations = leadTypeInfo.integrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
 				// Only set the close reason if it wasn't set already
 				const closeReason =
@@ -321,6 +333,7 @@ export const LeadVirtualObject = restate.object({
 							`Executing 'close' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
+								label: leadType,
 								Integration: integration.Name,
 								CurrentSyncState: state,
 							},
@@ -330,6 +343,7 @@ export const LeadVirtualObject = restate.object({
 							`Finished 'close' for external integration '${integration.Name}' with status '${newState.SyncStatus}'`,
 							{
 								_meta: 1,
+								label: leadType,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,
@@ -350,6 +364,7 @@ export const LeadVirtualObject = restate.object({
 							`Error executing 'close' for external integration '${integration.Name}'`,
 							{
 								_meta: 1,
+								label: leadType,
 								Integration: integration.Name,
 								OldSyncState: state,
 								CurrentSyncState: newState,
@@ -367,7 +382,7 @@ export const LeadVirtualObject = restate.object({
 				// Mark the lead status as CLOSED and sync with the database
 				ctx.set("Status", "CLOSED");
 				await SyncWithDB(ctx, "SEND");
-				ctx.console.log(`Finished 'close' for Lead ID: '${ctx.key}'`);
+				ctx.console.log(`Finished 'close' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)

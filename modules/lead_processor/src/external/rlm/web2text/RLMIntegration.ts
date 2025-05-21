@@ -15,7 +15,7 @@ import {
 	Web2TextMessageIntoRLMNote,
 } from "#external/rlm/web2text/APIConverters";
 import type { TwilioIntegrationState } from "#external/twilio/web2text/TwilioIntegration";
-import type { SubmittedLeadState } from "#lead";
+import type { SubmittedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "#lead/web2text";
 
 export interface RLMIntegrationState extends ExternalIntegrationState {

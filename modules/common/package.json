@@ -9,15 +9,15 @@
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.712.0",
         "serialize-error": "^11.0.3",
-        "@restatedev/restate-sdk": "1.4.0"
+        "@restatedev/restate-sdk": "1.6.0"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",
         "typescript": "^5.4.5"
     },
     "patchedDependencies": {
-        "@restatedev/restate-sdk@1.4.0": "patches/@restatedev%2Frestate-sdk@1.4.0.patch"
-      },
+        "@restatedev/restate-sdk@1.6.0": "patches/@restatedev%2Frestate-sdk@1.6.0.patch"
+    },
     "trustedDependencies": ["@biomejs/biome", "core-js", "esbuild"],
     "exports": {
         ".": {

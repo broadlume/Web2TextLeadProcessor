@@ -189,7 +189,7 @@ export const TwilioWebhooks = restate.service({
 				OptInNumbers?: E164Number[];
 			}> => {
 				await Authorization.CheckAuthorization(
-					ctx as unknown as restate.ObjectSharedContext,
+					ctx as any,
 					`${TwilioWebhooks.name}/getOptInNumber`,
 					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
 				);

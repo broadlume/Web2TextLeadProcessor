@@ -185,7 +185,6 @@ export const LeadVirtualObject = restate.object({
 				const leadType = (await ctx.get("LeadType"))!;
 				const leadTypeInfo = LeadTypeInfo[leadType];
 
-				ctx.console.log(`Starting 'sync' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Update the state of the lead to SYNCING
 				ctx.set("Status", "SYNCING");
 				await SyncWithDB(ctx, "SEND");
@@ -283,7 +282,6 @@ export const LeadVirtualObject = restate.object({
 				// Re-mark the lead status as ACTIVE and sync with the database after sync finishes
 				ctx.set<State["Status"]>("Status", "ACTIVE");
 				await SyncWithDB(ctx, "SEND");
-				ctx.console.log(`Finished 'sync' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 
 				// Return the status of the lead
 				return await ctx
@@ -309,7 +307,6 @@ export const LeadVirtualObject = restate.object({
 				await setup(ctx, ["ACTIVE", "SYNCING", "CLOSED"]);
 				const leadType = (await ctx.get("LeadType"))!;
 				const leadTypeInfo = LeadTypeInfo[leadType];
-				ctx.console.log(`Starting 'close' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Iterate through all integrations and call their close handlers
 				const integrations = leadTypeInfo.integrations;
 				const integrationStates = (await ctx.get("Integrations")) ?? {};
@@ -382,7 +379,6 @@ export const LeadVirtualObject = restate.object({
 				// Mark the lead status as CLOSED and sync with the database
 				ctx.set("Status", "CLOSED");
 				await SyncWithDB(ctx, "SEND");
-				ctx.console.log(`Finished 'close' for Lead ID: '${ctx.key}'`, {_meta: 1, label: leadType});
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)

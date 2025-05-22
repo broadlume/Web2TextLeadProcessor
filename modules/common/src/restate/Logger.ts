@@ -12,7 +12,7 @@ import type winston from "winston";
  */
 export const CreateNewRestateLogger: (
 	logger: winston.Logger,
-) => restate.Logger =
+) => restate.LoggerTransport =
 	(logger) =>
 		(params, message, ...o) => {
 			if (params.replaying) {

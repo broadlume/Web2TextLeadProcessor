@@ -37,9 +37,7 @@ export const DealerVirtualObject = restate.object({
 		 * Gives back a report on whether or not this dealer can have Web2Text on their website and for which locations
 		 */
 		status: restate.handlers.object.shared(
-			{
-				input: restate.serde.empty,
-			},
+			{},
 			async (
 				ctx: restate.ObjectSharedContext,
 				req?: Record<string, any>,

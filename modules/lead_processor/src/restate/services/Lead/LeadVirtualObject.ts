@@ -7,10 +7,13 @@ import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead/schema";
-import type { Web2TextLead } from "#lead/web2text";
 import { SyncWithDB } from "#restate/db";
 import { LeadCreateRequestSchema } from "./LeadCreateRequest";
 import { LeadTypeInfo } from "./LeadTypes";
+
+enum LeadType{
+	ACTON = "ACTON",
+}
 
 type State = LeadState<Record<string, any>>;
 type SubmittedState = SubmittedLeadState<Record<string, any>>;
@@ -124,7 +127,7 @@ export const LeadVirtualObject = restate.object({
 						);
 					}
 					const Lead = leadCreateRequest.data;
-					ShouldRunSync = Lead.SyncImmediately ?? true;
+					ShouldRunSync = leadType === LeadType.ACTON ? false : (Lead.SyncImmediately ?? true);
 					delete Lead.SyncImmediately;
 
 					const currentDate = new Date(await ctx.date.now());

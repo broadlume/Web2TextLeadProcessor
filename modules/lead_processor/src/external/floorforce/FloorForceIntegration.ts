@@ -32,7 +32,7 @@ export class FloorForceIntegration
 	): Promise<FloorForceIntegrationState> {
 		const leadState = await context.getAll();
 		const response = await context.run("Create FloorForce Lead", async () => {
-			const res = await FfWebAPI.CreateLead(leadState?.Lead?.Lead).catch(
+			const res = await FfWebAPI.CreateLead(leadState?.Lead).catch(
 				(e) =>
 					({
 						status: "failure",

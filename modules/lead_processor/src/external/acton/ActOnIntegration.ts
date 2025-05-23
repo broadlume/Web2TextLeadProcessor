@@ -29,11 +29,11 @@ export class ActOnIntegration
 	): Promise<ActOnIntegrationState> {
 		const leadState = await context.getAll();
 
-		const listId = leadState?.Lead?.Lead?.listId!;
-		delete leadState?.Lead?.Lead?.listId;
+		const listId = leadState?.Lead?.listId! as string;
+		delete leadState?.Lead?.listId;
 		const ActOnRes = await ActOnListAPI.CreateContactAPI(
 			listId,
-			leadState?.Lead?.Lead,
+			leadState?.Lead,
 		).catch(
 			(e) =>
 				({

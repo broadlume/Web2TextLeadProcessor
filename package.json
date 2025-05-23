@@ -4,8 +4,7 @@
   "workspaces": [
     "modules/common",
     "modules/lead_processor",
-    "modules/e2e_tests",
-    "modules/twilio_proxy"
+    "modules/e2e_tests"
   ],
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.5.3",

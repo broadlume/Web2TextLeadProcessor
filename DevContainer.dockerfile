@@ -25,3 +25,6 @@ COPY . /app
 WORKDIR /app
 RUN bun install
 
+
+# Install zoxide (for dev convenience)
+RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh

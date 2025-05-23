@@ -187,7 +187,11 @@ export class TwilioIntegration extends IExternalIntegration<
 		if (conversation == null || conversation.state === "closed") {
 			context
 				.objectSendClient(LeadVirtualObject, lead.LeadId)
-				.close({ reason: "Inactivity" });
+				.close({ reason: "Inactivity" }, restate.rpc.sendOpts({
+					headers: {
+						"authorization": process.env.INTERNAL_API_TOKEN!
+					}
+				}));
 			return newState;
 		}
 		const participants = await context.run(
@@ -205,7 +209,13 @@ export class TwilioIntegration extends IExternalIntegration<
 			// Close the lead if no phone numbers left in conversation
 			context
 				.objectSendClient(LeadVirtualObject, lead.LeadId)
-				.close({ reason: "One or fewer participants left in conversation" });
+				.close({ reason: "One or fewer participants left in conversation" },
+					restate.rpc.sendOpts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					})
+				);
 			return newState;
 		}
 		const hasCustomerOptedOut = await context.run(
@@ -216,7 +226,13 @@ export class TwilioIntegration extends IExternalIntegration<
 			// Close the lead if the customer has opted out of text messaging
 			context
 				.objectSendClient(LeadVirtualObject, lead.LeadId)
-				.close({ reason: "Customer opted out of text messaging" });
+				.close({ reason: "Customer opted out of text messaging" },
+					restate.rpc.sendOpts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					})
+				);
 			return newState;
 		}
 		return newState;

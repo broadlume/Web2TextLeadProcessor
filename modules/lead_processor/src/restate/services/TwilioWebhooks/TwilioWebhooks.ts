@@ -99,7 +99,11 @@ export const TwilioWebhooks = restate.service({
 				for (const leadId of leadIds) {
 					ctx
 						.objectSendClient(LeadVirtualObject, leadId)
-						.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
+						.sync({}, restate.rpc.sendOpts({
+							headers: {
+								"authorization": process.env.INTERNAL_API_TOKEN!
+							}
+						}));
 				}
 			},
 		),
@@ -130,8 +134,11 @@ export const TwilioWebhooks = restate.service({
 				for (const leadId of leadIds) {
 					ctx.objectSendClient(LeadVirtualObject, leadId).close({
 						reason: "Inactivity",
-						API_KEY: process.env.INTERNAL_API_TOKEN,
-					});
+					}, restate.rpc.sendOpts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					}));
 				}
 			},
 		),
@@ -191,7 +198,7 @@ export const TwilioWebhooks = restate.service({
 				await Authorization.CheckAuthorization(
 					ctx as any,
 					`${TwilioWebhooks.name}/getOptInNumber`,
-					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+					ctx.request().headers.get("authorization") ,
 				);
 
 				const phoneNumber = parsePhoneNumber(req["PhoneNumber"], "US");
@@ -288,8 +295,11 @@ async function HandleOptOutMessage(
 		for (const leadId of leadIds) {
 			ctx.objectSendClient(LeadVirtualObject, leadId).close({
 				reason: "Participant opted out of text messaging",
-				API_KEY: process.env.INTERNAL_API_TOKEN,
-			});
+			}, restate.rpc.sendOpts({
+				headers: {
+					"authorization": process.env.INTERNAL_API_TOKEN!
+				}
+			}));
 		}
 	}
 	if (isDealer) {

@@ -69,7 +69,7 @@ export const LeadVirtualObject = restate.object({
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/status`,
-					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+					ctx.request().headers.get("authorization") ,
 				);
 				const state = await ctx.getAll();
 				if (state.Status == null) {
@@ -90,7 +90,7 @@ export const LeadVirtualObject = restate.object({
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/create`,
-					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+					ctx.request().headers.get("authorization") ,
 				);
 				// Boolean flag for whether or not we should schedule a sync for the lead immediately after creation
 				let ShouldRunSync = false;
@@ -156,14 +156,21 @@ export const LeadVirtualObject = restate.object({
 					// Schedule syncing the lead to external integrations
 					ctx
 						.objectSendClient(LeadVirtualObject, ctx.key)
-						.sync({ API_KEY: process.env.INTERNAL_API_TOKEN });
+						.sync({}, restate.rpc.sendOpts({
+							headers: {
+								"authorization": process.env.INTERNAL_API_TOKEN!
+							}
+						}));
 				}
 				// Return the status of the lead
 				return (await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
 					.status({
-						API_KEY: process.env.INTERNAL_API_TOKEN,
-					})) as SubmittedState;
+					}, restate.rpc.opts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					}))) as SubmittedState;
 			},
 		),
 		/**
@@ -178,7 +185,7 @@ export const LeadVirtualObject = restate.object({
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/sync`,
-					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+					ctx.request().headers.get("authorization") ,
 				);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING"]);
@@ -286,7 +293,12 @@ export const LeadVirtualObject = restate.object({
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
+					.status({
+					}, restate.rpc.opts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					}));
 			},
 		),
 		/**
@@ -301,7 +313,7 @@ export const LeadVirtualObject = restate.object({
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${LeadVirtualObject.name}/close`,
-					ctx.request().headers.get("authorization") ?? req?.["API_KEY"],
+					ctx.request().headers.get("authorization") ,
 				);
 				// Run pre-handler setup
 				await setup(ctx, ["ACTIVE", "SYNCING", "CLOSED"]);
@@ -382,7 +394,12 @@ export const LeadVirtualObject = restate.object({
 				// Return the status of the lead
 				return await ctx
 					.objectClient(LeadVirtualObject, ctx.key)
-					.status({ API_KEY: process.env.INTERNAL_API_TOKEN });
+					.status({
+					}, restate.rpc.opts({
+						headers: {
+							"authorization": process.env.INTERNAL_API_TOKEN!
+						}
+					}));
 			},
 		),
 	},

@@ -54,7 +54,7 @@ export const AdminService = restate.service({
 				await Authorization.CheckAuthorization(
 					ctx as unknown as restate.ObjectSharedContext,
 					`${AdminService.name}/bulk/${parsed.data.Operation}`,
-					ctx.request().headers.get("authorization") ?? request?.["API_KEY"],
+					ctx.request().headers.get("authorization"),
 				);
 				// If Filter argument is an asterisk, filter for all Leads
 				// Otherwise use the filter object fields to filter the leads
@@ -93,8 +93,11 @@ export const AdminService = restate.service({
 							for (const lead of leads) {
 								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).close({
 									reason: parsed.data.Reason ?? "Closed by Administrator",
-									API_KEY: process.env.INTERNAL_API_TOKEN,
-								});
+								}, restate.rpc.sendOpts({
+									headers: {
+										"authorization": process.env.INTERNAL_API_TOKEN!
+									}
+								}));
 							}
 							result = leads.map((l) => (parsed.data.Verbose ? l : l.LeadId));
 						} else {
@@ -103,8 +106,11 @@ export const AdminService = restate.service({
 									leads.map((lead) =>
 										ctx.objectClient(LeadVirtualObject, lead.LeadId).close({
 											reason: parsed.data.Reason ?? "Closed by Administrator",
-											API_KEY: process.env.INTERNAL_API_TOKEN,
-										}),
+										},restate.rpc.opts({
+											headers: {
+												"authorization": process.env.INTERNAL_API_TOKEN!
+											}
+										})),
 									),
 								);
 							for (let i = 0; i < leads.length; i++) {
@@ -125,8 +131,11 @@ export const AdminService = restate.service({
 						if (parsed.data.Async === true) {
 							for (const lead of leads) {
 								ctx.objectSendClient(LeadVirtualObject, lead.LeadId).sync({
-									API_KEY: process.env.INTERNAL_API_TOKEN,
-								});
+								}, restate.rpc.sendOpts({
+									headers: {
+										"authorization": process.env.INTERNAL_API_TOKEN!
+									}
+								}));
 							}
 							result = leads.map((l) => (parsed.data.Verbose ? l : l.LeadId));
 						} else {
@@ -134,8 +143,11 @@ export const AdminService = restate.service({
 								await restate.CombineablePromise.allSettled(
 									leads.map((lead) =>
 										ctx.objectClient(LeadVirtualObject, lead.LeadId).sync({
-											API_KEY: process.env.INTERNAL_API_TOKEN,
-										}),
+										}, restate.rpc.opts({
+											headers: {
+												"authorization": process.env.INTERNAL_API_TOKEN!
+											}
+										})),
 									),
 								);
 							for (let i = 0; i < leads.length; i++) {

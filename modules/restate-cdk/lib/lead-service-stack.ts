@@ -29,7 +29,7 @@ export class LeadServiceStack extends cdk.Stack {
     const vpc = ec2.Vpc.fromLookup(this, "Vpc", { vpcId: props.vpcId });
     const adminUrl = ssm.StringParameter.valueForStringParameter(
       this, 
-      '/lead-service/restate-server/internal-admin-url'
+      `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server/internal-admin-url`
     );
     const leadService = new lambda_nodejs.NodejsFunction(this, `LeadService-${DEPLOYMENT_ENV_SUFFIX}`, {
       runtime: lambda.Runtime.NODEJS_22_X,

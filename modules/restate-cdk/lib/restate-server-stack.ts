@@ -162,7 +162,7 @@ export class RestateServerStack extends cdk.Stack {
          });
 
          new ssm.StringParameter(this, 'LeadProcessorRestateServerAdminUrl', {
-            parameterName: '/lead-service/restate-server/internal-admin-url',
+            parameterName: `/lead-service/${DEPLOYMENT_ENV_SUFFIX.toLowerCase()}/restate-server/internal-admin-url`,
             stringValue: this.restateServer.adminUrl,
             description: 'Internal admin URL for the Restate server'
           });

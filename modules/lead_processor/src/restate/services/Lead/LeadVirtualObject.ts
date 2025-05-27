@@ -7,7 +7,6 @@ import { assert, is } from "tsafe";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead/schema";
-import type { Web2TextLead } from "#lead/web2text";
 import { SyncWithDB } from "#restate/db";
 import { LeadCreateRequestSchema } from "./LeadCreateRequest";
 import { LeadTypeInfo } from "./LeadTypes";

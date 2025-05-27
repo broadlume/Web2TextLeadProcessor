@@ -120,5 +120,5 @@
 	// "references": [
 	// 	{ "path": "../common" }
 	// ],
-	"include": ["src/", "../common/src/validation.ts"]
+	"include": ["src/"]
 }

@@ -7,7 +7,8 @@ import { BotpressIntegration } from "#external/botpress/web2text/BotpressIntegra
 import { RLMIntegration } from "#external/rlm/web2text/RLMIntegration";
 import { DHQIntegration } from "#external/dhq/web2text/DHQIntegration";
 import { TWILIO_CLIENT } from "../../../twilio";
-import type { LeadType, SubmittedLeadState, Validator } from "#lead";
+import type { LeadType, SubmittedLeadState } from "#lead";
+import type { Validator } from "common";
 import type { IExternalIntegration } from "common/external";
 import type { z } from "zod";
 import type * as restate from "@restatedev/restate-sdk";

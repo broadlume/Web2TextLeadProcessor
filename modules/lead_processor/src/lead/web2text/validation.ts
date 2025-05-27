@@ -7,7 +7,7 @@ import type { E164Number } from "libphonenumber-js";
 import parsePhoneNumber from "libphonenumber-js";
 import type { Twilio } from "twilio";
 import { OptedOutNumberModel } from "#dynamodb";
-import type { Validator, ValidationStatus } from "../validation";
+import type { Validator, ValidationStatus } from "common";
 import type { NonValidatedLeadState } from "#lead/schema";
 import type { Web2TextLead } from "./schema";
 import type * as restate from "@restatedev/restate-sdk";

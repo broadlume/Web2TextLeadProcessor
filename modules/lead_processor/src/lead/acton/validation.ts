@@ -1,5 +1,5 @@
 import type { NonValidatedLeadState, SubmittedLeadState } from "#lead/schema";
-import type { Validator, ValidationStatus } from "#lead/validation";
+import type { Validator, ValidationStatus } from "common";
 import type { ActOnLead } from "./schema";
 import type * as restate from "@restatedev/restate-sdk";
 

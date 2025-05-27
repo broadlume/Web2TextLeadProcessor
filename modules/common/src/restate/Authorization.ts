@@ -1,10 +1,7 @@
 import * as restate from "@restatedev/restate-sdk";
 import { z } from "zod";
 import { APIKeyModel } from "../dynamodb";
-type ValidationStatus = {
-	Status: "VALID" | "INVALID" | "NONEXISTANT";
-	Reason?: string;
-};
+import type {ValidationStatus} from "common";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -15,6 +12,7 @@ async function CheckAPIKeyStatus(
 ): Promise<ValidationStatus> {
 	if (auth == null) {
 		return {
+            Name: "API Key",
 			Status: "NONEXISTANT",
 			Reason: "Must pass authorization header with valid API key",
 		};
@@ -24,19 +22,20 @@ async function CheckAPIKeyStatus(
 		key = auth.split(" ")?.[1]?.trim();
 	}
 	if (z.string().uuid().safeParse(key).success === false) {
-		return { Status: "INVALID", Reason: "API Key is not a valid UUIDv4" };
+		return { Name: "API Key", Status: "INVALID", Reason: "API Key is not a valid UUIDv4" };
 	}
 	if (
 		process.env.INTERNAL_API_TOKEN != null &&
 		key === process.env.INTERNAL_API_TOKEN
 	) {
-		return { Status: "VALID" };
+		return { Name: "API Key", Status: "VALID" };
 	}
 
 	const apiKey = await APIKeyModel.get(key);
 	const apiKeyValid = apiKey?.Active ?? false;
 	if (apiKeyValid === false) {
 		return {
+            Name: "API Key",
 			Status: "INVALID",
 			Reason: "API Key doesn't exist or has been marked inactive",
 		};
@@ -45,8 +44,9 @@ async function CheckAPIKeyStatus(
 		apiKey.AuthorizedEndpoints.includes("*") ||
 		apiKey.AuthorizedEndpoints.includes(endpoint)
 	)
-		return { Status: "VALID" };
+		return { Name: "API Key", Status: "VALID" };
 	return {
+        Name: "API Key",
 		Status: "INVALID",
 		Reason: `API Key does not have authorization for '${endpoint}'`,
 	};

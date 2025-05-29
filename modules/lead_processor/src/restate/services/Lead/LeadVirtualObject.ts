@@ -10,6 +10,7 @@ import type { ErrorLeadState, LeadState, SubmittedLeadState } from "#lead/schema
 import { SyncWithDB } from "#restate/db";
 import { LeadCreateRequestSchema } from "./LeadCreateRequest";
 import { LeadTypeInfo } from "./LeadTypes";
+import { ValidationErrorMsg } from "common";
 
 type State = LeadState<Record<string, any>>;
 type SubmittedState = SubmittedLeadState<Record<string, any>>;
@@ -116,7 +117,7 @@ export const LeadVirtualObject = restate.object({
 					const validationStatus = await validator.validate(leadCreateRequest.data);
 					if (validationStatus.Status !== "VALID") {
 						throw new restate.TerminalError(
-							`${validationStatus.Name} is ${validationStatus.Status} - ${validationStatus.Reason}`,
+							ValidationErrorMsg("Lead validation failed", validationStatus, true),
 							{
 								errorCode: 400
 							}

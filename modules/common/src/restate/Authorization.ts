@@ -1,7 +1,7 @@
 import * as restate from "@restatedev/restate-sdk";
 import { z } from "zod";
 import { APIKeyModel } from "../dynamodb";
-import type {ValidationStatus} from "common";
+import {ValidationErrorMsg, type ValidationStatus} from "common";
 /**
  * Validate that the authorization header on requests is a valid API key
  * @param auth the authorization header value
@@ -84,7 +84,7 @@ export async function CheckAuthorization(
 			Reason: result.Reason,
 			Request: request,
 		});
-		throw new restate.TerminalError(result.Reason ?? "", {
+		throw new restate.TerminalError(ValidationErrorMsg("Unauthorized", result), {
 			errorCode: 401,
 		});
 	}

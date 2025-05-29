@@ -82,29 +82,7 @@ export const TwilioWebhooks = restate.service({
 					ctx.request().headers.get("X-Twilio-Signature");
 				ValidateTwilioRequest(twilioHeader, data, "sync");
 				assert(is<TwilioConversationMessageWebhookBody>(data));
-				const conversation = await ctx.run(
-					"Fetch Twilio conversation",
-					async () =>
-						await TWILIO_CLIENT.conversations.v1
-							.conversations(data.ConversationSid)
-							.fetch(),
-				);
-				const attributes = JSON.parse(conversation.attributes ?? "{}");
-				const leadIds = attributes["LeadIds"] ?? [];
-				ctx.console.log(`Executing 'sync' for ${leadIds.length} lead(s)`, {
-					_meta: 1,
-					TwilioConversationSID: conversation.sid,
-					LeadIds: leadIds,
-				});
-				for (const leadId of leadIds) {
-					ctx
-						.objectSendClient(LeadVirtualObject, leadId)
-						.sync({}, restate.rpc.sendOpts({
-							headers: {
-								"authorization": process.env.INTERNAL_API_TOKEN!
-							}
-						}));
-				}
+				
 			},
 		),
 		close: restate.handlers.handler(

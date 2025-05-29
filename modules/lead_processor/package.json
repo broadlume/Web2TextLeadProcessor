@@ -4,10 +4,10 @@
   "description": "Lead Processor Service",
   "type": "commonjs",
   "exports": {
-      "./*": {
-        "default": "./src/*.ts",
-        "types": "./src/*.ts"
-      }
+    "./*": {
+      "default": "./src/*.ts",
+      "types": "./src/*.ts"
+    }
   },
   "imports": {
     "#lead": {
@@ -60,11 +60,13 @@
     "e2e": "cd e2e_tests && bun run vitest --config './vitest.config.mts'"
   },
   "dependencies": {
+    "@restatedev/restate-sdk-zod": "^1.6.0",
     "common": "workspace:*",
     "dotenv": "^16.4.5",
     "dynamoose": "^4.0.1",
     "memoizee": "^0.4.17",
-    "serialize-error": "^11.0.3"
+    "serialize-error": "^11.0.3",
+    "uuidv7": "^1.0.2"
   },
   "devDependencies": {
     "@types/memoizee": "^0.4.11"

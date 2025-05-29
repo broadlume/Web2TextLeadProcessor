@@ -39,6 +39,7 @@ export const Web2TextLeadSchema = z.object({
 			Product: NonEmptyString(),
 			Variant: NonEmptyString(),
 		})
+		.passthrough()
 		.optional(),
 	/**
 	 * The Customer's Google Analytic traffic data at time of submission

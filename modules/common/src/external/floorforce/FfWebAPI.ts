@@ -2,7 +2,13 @@ import ky from "ky";
 import z from "zod";
 import { logger } from "../../logger";
 import { Into } from "..";
-import { FF_HEADERS } from ".";
+
+export const FF_HEADERS = () => {
+    const headers = new Headers({
+        "Content-Type": "application/x-www-form-urlencoded",
+    });
+    return headers;
+};
 
 const FFLead = z.record(z.string(), z.any());
 export type FfLeadRequest = z.infer<typeof FFLead>;

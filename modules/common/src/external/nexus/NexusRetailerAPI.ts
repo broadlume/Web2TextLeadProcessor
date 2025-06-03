@@ -1,7 +1,7 @@
 import type { UUID } from "node:crypto";
 import ky, { HTTPError } from "ky";
 import { logger } from "../../logger";
-import { NEXUS_AUTHORIZATION_HEADERS } from ".";
+import { NEXUS_AUTHORIZATION_HEADERS } from "./util";
 
 export interface NexusRetailer {
     id: UUID;

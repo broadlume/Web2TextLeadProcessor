@@ -1,7 +1,13 @@
 import ky from "ky";
 import { logger } from "../../logger";
 import { Into } from "..";
-import { DHQ_AUTHORIZATION_HEADERS } from ".";
+
+const DHQ_AUTHORIZATION_HEADERS = () => {
+    const headers = new Headers();
+    const authorization = process.env.DHQ_API_KEY;
+    headers.set("Authorization", `Bearer ${authorization}`);
+    return headers;
+};
 
 /**
  * Possible flooring interests

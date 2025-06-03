@@ -4,7 +4,13 @@
     "files": {
         "includes": ["modules/*/src/**/*.ts", "!modules/twilio_proxy/*"]
     },
-    "assist": { "actions": { "source": { "organizeImports": "on" } } },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
     "linter": {
         "enabled": true,
         "rules": {
@@ -21,6 +27,9 @@
                 "noUnusedTemplateLiteral": "error",
                 "useNumberNamespace": "error",
                 "noUselessElse": "error"
+            },
+            "correctness": {
+                "noUnusedFunctionParameters": "off"
             },
             "complexity": {
                 "useLiteralKeys": "off"

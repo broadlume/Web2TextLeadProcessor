@@ -1,7 +1,7 @@
 import ky from "ky";
 import { logger } from "../../logger";
 import { Into } from "..";
-import { ACTON_AUTHORIZE_HEADERS } from ".";
+import { ACTON_AUTHORIZE_HEADERS } from "./util";
 
 type ActOnRequest = Record<string, any>;
 

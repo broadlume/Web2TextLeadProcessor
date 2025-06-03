@@ -2,7 +2,6 @@ import type { UUID } from "node:crypto";
 import { logger } from "common";
 import ky from "ky";
 import memoizee from "memoizee";
-import { RLM_GOD_AUTHORIZATION_HEADERS } from ".";
 
 export type RLMDHQLocationMappingResponse = {
     organization_id: number;
@@ -11,6 +10,13 @@ export type RLMDHQLocationMappingResponse = {
     location_name: string;
     dhq_store_id: UUID;
 }[];
+
+const RLM_GOD_AUTHORIZATION_HEADERS = () => {
+    const headers = new Headers();
+    headers.set("X-Api-Key", process.env.RLM_GOD_API_KEY!);
+    headers.set("X-User-Email", process.env.RLM_GOD_EMAIL!);
+    return headers;
+};
 
 async function _getDHQLocationsMapping(): Promise<RLMDHQLocationMappingResponse> {
     const rlmURL = new URL(process.env.RLM_API_URL);

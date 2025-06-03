@@ -1,8 +1,8 @@
 import type { UUID } from "node:crypto";
 import ky, { HTTPError } from "ky";
 import { logger } from "../../logger";
-import { NEXUS_AUTHORIZATION_HEADERS } from ".";
 import { GetNexusAWSAuthToken } from "./NexusAWSAuth";
+import { NEXUS_AUTHORIZATION_HEADERS } from "./util";
 
 export interface RetailerStore {
     birdeye_account_id: string;

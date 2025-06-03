@@ -1,22 +1,26 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.2/schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
+	"root": true,
+	"$schema": "https://biomejs.dev/schemas/2.0.0-beta.6/schema.json",
 	"files": {
-		"include": ["app/modules/*/src/**/*.ts"],
-		"ignore": ["app/modules/twilio_proxy/*"]
+		"includes": ["modules/*/src/**/*.ts", "!modules/twilio_proxy/*"]
 	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
-		"include": ["app/modules/*/src/**/*.ts"],
-		"ignore": ["app/modules/twilio_proxy/*"],
 		"enabled": true,
 		"rules": {
 			"recommended": true,
 			"style": {
 				"noParameterAssign": "off",
 				"noNonNullAssertion": "off",
-				"noInferrableTypes": "off"
+				"noInferrableTypes": "off",
+				"useAsConstAssertion": "error",
+				"useDefaultParameterLast": "error",
+				"useEnumInitializers": "error",
+				"useSelfClosingElements": "error",
+				"useSingleVarDeclarator": "error",
+				"noUnusedTemplateLiteral": "error",
+				"useNumberNamespace": "error",
+				"noUselessElse": "error"
 			},
 			"complexity": {
 				"useLiteralKeys": "off"
@@ -26,6 +30,9 @@
 			},
 			"performance": {
 				"noDelete": "off"
+			},
+			"nursery": {
+				"noImportCycles": "on"
 			}
 		}
 	}

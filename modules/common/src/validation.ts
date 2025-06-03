@@ -1,7 +1,7 @@
 export type ValidationStatus = {
     Name: string;
-	Status: "VALID" | "INVALID" | "NONEXISTANT";
-	Reason?: string;
+    Status: "VALID" | "INVALID" | "NONEXISTANT";
+    Reason?: string;
 };
 
 export interface Validator<T> {

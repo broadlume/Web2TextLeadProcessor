@@ -7,14 +7,14 @@ import { TWILIO_CLIENT } from "./twilio";
 
 globalThis.TWILIO_CLIENT = TWILIO_CLIENT;
 const restateLogger = _logger.child({
-	label: "Restate",
+    label: "Restate",
 });
 // Create the lambda handler to accept requests
 export const handler = restate
-	.endpoint()
-	.setLogger(CreateNewRestateLogger(restateLogger))
-	.bind(LeadVirtualObject)
-	.bind(DealerVirtualObject)
-	.bind(AdminService)
-	.bind(TwilioWebhooks)
-	.handler();
+    .endpoint()
+    .setLogger(CreateNewRestateLogger(restateLogger))
+    .bind(LeadVirtualObject)
+    .bind(DealerVirtualObject)
+    .bind(AdminService)
+    .bind(TwilioWebhooks)
+    .handler();

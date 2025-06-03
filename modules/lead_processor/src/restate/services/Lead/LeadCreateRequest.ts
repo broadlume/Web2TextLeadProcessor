@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { Web2TextLeadSchema } from "#lead/web2text";
-import { ActOnLeadSchema } from "#lead/acton";
 import { UUID } from "#lead";
+import { ActOnLeadSchema } from "#lead/acton";
+import { Web2TextLeadSchema } from "#lead/web2text";
 
 export const LeadCreateRequestSchema = z.discriminatedUnion("LeadType", [
     z.object({
@@ -17,9 +17,7 @@ export const LeadCreateRequestSchema = z.discriminatedUnion("LeadType", [
         UniversalRetailerId: UUID(),
         Lead: ActOnLeadSchema,
         SyncImmediately: z.boolean().optional(),
-    })
-])
-    
-export type LeadCreateRequest = z.infer<
-	typeof LeadCreateRequestSchema
->;
+    }),
+]);
+
+export type LeadCreateRequest = z.infer<typeof LeadCreateRequestSchema>;

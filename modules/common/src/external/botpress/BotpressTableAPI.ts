@@ -2,12 +2,12 @@ import ky from "ky";
 import { logger } from "../../logger";
 
 interface FindTableRowsRequest {
-	limit?: number;
-	offset?: number;
+    limit?: number;
+    offset?: number;
     filter?: any;
     group?: any;
     search?: string;
-	orderBy?: string;
+    orderBy?: string;
     orderDirection?: "asc" | "desc";
 }
 interface FindTableRowsResponse {
@@ -26,7 +26,12 @@ interface FindTableRowsResponse {
     warnings?: string[];
 }
 
-export async function FindTableRows(table: string, botId: string, workspaceId: string, query: FindTableRowsRequest): Promise<FindTableRowsResponse> {
+export async function FindTableRows(
+    table: string,
+    botId: string,
+    workspaceId: string,
+    query: FindTableRowsRequest,
+): Promise<FindTableRowsResponse> {
     try {
         if (process.env.BOTPRESS_API_TOKEN == null) {
             throw new Error("BOTPRESS_API_TOKEN is not set");
@@ -38,20 +43,19 @@ export async function FindTableRows(table: string, botId: string, workspaceId: s
                 Authorization: `Bearer ${process.env.BOTPRESS_API_TOKEN!}`,
             },
             json: query,
-        })
+        });
         return response.json();
     } catch (error) {
-		logger
-			.child({ label: "BotpressTableAPI:FindTableRows" })
-			.warn(`Failed to fetch rows from Botpress on table '${table}'`, {
-				_meta: 1,
-				Table: table,
+        logger
+            .child({ label: "BotpressTableAPI:FindTableRows" })
+            .warn(`Failed to fetch rows from Botpress on table '${table}'`, {
+                _meta: 1,
+                Table: table,
                 BotId: botId,
                 WorkspaceId: workspaceId,
                 Query: query,
-			});
-		logger.child({ label: "BotpressTableAPI:FindTableRows" }).error(error);
-		throw error;
+            });
+        logger.child({ label: "BotpressTableAPI:FindTableRows" }).error(error);
+        throw error;
     }
-
 }

@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { LEAD_SERVICE_NAME } from "../../globalSetup";
 import { supertest, TEST_API_KEY } from "../../setup";
 
-const INVALID_LOCATION_ID = "e994392b-5a6f-473f-85f8-dd715048fe29";
+// const INVALID_LOCATION_ID = "e994392b-5a6f-473f-85f8-dd715048fe29";
 const INVALID_UNIVERSAL_RETAILER_ID = "e994392b-5a6f-473f-85f8-dd715048fe29";
 describe("Lead Close E2E Tests", () => {
     beforeEach(() => {
@@ -129,7 +129,7 @@ describe("Lead Close E2E Tests", () => {
         const leadId = uuidv4();
         const request = createRandomLeadRequest({ SyncImmediately: false });
         // Create a lead first
-        const createResponse = await supertest
+        const _createResponse = await supertest
             .post(`/${LEAD_SERVICE_NAME}/${leadId}/create`)
             .auth(TEST_API_KEY, { type: "bearer" })
             .send(request)
@@ -175,7 +175,7 @@ describe("Lead Close E2E Tests", () => {
         });
         expect(closeResponse.body).to.have.property("Integrations");
         expect(Object.keys(closeResponse.body.Integrations).length === 1);
-        for (const [integration, state] of Object.entries(closeResponse.body.Integrations)) {
+        for (const [_integration, state] of Object.entries(closeResponse.body.Integrations)) {
             expect((state as any).SyncStatus === "CLOSED");
         }
     });

@@ -46,7 +46,7 @@ export const RESTATE_SERVER = restate
     .bind(TwilioWebhooks);
 RESTATE_SERVER.listen(RESTATE_PORT);
 if (isDeployed()) {
-    let registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
+    let _registeredRestateAddress: os.NetworkInterfaceInfo | null = null;
     const startupLogger = _logger.child({ label: "Startup" });
     startupLogger.info(`Restate Admin URL: ${process.env.RESTATE_ADMIN_URL}`);
     RegisterThisServiceWithRestate(RESTATE_PORT)
@@ -55,7 +55,7 @@ if (isDeployed()) {
                 startupLogger.warn("Failed to register this service with Restate admin panel - shutting down...");
                 process.exit(1);
             }
-            registeredRestateAddress = ipAddr;
+            _registeredRestateAddress = ipAddr;
         })
         .catch((e) => {
             startupLogger.error(e);

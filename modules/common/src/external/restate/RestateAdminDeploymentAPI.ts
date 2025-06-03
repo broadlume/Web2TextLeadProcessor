@@ -16,14 +16,6 @@ type CreateDeploymentResponse = {
     id: string;
     services: Required<RestateService>[];
 };
-
-type RestateError = {
-    message: string;
-    /**
-     * Restate error code describing this error
-     */
-    restate_code?: string;
-};
 /**
  * List all registered restate deployments.
  * @returns an array of registered restate deployments
@@ -64,7 +56,7 @@ export async function CreateDeployment(
 ): Promise<CreateDeploymentResponse> {
     try {
         new URL(deploymentUri);
-    } catch (e) {
+    } catch (_e) {
         throw new Error(`deploymentUri '${deploymentUri}' is not a valid URL`);
     }
 

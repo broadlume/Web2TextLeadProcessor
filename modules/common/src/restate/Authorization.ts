@@ -61,7 +61,7 @@ export async function CheckAuthorization(ctx: restate.Context, endpoint: string,
         let key: string | undefined;
         try {
             key = "key" in ctx ? (ctx.key as string) : undefined;
-        } catch (e) {
+        } catch (_e) {
             // ignore
         }
         ctx.console.warn(`API Key failed validation for endpoint '${endpoint}'`, {

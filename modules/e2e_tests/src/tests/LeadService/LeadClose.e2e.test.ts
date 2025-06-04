@@ -1,6 +1,6 @@
-import { createRandomLeadRequest } from "src/faker/Lead";
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it } from "vitest";
+import { createRandomLeadRequest } from "../../faker/Lead";
 import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Lead Close E2E Tests", () => {

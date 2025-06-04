@@ -23,9 +23,10 @@ describe("Lead Service Authentication", () => {
         });
         test(`${endpoint} should allow valid API keys`, async () => {
             const leadID = randomUUID();
+            const payload = endpoint === "create" ? { LeadType: "WEB2TEXT" } : {};
             await supertest
                 .post(`/Lead/${leadID}/${endpoint}`)
-                .send({})
+                .send(payload)
                 .auth(TEST_API_KEY, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });
@@ -36,14 +37,15 @@ describe("Lead Service Authentication", () => {
                     API_Key: randomUUID(),
                     Active: true,
                     DateCreated: new Date().toISOString(),
-                    AuthorizedEndpoints: [`/Lead/${endpoint}`],
+                    AuthorizedEndpoints: [`Lead/${endpoint}`],
                     Description: `E2E Test API Key for ${endpoint}`,
                 },
                 { overwrite: true },
             );
+            const payload = endpoint === "create" ? { LeadType: "WEB2TEXT" } : {};
             await supertest
                 .post(`/Lead/${leadID}/${endpoint}`)
-                .send({})
+                .send(payload)
                 .auth(apiKey.API_Key, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });

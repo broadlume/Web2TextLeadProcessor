@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { createRandomLeadRequest } from "src/faker/Lead";
 import { describe, test } from "vitest";
+import { createRandomLeadRequest } from "../../faker/Lead";
 import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Lead Creation", () => {
@@ -24,14 +24,14 @@ describe("Lead Creation", () => {
         const leadID = randomUUID();
         const request = createRandomLeadRequest({ SyncImmediately: false });
 
-        request.UniversalRetailerId = INVALID_UNIVERSAL_RETAILER_ID;
+        request.UniversalRetailerId = "invalid-uuid" as any;
         await supertest.post(`/Lead/${leadID}/create`).auth(TEST_API_KEY, { type: "bearer" }).send(request).expect(400);
     });
 
     test("Lead creation with invalid LocationId", async () => {
         const leadID = randomUUID();
         const request = createRandomLeadRequest({ SyncImmediately: false });
-        request.Lead.LocationId = "e994392b-5a6f-473f-85f8-dd715048fe29";
+        request.Lead.LocationId = "00000000-0000-0000-0000-000000000000" as any;
 
         await supertest.post(`/Lead/${leadID}/create`).auth(TEST_API_KEY, { type: "bearer" }).send(request).expect(400);
     });

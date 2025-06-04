@@ -39,6 +39,9 @@ export const nexusAwsApiHandlers = [
         if (!locationId || Object.keys(Object.fromEntries(url.searchParams)).length !== 1) {
             return new HttpResponse(null, { status: 400 });
         }
+        if (locationId !== NEXUS_FAKE_LOCATION_ID) {
+            return new HttpResponse(null, { status: 400 });
+        }
         return HttpResponse.json({
             data: [
                 {

@@ -1,17 +1,30 @@
-import { RestateAdminDeploymentAPI } from "common/external/restate";
-import shelljs from "shelljs";
+import { RestateTestEnvironment } from '@restatedev/restate-sdk-testcontainers';
+import {GenericContainer, type StartedTestContainer} from 'testcontainers'
+import type { TestProject } from 'vitest/node'
 export const LEAD_SERVICE_NAME = "Lead-test";
 export const DEALER_SERVICE_NAME = "Dealer-test";
 export const ADMIN_SERVICE_NAME = "Admin-test";
-export const TWILIO_WEBHOOKS_SERVICE_NAME = "TwilioWebhooks-test";
+export let restateServerContainer: RestateTestEnvironment;
+export let apiMockContainer: StartedTestContainer;
+export async function setup(project: TestProject) {
+    restateServerContainer = await RestateTestEnvironment.start(() => {});
+    const leadProcessorContainerImage = await GenericContainer.fromDockerfile(
+        "/app",
+        "./modules/lead_processor/Dockerfile.test"
+    ).withBuildkit().build();
+    // project.onTestsRerun(async () => {
+    //     await leadProcessorContainer.stop();
+    //     await leadProcessorContainer.start();
+    // });
+}
 export async function teardown() {
-    console.log("running teardown");
-    shelljs.exec("bun run clear-restate-test", { silent: true });
-    const deployments = await RestateAdminDeploymentAPI.ListDeployments();
-    for (const dep of deployments) {
-        if (dep.services.find((s) => s.name === LEAD_SERVICE_NAME || s.name === DEALER_SERVICE_NAME)) {
-            await RestateAdminDeploymentAPI.DeleteDeployment(dep.id, { force: true });
-            console.info("[E2E Tests] De-registered test service with Restate server");
-        }
+    if (restateServerContainer) {
+        await restateServerContainer.stop();
+    }
+    if (leadProcessorContainer) {
+        await leadProcessorContainer.stop();
+    }
+    if (apiMockContainer) {
+        await apiMockContainer.stop();
     }
 }

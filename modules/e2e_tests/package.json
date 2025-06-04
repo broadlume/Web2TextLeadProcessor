@@ -10,11 +10,13 @@
     },
     "dependencies": {
         "@faker-js/faker": "^9.5.1",
+        "@restatedev/restate-sdk-testcontainers": "^1.6.0",
         "common": "workspace:*",
         "dotenv": "^16.4.5",
+        "lead-processor-service": "workspace:*",
+        "testcontainers": "^11.0.0",
         "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "3.0.5",
-        "lead-processor-service": "workspace:*"
+        "vitest": "3.0.5"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",

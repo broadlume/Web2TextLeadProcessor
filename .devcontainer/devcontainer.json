@@ -21,7 +21,8 @@
 			"upgradePackages": true,
 			"nonFreePackages": false
 		},
-		"ghcr.io/devcontainers/features/aws-cli:1": {}
+		"ghcr.io/devcontainers/features/aws-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker": {}
 	},
 	"forwardPorts": [9080],
 	"postStartCommand": "bun install && echo \"alias restate='bun restate'\" >> ~/.zshrc && echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc",

@@ -29,8 +29,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Copy Test ENV vars
-        run: cp .env.test .env
       - name: Start Services
         uses: hoverkraft-tech/compose-action@v2.2.0
         with:

@@ -1,22 +1,5 @@
 name: lead-processor
 services:
-  lead-processor:
-    container_name: lead-processor-devcontainer
-    build: 
-      context: .
-      dockerfile: DevContainer.dockerfile
-    networks:
-      - restate-network
-    ports:
-    # Restate service port
-      - "9080:9080"
-    restart: always
-    command: "sleep infinity"
-    environment:
-      - AWS_ACCESS_KEY_ID=DUMMYIDEXAMPLE
-      - AWS_SECRET_ACCESS_KEY=DUMMYEXAMPLEKEY
-      - CI
-      - GITHUB_ACTIONS
   dynamodb-local:
    image: "amazon/dynamodb-local:latest"
    container_name: lead-processor-dynamodb-local

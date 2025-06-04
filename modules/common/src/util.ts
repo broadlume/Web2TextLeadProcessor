@@ -10,6 +10,12 @@ export function GetRunningEnvironment(): {
     local: boolean;
     environment: ValidEnvironment;
 } {
+    if (process.env.NODE_ENV === "test") {
+        return {
+            local: true,
+            environment: "test",
+        };
+    }
     return {
         local: process.env.DEPLOYMENT_ENV == null,
         environment: (process.env.DEPLOYMENT_ENV ?? process.env.DEPLOYMENT_ENV ?? "development") as ValidEnvironment,

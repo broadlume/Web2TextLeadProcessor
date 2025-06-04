@@ -13,6 +13,7 @@ export function InitLocalDynamoDb(models: ModelType<any>[]): boolean {
     process.env.AWS_SECRET_ACCESS_KEY = "DUMMY";
     // If the local DynamoDB instance is not set, return false
     if (process.env.LOCAL_DYNAMODB_URL == null) {
+        console.log("this is false");
         return false;
     }
     logger.child({ label: "DynamoDB" }).info(`Using local DynamoDB at '${process.env.LOCAL_DYNAMODB_URL}'`, {

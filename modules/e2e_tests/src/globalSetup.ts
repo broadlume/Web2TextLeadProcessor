@@ -1,30 +1,21 @@
-import { RestateTestEnvironment } from '@restatedev/restate-sdk-testcontainers';
-import {GenericContainer, type StartedTestContainer} from 'testcontainers'
-import type { TestProject } from 'vitest/node'
-export const LEAD_SERVICE_NAME = "Lead-test";
-export const DEALER_SERVICE_NAME = "Dealer-test";
-export const ADMIN_SERVICE_NAME = "Admin-test";
+import { RestateTestEnvironment } from "@restatedev/restate-sdk-testcontainers";
+import type { TestProject } from "vitest/node";
 export let restateServerContainer: RestateTestEnvironment;
-export let apiMockContainer: StartedTestContainer;
+declare module "vitest" {
+    export interface ProvidedContext {
+        RESTATE_ADMIN_URL: string;
+        RESTATE_INGRESS_URL: string;
+    }
+}
 export async function setup(project: TestProject) {
     restateServerContainer = await RestateTestEnvironment.start(() => {});
-    const leadProcessorContainerImage = await GenericContainer.fromDockerfile(
-        "/app",
-        "./modules/lead_processor/Dockerfile.test"
-    ).withBuildkit().build();
-    // project.onTestsRerun(async () => {
-    //     await leadProcessorContainer.stop();
-    //     await leadProcessorContainer.start();
-    // });
+    process.env.RESTATE_ADMIN_URL = restateServerContainer.adminAPIBaseUrl();
+    project.provide("RESTATE_ADMIN_URL", process.env.RESTATE_ADMIN_URL);
+    project.provide("RESTATE_INGRESS_URL", restateServerContainer.baseUrl());
 }
 export async function teardown() {
     if (restateServerContainer) {
+        console.log("Stopping restate server container");
         await restateServerContainer.stop();
-    }
-    if (leadProcessorContainer) {
-        await leadProcessorContainer.stop();
-    }
-    if (apiMockContainer) {
-        await apiMockContainer.stop();
     }
 }

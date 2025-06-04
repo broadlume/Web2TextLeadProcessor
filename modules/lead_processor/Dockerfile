@@ -38,7 +38,7 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY --parents --from=install /temp/dev/modules/* modules
 COPY . .
 
-# tests & build
+# check & build
 ENV NODE_ENV=production
 RUN bun run check && cd modules/lead_processor && bun run bundle
 
@@ -50,10 +50,9 @@ COPY --from=prerelease /app/modules/lead_processor/dist modules/lead_processor/d
 
 COPY --from=prerelease /app/package.json .
 COPY --parents --from=prerelease /app/modules/*/package.json .
-COPY modules/lead_processor/.env.prod modules/lead_processor/.env
 
 
 # run the app
 EXPOSE 9080/tcp
 ENV NODE_ENV=production
-ENTRYPOINT ["node","--enable-source-maps","--env-file=./modules/lead_processor/.env","./modules/lead_processor/dist/app.js"]
+ENTRYPOINT ["node","--enable-source-maps","./modules/lead_processor/dist/app.js"]

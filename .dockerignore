@@ -11,6 +11,7 @@ Makefile
 helm-charts
 .env
 .env.prod
+!.env.test
 .editorconfig
 .idea
 coverage*

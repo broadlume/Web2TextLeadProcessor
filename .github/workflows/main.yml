@@ -24,19 +24,25 @@ jobs:
         run: bun run check
   e2e:
     runs-on: ubuntu-latest
+    services:
+      lead-processor-dynamodb-local:
+        image: amazon/dynamodb-local:latest
+        ports:
+          - 8000:8000
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Copy Test ENV vars
-        run: cp .env.test .env
-      - name: Start Services
-        uses: hoverkraft-tech/compose-action@v2.2.0
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          compose-file: ./docker-compose.test.yaml
-          up-flags: --build --force-recreate
-      - name: Wait for Services To Be Ready
-        run: sleep 5
+          no-cache: true
+          bun-version: 1.2.10
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+      - name: Add Dynamodb local to /etc/hosts
+        run: |
+          echo "127.0.0.1 lead-processor-dynamodb-local" | sudo tee -a /etc/hosts
       - name: Run E2E Tests
-        run: docker compose -f ./docker-compose.test.yaml exec lead-processor bun run e2e
+        run: bun run e2e

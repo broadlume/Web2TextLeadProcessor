@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { APIKeyModel } from "common/dynamodb";
 import { describe, test } from "vitest";
-import { ADMIN_SERVICE_NAME } from "../../globalSetup";
 import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Admin Service Authentication", () => {
     for (const endpoint of ["bulk"]) {
         test(`${endpoint} should require authentication header`, async () => {
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",
@@ -17,7 +16,7 @@ describe("Admin Service Authentication", () => {
         });
         test(`${endpoint} should not allow invalid API keys`, async () => {
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",
@@ -27,7 +26,7 @@ describe("Admin Service Authentication", () => {
         });
         test(`${endpoint} should not allow malformed Authentication headers`, async () => {
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",
@@ -37,7 +36,7 @@ describe("Admin Service Authentication", () => {
         });
         test(`${endpoint} should allow valid API keys`, async () => {
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",
@@ -51,13 +50,13 @@ describe("Admin Service Authentication", () => {
                     API_Key: randomUUID(),
                     Active: true,
                     DateCreated: new Date().toISOString(),
-                    AuthorizedEndpoints: [`${ADMIN_SERVICE_NAME}/${endpoint}/FIND`],
+                    AuthorizedEndpoints: [`/Admin/${endpoint}/FIND`],
                     Description: `E2E Test API Key for ${endpoint}`,
                 },
                 { overwrite: true },
             );
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",
@@ -77,7 +76,7 @@ describe("Admin Service Authentication", () => {
                 { overwrite: true },
             );
             await supertest
-                .post(`/${ADMIN_SERVICE_NAME}/${endpoint}`)
+                .post(`/Admin/${endpoint}`)
                 .send({
                     Operation: "FIND",
                     Filter: "*",

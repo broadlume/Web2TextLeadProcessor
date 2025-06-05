@@ -5,11 +5,11 @@ import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Lead Service Authentication", () => {
     for (const endpoint of ["status", "create", "sync", "close"]) {
-        test(`${endpoint} should require authentication header`, async () => {
+        test.concurrent(`${endpoint} should require authentication header`, async () => {
             const leadID = randomUUID();
             await supertest.post(`/Lead/${leadID}/${endpoint}`).send({}).expect(401);
         });
-        test(`${endpoint} should not allow invalid API keys`, async () => {
+        test.concurrent(`${endpoint} should not allow invalid API keys`, async () => {
             const leadID = randomUUID();
             await supertest
                 .post(`/Lead/${leadID}/${endpoint}`)
@@ -17,11 +17,11 @@ describe("Lead Service Authentication", () => {
                 .auth(randomUUID(), { type: "bearer" })
                 .expect(401);
         });
-        test(`${endpoint} should not allow malformed Authentication headers`, async () => {
+        test.concurrent(`${endpoint} should not allow malformed Authentication headers`, async () => {
             const leadID = randomUUID();
             await supertest.post(`/Lead/${leadID}/${endpoint}`).send({}).auth("username", "password").expect(401);
         });
-        test(`${endpoint} should allow valid API keys`, async () => {
+        test.concurrent(`${endpoint} should allow valid API keys`, async () => {
             const leadID = randomUUID();
             const payload = endpoint === "create" ? { LeadType: "WEB2TEXT" } : {};
             await supertest
@@ -30,7 +30,7 @@ describe("Lead Service Authentication", () => {
                 .auth(TEST_API_KEY, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });
-        test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should allow API key when has authorized endpoint`, async () => {
             const leadID = randomUUID();
             const apiKey = await APIKeyModel.create(
                 {
@@ -49,7 +49,7 @@ describe("Lead Service Authentication", () => {
                 .auth(apiKey.API_Key, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });
-        test(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
             const leadID = randomUUID();
             const apiKey = await APIKeyModel.create(
                 {

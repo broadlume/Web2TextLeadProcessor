@@ -5,7 +5,7 @@ import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Admin Service Authentication", () => {
     for (const endpoint of ["bulk"]) {
-        test(`${endpoint} should require authentication header`, async () => {
+        test.concurrent(`${endpoint} should require authentication header`, async () => {
             await supertest
                 .post(`/Admin/${endpoint}`)
                 .send({
@@ -14,7 +14,7 @@ describe("Admin Service Authentication", () => {
                 })
                 .expect(401);
         });
-        test(`${endpoint} should not allow invalid API keys`, async () => {
+        test.concurrent(`${endpoint} should not allow invalid API keys`, async () => {
             await supertest
                 .post(`/Admin/${endpoint}`)
                 .send({
@@ -24,7 +24,7 @@ describe("Admin Service Authentication", () => {
                 .auth(randomUUID(), { type: "bearer" })
                 .expect(401);
         });
-        test(`${endpoint} should not allow malformed Authentication headers`, async () => {
+        test.concurrent(`${endpoint} should not allow malformed Authentication headers`, async () => {
             await supertest
                 .post(`/Admin/${endpoint}`)
                 .send({
@@ -34,7 +34,7 @@ describe("Admin Service Authentication", () => {
                 .auth("username", "password")
                 .expect(401);
         });
-        test(`${endpoint} should allow valid API keys`, async () => {
+        test.concurrent(`${endpoint} should allow valid API keys`, async () => {
             await supertest
                 .post(`/Admin/${endpoint}`)
                 .send({
@@ -44,7 +44,7 @@ describe("Admin Service Authentication", () => {
                 .auth(TEST_API_KEY, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });
-        test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should allow API key when has authorized endpoint`, async () => {
             const apiKey = await APIKeyModel.create(
                 {
                     API_Key: randomUUID(),
@@ -64,7 +64,7 @@ describe("Admin Service Authentication", () => {
                 .auth(apiKey.API_Key, { type: "bearer" })
                 .expect((s) => s.status !== 401);
         });
-        test(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
             const apiKey = await APIKeyModel.create(
                 {
                     API_Key: randomUUID(),

@@ -7,22 +7,22 @@ import { supertest, TEST_API_KEY } from "../../setup";
 
 describe("Dealer Service Authentication", () => {
     for (const endpoint of ["status"]) {
-        test(`${endpoint} should require authentication header`, async () => {
+        test.concurrent(`${endpoint} should require authentication header`, async () => {
             const universalRetailerId = randomUUID();
             await supertest.get(`/Dealer/${universalRetailerId}/${endpoint}`).expect(401);
         });
-        test(`${endpoint} should not allow invalid API keys`, async () => {
+        test.concurrent(`${endpoint} should not allow invalid API keys`, async () => {
             const universalRetailerId = randomUUID();
             await supertest
                 .get(`/Dealer/${universalRetailerId}/${endpoint}`)
                 .auth(randomUUID(), { type: "bearer" })
                 .expect(401);
         });
-        test(`${endpoint} should not allow malformed Authentication headers`, async () => {
+        test.concurrent(`${endpoint} should not allow malformed Authentication headers`, async () => {
             const universalRetailerId = randomUUID();
             await supertest.get(`/Dealer/${universalRetailerId}/${endpoint}`).auth("username", "password").expect(401);
         });
-        test(`${endpoint} should allow valid API keys`, async () => {
+        test.concurrent(`${endpoint} should allow valid API keys`, async () => {
             const universalRetailerId = randomUUID();
             await mockServer.boundary(async () => {
                 mockServer.use(
@@ -36,7 +36,7 @@ describe("Dealer Service Authentication", () => {
                     .expect((s) => s.status !== 401);
             })();
         });
-        test(`${endpoint} should allow API key when has authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should allow API key when has authorized endpoint`, async () => {
             const universalRetailerId = randomUUID();
             const apiKey = await APIKeyModel.create(
                 {
@@ -60,7 +60,7 @@ describe("Dealer Service Authentication", () => {
                     .expect((s) => s.status !== 401);
             })();
         });
-        test(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
+        test.concurrent(`${endpoint} should not allow API key when no authorized endpoint`, async () => {
             const universalRetailerId = randomUUID();
             const apiKey = await APIKeyModel.create(
                 {

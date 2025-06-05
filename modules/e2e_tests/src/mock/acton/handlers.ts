@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import type { ActOnResponse } from "common/external/acton/ActOnListAPI";
+import type { ActOnListAPI} from "common/external/acton";
 
 const ACTON_BASE_URL = process.env.ACTON_BASE_URL || "https://mock-acton-api.example.com";
 
@@ -23,7 +23,7 @@ export const actonApiHandlers = [
         }
 
         // Mock successful response
-        const response: ActOnResponse = {
+        const response: ActOnListAPI.ActOnResponse = {
             status: "success",
             message: "Contact created successfully",
             id: `mock_record_${Date.now()}`,

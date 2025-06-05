@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { type FfLeadResponse } from "common/external/floorforce/FfWebAPI";
+import { FfWebAPI } from "common/external/floorforce";
 
 const FF_API_URL = process.env.FF_API_URL || "https://mock-floorforce-api.example.com";
 
@@ -9,7 +9,7 @@ export const floorforceApiHandlers = [
         
         // Validate content type
         if (!contentType?.includes("application/x-www-form-urlencoded")) {
-            const response: FfLeadResponse = {
+            const response: FfWebAPI.FfLeadResponse = {
                 status: "failure",
                 message: "Invalid content type. Expected application/x-www-form-urlencoded",
             };
@@ -21,7 +21,7 @@ export const floorforceApiHandlers = [
             const formData = new URLSearchParams(body);
 
             if (!formData.get("First Name") || !formData.get("Last Name")) {
-                const response: FfLeadResponse = {
+                const response: FfWebAPI.FfLeadResponse = {
                     status: "failure",
                     message: "Missing required fields: First Name and Last Name are required",
                 };
@@ -29,14 +29,14 @@ export const floorforceApiHandlers = [
             }
 
             // Mock successful response
-            const response: FfLeadResponse = {
+            const response: FfWebAPI.FfLeadResponse = {
                 status: "success",
                 message: "Lead created successfully",
             };
 
             return HttpResponse.json(response, { status: 200 });
         } catch (error) {
-            const response: FfLeadResponse = {
+            const response: FfWebAPI.FfLeadResponse = {
                 status: "failure",
                 message: "Failed to parse form data",
             };

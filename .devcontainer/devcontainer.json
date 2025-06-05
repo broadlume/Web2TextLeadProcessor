@@ -22,9 +22,11 @@
 			"nonFreePackages": false
 		},
 		"ghcr.io/devcontainers/features/aws-cli:1": {},
-		"ghcr.io/devcontainers/features/docker-in-docker": {}
+		"ghcr.io/devcontainers/features/docker-in-docker": {},
+		"ghcr.io/devcontainers/features/sshd": {}
 	},
-	"forwardPorts": [9080],
+	"forwardPorts": [9080,2223],
+	"postCreateCommand": ".devcontainer/postCreate.sh",
 	"postStartCommand": "bun install && echo \"alias restate='bun restate'\" >> ~/.zshrc && echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc",
 	"customizations": {
 		"vscode": {

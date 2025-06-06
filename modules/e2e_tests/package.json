@@ -4,26 +4,28 @@
     "type": "commonjs",
     "scripts": {
         "check": "tsc --noEmit",
-        "e2e": "bun --env-file=.env.test run vitest --config './vitest.config.mts'",
+        "e2e": "bun --env-file=.env.test run vitest run --config './vitest.config.mts'",
         "clear-restate-test": "/app/scripts/clearRestate.sh Lead-test && /app/scripts/clearRestate.sh Dealer-test",
         "clear-dynamodb-test": "LOCAL_DYNAMODB_URL=http://lead-processor-dynamodb-local:8000 /app/scripts/clearDynamoDb.sh DEV"
     },
     "dependencies": {
         "@faker-js/faker": "^9.5.1",
+        "@restatedev/restate-sdk-testcontainers": "^1.6.0",
         "common": "workspace:*",
         "dotenv": "^16.4.5",
+        "lead-processor-service": "workspace:*",
+        "msw": "^2.9.0",
+        "testcontainers": "^11.0.0",
         "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "3.0.5",
-        "lead-processor-service": "workspace:*"
+        "vitest": "3.0.5"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.2",
         "@types/node": "^20.12.7",
         "@types/shelljs": "^0.8.15",
         "@types/supertest": "^6.0.2",
-        "nock": "^14.0.1",
         "shelljs": "0.8.5",
-        "supertest": "^7.0.0",
+        "supertest": "^7.1.1",
         "vitest": "^2.1.1"
     },
     "patchedDependencies": {

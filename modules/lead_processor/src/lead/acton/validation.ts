@@ -1,7 +1,7 @@
-import type { NonValidatedLeadState, SubmittedLeadState } from "#lead/schema";
-import type { Validator, ValidationStatus } from "common";
-import type { ActOnLead } from "./schema";
 import type * as restate from "@restatedev/restate-sdk";
+import type { ValidationStatus, Validator } from "common";
+import type { NonValidatedLeadState } from "#lead/schema";
+import type { ActOnLead } from "./schema";
 
 export class ActOnLeadValidator implements Validator<NonValidatedLeadState<ActOnLead>> {
     constructor(private readonly ctx: restate.ObjectSharedContext) {}

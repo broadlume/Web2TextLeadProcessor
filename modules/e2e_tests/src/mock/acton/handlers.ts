@@ -1,5 +1,5 @@
-import { http, HttpResponse } from "msw";
-import type { ActOnListAPI} from "common/external/acton";
+import type { ActOnListAPI } from "common/external/acton";
+import { HttpResponse, http } from "msw";
 
 const ACTON_BASE_URL = process.env.ACTON_BASE_URL || "https://mock-acton-api.example.com";
 
@@ -10,7 +10,7 @@ export const actonApiHandlers = [
         const body = await request.json();
 
         // Validate required fields
-        if (!body || typeof body !== 'object') {
+        if (!body || typeof body !== "object") {
             return HttpResponse.json(
                 {
                     status: "error",
@@ -18,7 +18,7 @@ export const actonApiHandlers = [
                     id: "",
                     contact_id: "",
                 },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
@@ -43,7 +43,7 @@ export const actonApiHandlers = [
                 token_type: "Bearer",
                 expires_in: 3600,
             },
-            { status: 200 }
+            { status: 200 },
         );
     }),
 ];

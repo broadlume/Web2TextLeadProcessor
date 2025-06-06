@@ -1,12 +1,12 @@
-import { http, HttpResponse } from "msw";
-import { FfWebAPI } from "common/external/floorforce";
+import type { FfWebAPI } from "common/external/floorforce";
+import { HttpResponse, http } from "msw";
 
 const FF_API_URL = process.env.FF_API_URL || "https://mock-floorforce-api.example.com";
 
 export const floorforceApiHandlers = [
     http.post(`${FF_API_URL}/external/postactonformdata`, async ({ request }) => {
         const contentType = request.headers.get("content-type");
-        
+
         // Validate content type
         if (!contentType?.includes("application/x-www-form-urlencoded")) {
             const response: FfWebAPI.FfLeadResponse = {
@@ -42,5 +42,5 @@ export const floorforceApiHandlers = [
             };
             return HttpResponse.json(response, { status: 400 });
         }
-    })
+    }),
 ];

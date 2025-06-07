@@ -6,7 +6,7 @@ import { logger as _logger, GetRunningEnvironment } from "common";
 import { InitLocalDynamoDb } from "common/dynamodb";
 import { CreateNewRestateLogger } from "common/restate";
 import { LeadStateModel, OptedOutNumberModel } from "#dynamodb";
-import { AdminService, DealerVirtualObject, LeadVirtualObject, TwilioWebhooks } from "#restate";
+import { AdminService, DealerVirtualObject, LeadVirtualObject, TwilioWebhooks, WebhookVirtualObject } from "#restate";
 import { VerifyEnvVariables } from "./env";
 import { TWILIO_CLIENT } from "./twilio";
 
@@ -21,7 +21,8 @@ export const RESTATE_ENDPOINTS = restate
     .bind(LeadVirtualObject)
     .bind(DealerVirtualObject)
     .bind(AdminService)
-    .bind(TwilioWebhooks);
+    .bind(TwilioWebhooks)
+    .bind(WebhookVirtualObject);
 
 export async function startServer(): Promise<http2.Http2Server> {
     // Randomize internal API token

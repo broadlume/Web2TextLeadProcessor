@@ -7,11 +7,7 @@ import { nexusApiHandlers, nexusAwsApiHandlers } from "./nexus/handlers";
 import { rlmApiHandlers } from "./rlm/handlers";
 import { twilioApiHandlers } from "./twilio/handlers";
 
-const whiteListedRoutes = [
-    http.all(`${process.env.LOCAL_DYNAMODB_URL!}*`, passthrough),
-    http.all("http://localhost*", passthrough),
-    http.all("http://127.0.0.1*", passthrough),
-];
+const whiteListedRoutes = [http.all("http://localhost*", passthrough), http.all("http://127.0.0.1*", passthrough)];
 export const handlers = [
     ...actonApiHandlers,
     ...floorforceApiHandlers,

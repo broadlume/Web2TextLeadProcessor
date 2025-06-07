@@ -24,11 +24,6 @@ jobs:
         run: bun run check
   e2e:
     runs-on: ubuntu-latest
-    services:
-      lead-processor-dynamodb-local:
-        image: amazon/dynamodb-local:latest
-        ports:
-          - 8000:8000
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4

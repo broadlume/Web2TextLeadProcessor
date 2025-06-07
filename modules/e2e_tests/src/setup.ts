@@ -1,4 +1,5 @@
 import type http2 from "node:http2";
+import path from "node:path";
 import { RestateAdminDeploymentAPI } from "common/external/restate";
 import dotenv from "dotenv";
 import { startServer } from "lead-processor-service/app";
@@ -17,9 +18,9 @@ async function globalSetup() {
     if (globalThis.GLOBAL_SETUP_DONE) {
         return;
     }
-    dotenv.config({
-        path: ".env.test",
-    });
+    process.env.LOCAL_DYNAMODB_URL = inject("LOCAL_DYNAMODB_URL");
+    process.env.RESTATE_ADMIN_URL = inject("RESTATE_ADMIN_URL");
+    process.env.PUBLIC_RESTATE_INGRESS_URL = inject("RESTATE_INGRESS_URL");
     process.env.INTERNAL_API_TOKEN = TEST_API_KEY;
     leadProcessorService = await startServer();
     console.log("Registering lead processor service deployment...");
@@ -32,8 +33,12 @@ async function globalSetup() {
 }
 
 beforeAll(async () => {
+    dotenv.config({
+        path: path.resolve(__dirname, "../.env.test"),
+    });
     mockServer.listen({ onUnhandledRequest: "error" });
     mockServer.use(
+        http.all(`${inject("LOCAL_DYNAMODB_URL")}*`, passthrough),
         http.all(`${inject("RESTATE_INGRESS_URL")}*`, passthrough),
         http.all(`${inject("RESTATE_ADMIN_URL")}*`, passthrough),
     );
@@ -42,6 +47,7 @@ beforeAll(async () => {
 afterEach(() => {
     mockServer.resetHandlers();
     mockServer.use(
+        http.all(`${inject("LOCAL_DYNAMODB_URL")}*`, passthrough),
         http.all(`${inject("RESTATE_INGRESS_URL")}*`, passthrough),
         http.all(`${inject("RESTATE_ADMIN_URL")}*`, passthrough),
     );
